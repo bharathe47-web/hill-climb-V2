@@ -1,0 +1,267 @@
+[gd_scene load_steps=8 format=3 uid="uid://survival_mode_scene_001"]
+
+[ext_resource type="Script" path="res://scripts/modes/survival/SurvivalController.gd" id="1_controller"]
+[ext_resource type="Script" path="res://scripts/core/FollowCamera.gd" id="2_cam"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud/hearts/hud_heart_full.png" id="3_heart_full"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future.ttf" id="4_font_future"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future_Narrow.ttf" id="5_font_narrow"]
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_ground"]
+distance = -420.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.08, 0.12, 0.18, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.5, 0.75, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 10
+
+[node name="Survival" type="Node2D"]
+script = ExtResource("1_controller")
+
+[node name="Ground" type="StaticBody2D" parent="."]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("WorldBoundaryShape2D_ground")
+
+[node name="GroundVisual" type="ColorRect" parent="Ground"]
+offset_left = -10000.0
+offset_top = 420.0
+offset_right = 50000.0
+offset_bottom = 1200.0
+color = Color(0.18, 0.28, 0.16, 1)
+
+[node name="VehicleSlot" type="Node2D" parent="."]
+
+[node name="ObstacleContainer" type="Node2D" parent="."]
+
+[node name="FollowCamera" type="Camera2D" parent="."]
+position = Vector2(0, 300)
+script = ExtResource("2_cam")
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="SurvivalHUD" type="Control" parent="UILayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TopMargin" type="MarginContainer" parent="UILayer/SurvivalHUD"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 70.0
+grow_horizontal = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+
+[node name="TopHBox" type="HBoxContainer" parent="UILayer/SurvivalHUD/TopMargin"]
+layout_mode = 2
+alignment = 1
+
+[node name="HeartContainer" type="HBoxContainer" parent="UILayer/SurvivalHUD/TopMargin/TopHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Heart1" type="TextureRect" parent="UILayer/SurvivalHUD/TopMargin/TopHBox/HeartContainer"]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+texture = ExtResource("3_heart_full")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Heart2" type="TextureRect" parent="UILayer/SurvivalHUD/TopMargin/TopHBox/HeartContainer"]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+texture = ExtResource("3_heart_full")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Heart3" type="TextureRect" parent="UILayer/SurvivalHUD/TopMargin/TopHBox/HeartContainer"]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+texture = ExtResource("3_heart_full")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Spacer" type="Control" parent="UILayer/SurvivalHUD/TopMargin/TopHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TimeLabel" type="Label" parent="UILayer/SurvivalHUD/TopMargin/TopHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font_future")
+theme_override_font_sizes/font_size = 18
+text = "TIME: 0.0s"
+
+[node name="Spacer2" type="Control" parent="UILayer/SurvivalHUD/TopMargin/TopHBox"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="DistanceLabel" type="Label" parent="UILayer/SurvivalHUD/TopMargin/TopHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 0.5, 1)
+theme_override_fonts/font = ExtResource("4_font_future")
+theme_override_font_sizes/font_size = 18
+text = "DIST: 0m"
+
+[node name="Spacer3" type="Control" parent="UILayer/SurvivalHUD/TopMargin/TopHBox"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="ExitMenuButton" type="Button" parent="UILayer/SurvivalHUD/TopMargin/TopHBox"]
+custom_minimum_size = Vector2(90, 36)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font_narrow")
+theme_override_font_sizes/font_size = 14
+text = "MENU"
+
+[node name="AdOfferPanel" type="PanelContainer" parent="UILayer"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -140.0
+offset_right = 220.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="UILayer/AdOfferPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="UILayer/AdOfferPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Title" type="Label" parent="UILayer/AdOfferPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_fonts/font = ExtResource("4_font_future")
+theme_override_font_sizes/font_size = 20
+text = "EXTRA CHANCE!"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="UILayer/AdOfferPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 0.9)
+theme_override_fonts/font = ExtResource("5_font_narrow")
+theme_override_font_sizes/font_size = 14
+text = "Watch a reward to receive exactly 1 extra life!
+(Available once per run)"
+horizontal_alignment = 1
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="UILayer/AdOfferPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="WatchAdButton" type="Button" parent="UILayer/AdOfferPanel/Margin/VBox/ButtonsHBox"]
+custom_minimum_size = Vector2(160, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font_future")
+theme_override_font_sizes/font_size = 14
+text = "CLAIM LIFE"
+
+[node name="SkipAdButton" type="Button" parent="UILayer/AdOfferPanel/Margin/VBox/ButtonsHBox"]
+custom_minimum_size = Vector2(120, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font_narrow")
+theme_override_font_sizes/font_size = 14
+text = "GIVE UP"
+
+[node name="GameOverPanel" type="PanelContainer" parent="UILayer"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -140.0
+offset_right = 220.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="UILayer/GameOverPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="UILayer/GameOverPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Title" type="Label" parent="UILayer/GameOverPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.35, 0.35, 1)
+theme_override_fonts/font = ExtResource("4_font_future")
+theme_override_font_sizes/font_size = 22
+text = "GAME OVER"
+horizontal_alignment = 1
+
+[node name="ReasonLabel" type="Label" parent="UILayer/GameOverPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.85)
+theme_override_fonts/font = ExtResource("5_font_narrow")
+theme_override_font_sizes/font_size = 14
+text = "NO LIVES REMAINING"
+horizontal_alignment = 1
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="UILayer/GameOverPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="RetryButton" type="Button" parent="UILayer/GameOverPanel/Margin/VBox/ButtonsHBox"]
+custom_minimum_size = Vector2(140, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font_future")
+theme_override_font_sizes/font_size = 14
+text = "RETRY"
+
+[node name="MenuButton" type="Button" parent="UILayer/GameOverPanel/Margin/VBox/ButtonsHBox"]
+custom_minimum_size = Vector2(140, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font_narrow")
+theme_override_font_sizes/font_size = 14
+text = "MAIN MENU"
+
+[connection signal="pressed" from="UILayer/SurvivalHUD/TopMargin/TopHBox/ExitMenuButton" to="." method="_on_menu_pressed"]
+[connection signal="pressed" from="UILayer/AdOfferPanel/Margin/VBox/ButtonsHBox/WatchAdButton" to="." method="request_ad_extra_life"]
+[connection signal="pressed" from="UILayer/AdOfferPanel/Margin/VBox/ButtonsHBox/SkipAdButton" to="." method="finish_run" binds= ["DECLINED EXTRA LIFE"]]
+[connection signal="pressed" from="UILayer/GameOverPanel/Margin/VBox/ButtonsHBox/RetryButton" to="." method="_on_retry_pressed"]
+[connection signal="pressed" from="UILayer/GameOverPanel/Margin/VBox/ButtonsHBox/MenuButton" to="." method="_on_menu_pressed"]

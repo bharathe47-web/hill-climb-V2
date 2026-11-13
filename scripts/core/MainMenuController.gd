@@ -2,12 +2,14 @@ class_name MainMenuController
 extends Control
 
 ## MainMenuController: Oversees the startup menu, displaying high scores, bank balance,
-## vehicle selection interface, and directing transitions into the Game run loop.
+## mode selection cards (Endless, Indian Roads, Survival, Garage), vehicle selection interface,
+## and directing transitions into the Game run loops.
 
 const SaveManager = preload("res://scripts/core/SaveManager.gd")
 const VehicleRegistry = preload("res://scripts/vehicle/VehicleRegistry.gd")
 
 signal start_game_requested
+signal start_survival_requested
 signal quit_requested
 
 @onready var best_distance_label: Label = %BestDistanceLabel
@@ -17,6 +19,12 @@ signal quit_requested
 @onready var change_vehicle_button: Button = get_node_or_null("%ChangeVehicleButton")
 @onready var reset_save_button: Button = %ResetSaveButton
 @onready var quit_button: Button = %QuitButton
+
+# Mode Selection Card buttons
+@onready var endless_mode_button: Button = get_node_or_null("%EndlessModeButton")
+@onready var survival_mode_button: Button = get_node_or_null("%SurvivalModeButton")
+@onready var garage_mode_button: Button = get_node_or_null("%GarageModeButton")
+@onready var indian_roads_mode_button: Button = get_node_or_null("%IndianRoadsModeButton")
 
 @onready var content_vbox: Control = get_node_or_null("%ContentVBox")
 @onready var vehicle_select_panel: Control = get_node_or_null("%VehicleSelectPanel")
@@ -42,23 +50,43 @@ func refresh_stats() -> void:
 		runs_played_label.text = "%d" % int(data.get("runs_played", 0))
 
 func _connect_signals() -> void:
+	# Primary standard action buttons
 	if is_instance_valid(start_button) and not start_button.pressed.is_connected(_on_start_pressed):
 		start_button.pressed.connect(_on_start_pressed)
 	if is_instance_valid(change_vehicle_button) and not change_vehicle_button.pressed.is_connected(_on_change_vehicle_pressed):
 		change_vehicle_button.pressed.connect(_on_change_vehicle_pressed)
+	if is_instance_valid(reset_save_button) and not reset_save_button.pressed.is_connected(_on_reset_pressed):
+		reset_save_button.pressed.connect(_on_reset_pressed)
+	if is_instance_valid(quit_button) and not quit_button.pressed.is_connected(_on_quit_pressed):
+		quit_button.pressed.connect(_on_quit_pressed)
+
+	# Mode selection card buttons
+	if is_instance_valid(endless_mode_button) and not endless_mode_button.pressed.is_connected(_on_start_pressed):
+		endless_mode_button.pressed.connect(_on_start_pressed)
+	if is_instance_valid(survival_mode_button) and not survival_mode_button.pressed.is_connected(_on_survival_pressed):
+		survival_mode_button.pressed.connect(_on_survival_pressed)
+	if is_instance_valid(garage_mode_button) and not garage_mode_button.pressed.is_connected(_on_change_vehicle_pressed):
+		garage_mode_button.pressed.connect(_on_change_vehicle_pressed)
+	if is_instance_valid(indian_roads_mode_button) and not indian_roads_mode_button.pressed.is_connected(_on_indian_roads_pressed):
+		indian_roads_mode_button.pressed.connect(_on_indian_roads_pressed)
+
+	# Vehicle selection carousel buttons
 	if is_instance_valid(vehicle_select_back_button) and not vehicle_select_back_button.pressed.is_connected(_on_vehicle_select_back_pressed):
 		vehicle_select_back_button.pressed.connect(_on_vehicle_select_back_pressed)
 	if is_instance_valid(prev_vehicle_button) and not prev_vehicle_button.pressed.is_connected(_on_prev_vehicle_pressed):
 		prev_vehicle_button.pressed.connect(_on_prev_vehicle_pressed)
 	if is_instance_valid(next_vehicle_button) and not next_vehicle_button.pressed.is_connected(_on_next_vehicle_pressed):
 		next_vehicle_button.pressed.connect(_on_next_vehicle_pressed)
-	if is_instance_valid(reset_save_button) and not reset_save_button.pressed.is_connected(_on_reset_pressed):
-		reset_save_button.pressed.connect(_on_reset_pressed)
-	if is_instance_valid(quit_button) and not quit_button.pressed.is_connected(_on_quit_pressed):
-		quit_button.pressed.connect(_on_quit_pressed)
 
 func _on_start_pressed() -> void:
 	start_game_requested.emit()
+
+func _on_survival_pressed() -> void:
+	start_survival_requested.emit()
+
+func _on_indian_roads_pressed() -> void:
+	# Joel's module is currently in development
+	pass
 
 func _on_change_vehicle_pressed() -> void:
 	_open_vehicle_selection()
