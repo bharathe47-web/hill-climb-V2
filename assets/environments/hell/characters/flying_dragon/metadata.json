@@ -1,0 +1,26 @@
+{
+  "variant_name": "Flying Hell Dragon (Sky Patrol)",
+  "author": "bevouliin.com",
+  "source_url": "https://opengameart.org/content/orange-flying-flappy-dragon-game-character",
+  "license": "Creative Commons CC0 1.0 Universal (Public Domain)",
+  "style": "High-resolution 2D Illustrated Vector",
+  "recommended_fps": {
+    "fly": 8
+  },
+  "animations": {
+    "fly": {
+      "frame_count": 4,
+      "dimensions": "817x679",
+      "width": 817,
+      "height": 679,
+      "mode": "RGBA",
+      "first_frame_sha256": "d7d30b9ba9570664c6947a1086b7f3b5b7471fd2a0ffdef32f4bd5aed267bd4a"
+    }
+  },
+  "spritesheets": {
+    "hell_dragon_fly_sheet.png": {
+      "dimensions": "3268x679",
+      "sha256": "91d7116e3e858edf5e72957bc3ca5e579dd31497e12330c3c5f627cc576dd8d8"
+    }
+  }
+}

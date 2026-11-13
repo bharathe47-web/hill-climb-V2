@@ -1,0 +1,39 @@
+{
+  "variant_name": "Ground Demon Goblin (Walking Monster)",
+  "author": "bevouliin.com",
+  "source_url": "https://opengameart.org/content/orange-goblin",
+  "license": "Creative Commons Attribution 4.0 (CC-BY 4.0)",
+  "style": "High-resolution 2D Illustrated Vector (matches approved skull obstacle)",
+  "recommended_fps": {
+    "idle": 8,
+    "walk": 24
+  },
+  "animations": {
+    "idle": {
+      "frame_count": 8,
+      "dimensions": "299x281",
+      "width": 299,
+      "height": 281,
+      "mode": "RGBA",
+      "first_frame_sha256": "9a5bdd04453aead5a9804a487de3ca02716f00d9440683065c0b6ae33c457198"
+    },
+    "walk": {
+      "frame_count": 43,
+      "dimensions": "299x281",
+      "width": 299,
+      "height": 281,
+      "mode": "RGBA",
+      "first_frame_sha256": "9a5bdd04453aead5a9804a487de3ca02716f00d9440683065c0b6ae33c457198"
+    }
+  },
+  "spritesheets": {
+    "goblin_fiend_idle_sheet.png": {
+      "dimensions": "2392x281",
+      "sha256": "5bb6b38f034b48cdff582ffd19c1007a0837517a5ad1b561aebda87fd63ba751"
+    },
+    "goblin_fiend_walk_sheet.png": {
+      "dimensions": "2093x1967",
+      "sha256": "f145852c05f5da81856562129f6466a806ffb516b9e80eaa5508da602ca865b9"
+    }
+  }
+}

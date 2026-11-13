@@ -1,0 +1,75 @@
+{
+  "character_name": "Skeleton Knight",
+  "author": "sonild",
+  "source_url": "https://opengameart.org/content/skeleton-knight",
+  "license": "Creative Commons CC0 1.0 Universal (Public Domain)",
+  "style": "Polished 2D Illustrated Dark Fantasy",
+  "target_engine": "Godot 4.7.x",
+  "recommended_fps": {
+    "idle": 10,
+    "walk": 10,
+    "attack1": 12,
+    "attack2": 12,
+    "dead": 8
+  },
+  "animations": {
+    "idle": {
+      "frame_count": 10,
+      "dimensions": "429x690",
+      "width": 429,
+      "height": 690,
+      "mode": "RGBA",
+      "first_frame_sha256": "50402507a2ac4bceb6b9fea6308283685ba3ec088e8508ac0ad53d52320a4a47"
+    },
+    "walk": {
+      "frame_count": 10,
+      "dimensions": "427x694",
+      "width": 427,
+      "height": 694,
+      "mode": "RGBA",
+      "first_frame_sha256": "85672e353875f445eb47b31ded2d42ca3c53ae8c466df5ec7fad32b2166b317f"
+    },
+    "attack1": {
+      "frame_count": 10,
+      "dimensions": "724x778",
+      "width": 724,
+      "height": 778,
+      "mode": "RGBA",
+      "first_frame_sha256": "21f09bb1acb129a4696f6033bfaadf6eac3b3b344bf848b09a2e93c0e8878b29"
+    },
+    "attack2": {
+      "frame_count": 10,
+      "dimensions": "755x808",
+      "width": 755,
+      "height": 808,
+      "mode": "RGBA",
+      "first_frame_sha256": "18f2b743f13255448adb9b65cbeacc0f508d5c94e6693b7633e55e94a3e266d4"
+    },
+    "dead": {
+      "frame_count": 7,
+      "dimensions": "666x671",
+      "width": 666,
+      "height": 671,
+      "mode": "RGBA",
+      "first_frame_sha256": "d692d3e87e83018e240e495b6139006d114ec2c0f9d275f737b871c94fcfa86b"
+    }
+  },
+  "spritesheets": {
+    "skeleton_knight_attack1_sheet.png": {
+      "dimensions": "7245x3114",
+      "sha256": "8e52ca51ba0d259a5c6f501fea69e73dde1d0d9c015c2e545ee62802f507d608"
+    },
+    "skeleton_knight_attack2_sheet.png": {
+      "dimensions": "7555x3234",
+      "sha256": "5252e461f082a07cf1f49b4429aae61ea401060bc2b58305872d7e9daf4fbfe8"
+    },
+    "skeleton_knight_idle_sheet.png": {
+      "dimensions": "4290x2762",
+      "sha256": "fc3ff82795ff6af50a78ca619428aa002d6e36d1b6d80713a6ef97bfc1a537ff"
+    },
+    "skeleton_knight_walk_sheet.png": {
+      "dimensions": "4270x2776",
+      "sha256": "c8221daf14d976daf56398bee9ba5fd007178aeffc114fac85cdd2c3eebb8357"
+    }
+  }
+}

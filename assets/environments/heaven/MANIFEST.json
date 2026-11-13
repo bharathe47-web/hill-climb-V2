@@ -1,0 +1,158 @@
+{
+  "environment": "Heaven (Celestial Palace)",
+  "biome_id": "HEAVEN",
+  "distance_window_meters": "1,150m \u2013 2,200m",
+  "target_platform": "Godot 4.7.2 Mobile Vulkan (AMD Radeon 610M)",
+  "categories": {
+    "sky": {
+      "puffy_sky_blue_01.png": {
+        "role": "Distant celestial sky backdrop",
+        "node_type": "Sprite2D / Parallax2D",
+        "dimensions": "1024x512",
+        "format": "PNG (RGB/RGBA)",
+        "source": "Scribe / Seamless Sky Backgrounds",
+        "license": "CC0 Public Domain"
+      }
+    },
+    "architecture": {
+      "heaven_marble_floor.png": {
+        "role": "Drivable platform & palace floor tile",
+        "node_type": "Sprite2D / Polygon2D texture",
+        "dimensions": "1920x1080",
+        "format": "PNG",
+        "source": "OpenGameArt Golden Palace",
+        "license": "CC0 Public Domain"
+      },
+      "heaven_palace_column.png": {
+        "role": "Distant colonnade architectural prop",
+        "node_type": "Sprite2D (Parallax)",
+        "dimensions": "512x1024",
+        "format": "PNG",
+        "source": "OpenGameArt Golden Palace",
+        "license": "CC0 Public Domain"
+      },
+      "heaven_palace_window.png": {
+        "role": "Cathedral arched palace window",
+        "node_type": "Sprite2D",
+        "dimensions": "512x512",
+        "format": "PNG",
+        "source": "OpenGameArt Golden Palace",
+        "license": "CC0 Public Domain"
+      },
+      "heaven_palace_ceiling.png": {
+        "role": "Palace corniced ceiling fascia",
+        "node_type": "Sprite2D",
+        "dimensions": "1920x256",
+        "format": "PNG",
+        "source": "OpenGameArt Golden Palace",
+        "license": "CC0 Public Domain"
+      },
+      "heaven_golden_archway.png": {
+        "role": "Transition 1 Launch Gateway Portal",
+        "node_type": "Sprite2D (Gateway)",
+        "dimensions": "1024x1024",
+        "format": "PNG (Transparent)",
+        "source": "OpenGameArt Stone Arch / Recoloured Gold",
+        "license": "CC0 Public Domain"
+      },
+      "heaven_golden_archway_front.png": {
+        "role": "Frontal framing gateway arch",
+        "node_type": "Sprite2D",
+        "dimensions": "1024x1024",
+        "format": "PNG (Transparent)",
+        "source": "OpenGameArt Stone Arch",
+        "license": "CC0 Public Domain"
+      }
+    },
+    "decorations": {
+      "heaven_angel_statue.png": {
+        "role": "Ivory-gold angel monument on high ledges",
+        "node_type": "Sprite2D",
+        "dimensions": "1024x1024",
+        "format": "PNG (Transparent)",
+        "source": "Unsplash Monument / Transparent Cutout",
+        "license": "Unsplash Free License / CC0 compatible"
+      },
+      "flowers": {
+        "flower_01..08.png": {
+          "role": "Celestial garden ground flora on grass ledges",
+          "node_type": "Sprite2D (Flora)",
+          "count": 8,
+          "format": "PNG (Transparent)",
+          "source": "Watering A Flower Art Assets",
+          "license": "CC-BY 4.0 / CC0"
+        }
+      }
+    },
+    "wildlife": {
+      "dove_atlas.png": {
+        "role": "Animated flying white dove flock (Power-of-Two 8x8 atlas)",
+        "node_type": "AnimatedSprite2D / SpriteFrames",
+        "dimensions": "2048x2048",
+        "cells": "60 active frames (256x256 each)",
+        "format": "PNG (Transparent RGBA)",
+        "source": "OpenGameArt Flying Dove Animation",
+        "license": "CC0 Public Domain"
+      },
+      "dove_atlas_3200.png": {
+        "role": "Master native resolution atlas (archival & high-DPI)",
+        "dimensions": "3200x3200",
+        "cells": "60 active frames (400x400 each)",
+        "format": "PNG (Transparent RGBA)",
+        "source": "OpenGameArt Flying Dove Animation",
+        "license": "CC0 Public Domain"
+      },
+      "raw_frames": {
+        "count": 60,
+        "range": "dove_frame_00.png to dove_frame_59.png",
+        "dimensions": "400x400 each"
+      }
+    },
+    "vfx": {
+      "clouds": {
+        "white_puff_00..24.png": {
+          "role": "Volumetric cloud particles & transition pads",
+          "node_type": "CPUParticles2D / GPUParticles2D",
+          "count": 25,
+          "format": "PNG (Transparent)",
+          "source": "Kenney Cloud Particles",
+          "license": "CC0 Public Domain"
+        }
+      },
+      "light_masks": {
+        "count": 10,
+        "role": "God-rays, window beams, and soft celestial glows",
+        "node_type": "PointLight2D / Sprite2D (Additive)",
+        "source": "Kenney Light Masks",
+        "license": "CC0 Public Domain"
+      },
+      "particles": {
+        "count": 20,
+        "role": "Golden dust, sparkles, stars, and magical glints",
+        "node_type": "CPUParticles2D",
+        "source": "Kenney Particle Pack",
+        "license": "CC0 Public Domain"
+      }
+    },
+    "audio": {
+      "heavenly_loop.ogg": {
+        "role": "Seamless celestial background theme",
+        "bus": "Music",
+        "duration": "1:42",
+        "license": "CC0 / Royalty Free"
+      },
+      "ambience_wind_soft.mp3": {
+        "role": "High-altitude tranquil wind breeze",
+        "bus": "Ambience",
+        "duration": "0:58",
+        "license": "CC0 / Royalty Free"
+      },
+      "wind_chimes_settle.mp3": {
+        "role": "Ethereal chime resonance on entering Heaven",
+        "bus": "Ambience",
+        "duration": "0:12",
+        "license": "CC0 / Royalty Free"
+      }
+    }
+  }
+}
