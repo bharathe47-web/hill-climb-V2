@@ -1,0 +1,248 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/idle/goblin_fiend_idle_00.png" id="1_71soq"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/idle/goblin_fiend_idle_01.png" id="2_u534l"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/idle/goblin_fiend_idle_02.png" id="3_mg4ux"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/idle/goblin_fiend_idle_03.png" id="4_x1bcg"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/idle/goblin_fiend_idle_04.png" id="5_jidjw"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/idle/goblin_fiend_idle_05.png" id="6_vj6hp"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/idle/goblin_fiend_idle_06.png" id="7_jtmad"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/idle/goblin_fiend_idle_07.png" id="8_x5g1i"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_00.png" id="9_1jvqm"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_01.png" id="10_envc0"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_02.png" id="11_a0hrx"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_03.png" id="12_erqpu"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_04.png" id="13_s5rc8"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_05.png" id="14_lfx8n"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_06.png" id="15_ft1uu"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_07.png" id="16_s0j20"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_08.png" id="17_63nbp"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_09.png" id="18_cpftr"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_10.png" id="19_aqige"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_11.png" id="20_jtuxa"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_12.png" id="21_bkmp4"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_13.png" id="22_0jfgs"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_14.png" id="23_8qj60"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_15.png" id="24_r5yu4"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_16.png" id="25_4rot2"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_17.png" id="26_et5ak"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_18.png" id="27_e11v5"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_19.png" id="28_8u84s"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_20.png" id="29_soc6w"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_21.png" id="30_27jmf"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_22.png" id="31_c47em"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_23.png" id="32_1durv"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_24.png" id="33_x17vi"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_25.png" id="34_dw3vp"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_26.png" id="35_j70s5"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_27.png" id="36_xl1mr"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_28.png" id="37_1oorw"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_29.png" id="38_6fyj4"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_30.png" id="39_den38"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_31.png" id="40_xpeuw"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_32.png" id="41_ahhiw"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_33.png" id="42_neo4t"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_34.png" id="43_dlu3q"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_35.png" id="44_pbpda"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_36.png" id="45_g5ifu"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_37.png" id="46_bv02o"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_38.png" id="47_wvjmo"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_39.png" id="48_osc2w"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_40.png" id="49_7ys0l"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_41.png" id="50_ululj"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/demon_goblin/walk/goblin_fiend_walk_42.png" id="51_v14vt"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_71soq")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_u534l")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_mg4ux")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_x1bcg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_jidjw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_vj6hp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_jtmad")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_x5g1i")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_71soq")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_u534l")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_mg4ux")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_x1bcg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_jidjw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_vj6hp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_jtmad")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_x5g1i")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("9_1jvqm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_envc0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_a0hrx")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_erqpu")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_s5rc8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_lfx8n")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_ft1uu")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_s0j20")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_63nbp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_cpftr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("19_aqige")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_jtuxa")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_bkmp4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("22_0jfgs")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_8qj60")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_r5yu4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("25_4rot2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_et5ak")
+}, {
+"duration": 1.0,
+"texture": ExtResource("27_e11v5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("28_8u84s")
+}, {
+"duration": 1.0,
+"texture": ExtResource("29_soc6w")
+}, {
+"duration": 1.0,
+"texture": ExtResource("30_27jmf")
+}, {
+"duration": 1.0,
+"texture": ExtResource("31_c47em")
+}, {
+"duration": 1.0,
+"texture": ExtResource("32_1durv")
+}, {
+"duration": 1.0,
+"texture": ExtResource("33_x17vi")
+}, {
+"duration": 1.0,
+"texture": ExtResource("34_dw3vp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("35_j70s5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("36_xl1mr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("37_1oorw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("38_6fyj4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("39_den38")
+}, {
+"duration": 1.0,
+"texture": ExtResource("40_xpeuw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("41_ahhiw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("42_neo4t")
+}, {
+"duration": 1.0,
+"texture": ExtResource("43_dlu3q")
+}, {
+"duration": 1.0,
+"texture": ExtResource("44_pbpda")
+}, {
+"duration": 1.0,
+"texture": ExtResource("45_g5ifu")
+}, {
+"duration": 1.0,
+"texture": ExtResource("46_bv02o")
+}, {
+"duration": 1.0,
+"texture": ExtResource("47_wvjmo")
+}, {
+"duration": 1.0,
+"texture": ExtResource("48_osc2w")
+}, {
+"duration": 1.0,
+"texture": ExtResource("49_7ys0l")
+}, {
+"duration": 1.0,
+"texture": ExtResource("50_ululj")
+}, {
+"duration": 1.0,
+"texture": ExtResource("51_v14vt")
+}],
+"loop": 1,
+"name": &"walk",
+"speed": 24.0
+}]

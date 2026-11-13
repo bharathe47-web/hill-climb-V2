@@ -1,0 +1,43 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/flying_dragon/fly/hell_dragon_fly_00.png" id="1_2h462"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/flying_dragon/fly/hell_dragon_fly_01.png" id="2_ke2lk"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/flying_dragon/fly/hell_dragon_fly_02.png" id="3_1xshl"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/characters/flying_dragon/fly/hell_dragon_fly_03.png" id="4_gorjl"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_2h462")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_ke2lk")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_1xshl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_gorjl")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_2h462")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_ke2lk")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_1xshl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_gorjl")
+}],
+"loop": 1,
+"name": &"fly",
+"speed": 8.0
+}]
