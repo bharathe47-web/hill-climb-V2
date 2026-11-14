@@ -10,6 +10,7 @@ const VehicleRegistry = preload("res://scripts/vehicle/VehicleRegistry.gd")
 
 signal start_game_requested
 signal start_survival_requested
+signal start_garage_requested
 signal quit_requested
 
 @onready var best_distance_label: Label = %BestDistanceLabel
@@ -53,8 +54,8 @@ func _connect_signals() -> void:
 	# Primary standard action buttons
 	if is_instance_valid(start_button) and not start_button.pressed.is_connected(_on_start_pressed):
 		start_button.pressed.connect(_on_start_pressed)
-	if is_instance_valid(change_vehicle_button) and not change_vehicle_button.pressed.is_connected(_on_change_vehicle_pressed):
-		change_vehicle_button.pressed.connect(_on_change_vehicle_pressed)
+	if is_instance_valid(change_vehicle_button) and not change_vehicle_button.pressed.is_connected(_on_garage_pressed):
+		change_vehicle_button.pressed.connect(_on_garage_pressed)
 	if is_instance_valid(reset_save_button) and not reset_save_button.pressed.is_connected(_on_reset_pressed):
 		reset_save_button.pressed.connect(_on_reset_pressed)
 	if is_instance_valid(quit_button) and not quit_button.pressed.is_connected(_on_quit_pressed):
@@ -65,8 +66,8 @@ func _connect_signals() -> void:
 		endless_mode_button.pressed.connect(_on_start_pressed)
 	if is_instance_valid(survival_mode_button) and not survival_mode_button.pressed.is_connected(_on_survival_pressed):
 		survival_mode_button.pressed.connect(_on_survival_pressed)
-	if is_instance_valid(garage_mode_button) and not garage_mode_button.pressed.is_connected(_on_change_vehicle_pressed):
-		garage_mode_button.pressed.connect(_on_change_vehicle_pressed)
+	if is_instance_valid(garage_mode_button) and not garage_mode_button.pressed.is_connected(_on_garage_pressed):
+		garage_mode_button.pressed.connect(_on_garage_pressed)
 	if is_instance_valid(indian_roads_mode_button) and not indian_roads_mode_button.pressed.is_connected(_on_indian_roads_pressed):
 		indian_roads_mode_button.pressed.connect(_on_indian_roads_pressed)
 
@@ -84,12 +85,16 @@ func _on_start_pressed() -> void:
 func _on_survival_pressed() -> void:
 	start_survival_requested.emit()
 
+func _on_garage_pressed() -> void:
+	_open_vehicle_selection()
+	start_garage_requested.emit()
+
 func _on_indian_roads_pressed() -> void:
 	# Joel's module is currently in development
 	pass
 
 func _on_change_vehicle_pressed() -> void:
-	_open_vehicle_selection()
+	_on_garage_pressed()
 
 func _on_vehicle_select_back_pressed() -> void:
 	_close_vehicle_selection()

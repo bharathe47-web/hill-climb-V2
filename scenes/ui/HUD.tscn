@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://hud_scene_001"]
+[gd_scene load_steps=28 format=3 uid="uid://hud_scene_001"]
 
 [ext_resource type="Script" path="res://scripts/ui/HUDController.gd" id="1_hud_controller"]
 [ext_resource type="FontFile" path="res://assets/fonts/Boxy-Bold.ttf" id="2_font_bold"]
@@ -23,6 +23,8 @@
 [ext_resource type="Texture2D" path="res://assets/effects/nitro/nitro_boost.png" id="21_nitro_boost"]
 [ext_resource type="Texture2D" path="res://assets/ui/speedometer/speedometer_racing_background.png" id="22_speedo_bg"]
 [ext_resource type="Texture2D" path="res://assets/ui/speedometer/speedometer_needle_centered.png" id="23_speedo_needle"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud/hearts/hud_heart_full.png" id="24_heart_full"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud/hearts/hud_heart_empty.png" id="25_heart_empty"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_glass"]
 bg_color = Color(0.06, 0.09, 0.15, 0.88)
@@ -123,6 +125,7 @@ mouse_filter = 2
 script = ExtResource("1_hud_controller")
 
 [node name="TopStatsPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 0
 offset_left = 20.0
@@ -184,6 +187,7 @@ horizontal_alignment = 2
 layout_mode = 2
 
 [node name="FuelSection" type="VBoxContainer" parent="TopStatsPanel/Margin/VBox"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 5
 
@@ -242,6 +246,7 @@ value = 100.0
 show_percentage = false
 
 [node name="NitroSection" type="VBoxContainer" parent="TopStatsPanel/Margin/VBox"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 4
 
@@ -282,6 +287,7 @@ value = 100.0
 show_percentage = false
 
 [node name="CoinsPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -342,6 +348,150 @@ grow_horizontal = 0
 texture_normal = ExtResource("17_pause_n")
 ignore_texture_size = true
 stretch_mode = 5
+
+[node name="IndianRoadsPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -190.0
+offset_top = 18.0
+offset_right = 190.0
+offset_bottom = 104.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_glass")
+
+[node name="Margin" type="MarginContainer" parent="IndianRoadsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="IndianRoadsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="DestinationLabel" type="Label" parent="IndianRoadsPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.3, 1)
+theme_override_fonts/font = ExtResource("3_font_future")
+theme_override_font_sizes/font_size = 14
+text = "DESTINATION: GOA"
+horizontal_alignment = 1
+
+[node name="CheckpointRow" type="HBoxContainer" parent="IndianRoadsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CheckpointLabel" type="Label" parent="IndianRoadsPanel/Margin/VBox/CheckpointRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("4_font_narrow")
+theme_override_font_sizes/font_size = 13
+text = "CHECKPOINT 0 / 5"
+
+[node name="CheckpointBar" type="ProgressBar" parent="IndianRoadsPanel/Margin/VBox/CheckpointRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 14)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_nitro_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_nitro_fill")
+max_value = 5.0
+show_percentage = false
+
+[node name="CheckpointPctLabel" type="Label" parent="IndianRoadsPanel/Margin/VBox/CheckpointRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.92, 1, 1)
+theme_override_fonts/font = ExtResource("2_font_bold")
+theme_override_font_sizes/font_size = 12
+text = "0%"
+horizontal_alignment = 2
+
+[node name="SurvivalPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 18.0
+offset_right = 180.0
+offset_bottom = 106.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_glass")
+
+[node name="Margin" type="MarginContainer" parent="SurvivalPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="SurvivalPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HeartContainer" type="HBoxContainer" parent="SurvivalPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Heart1" type="TextureRect" parent="SurvivalPanel/Margin/VBox/HeartContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("24_heart_full")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Heart2" type="TextureRect" parent="SurvivalPanel/Margin/VBox/HeartContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("24_heart_full")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Heart3" type="TextureRect" parent="SurvivalPanel/Margin/VBox/HeartContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("24_heart_full")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SurvivalStatsRow" type="HBoxContainer" parent="SurvivalPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="SurvivalTimeLabel" type="Label" parent="SurvivalPanel/Margin/VBox/SurvivalStatsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.88, 1, 1)
+theme_override_fonts/font = ExtResource("4_font_narrow")
+theme_override_font_sizes/font_size = 14
+text = "TIME: 0.0s"
+horizontal_alignment = 1
+
+[node name="SurvivalDistLabel" type="Label" parent="SurvivalPanel/Margin/VBox/SurvivalStatsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_fonts/font = ExtResource("4_font_narrow")
+theme_override_font_sizes/font_size = 14
+text = "DIST: 0m"
+horizontal_alignment = 1
 
 [node name="SpeedometerGauge" type="Control" parent="."]
 layout_mode = 1
@@ -478,6 +628,7 @@ ignore_texture_size = true
 stretch_mode = 5
 
 [node name="ControlsTip" type="Label" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5

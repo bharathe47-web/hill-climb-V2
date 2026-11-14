@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://obstacle_warning_001"]
+
+[ext_resource type="Script" path="res://scripts/components/survival_obstacles/obstacle_warning.gd" id="1_warning_script"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/support/warnings/warning_marker_ground_ring.png" id="2_ring_tex"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/support/warnings/obstacle_warning_indicator.png" id="3_alert_tex"]
+
+[node name="ObstacleWarning" type="Node2D"]
+script = ExtResource("1_warning_script")
+
+[node name="RingSprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_ring_tex")
+
+[node name="AlertSprite" type="Sprite2D" parent="."]
+position = Vector2(0, -60)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("3_alert_tex")

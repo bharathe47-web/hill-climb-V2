@@ -1,0 +1,102 @@
+[gd_scene load_steps=13 format=3 uid="uid://destroyed_city_env_001"]
+
+[ext_resource type="Script" path="res://scripts/environment/DestroyedCityEnvironment.gd" id="1_env_script"]
+[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/background/sunset_sky/orange_sunset_sky.png" id="2_sky_tex"]
+[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/background/cloud_layers/dark_cloud_layer_01.png" id="3_cloud_tex"]
+[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/background/distant_city_silhouettes/distant_ruined_city_skyline.png" id="4_skyline_tex"]
+[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/background/smoke_plumes/distant_smoke_plumes_strip.png" id="5_smoke_tex"]
+[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/background/distant_towers/distant_electrical_transmission_towers.png" id="6_towers_tex"]
+[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/buildings/apartments/destroyed_apartment_buildings.png" id="7_buildings_tex"]
+[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/buildings/broken_facades/broken_facade_structures.png" id="8_facades_tex"]
+[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/props/dead_trees/dead_tree_01.png" id="9_tree_tex"]
+[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/props/electric_poles/broken_electric_pole.png" id="10_pole_tex"]
+[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/props/barriers_and_fences/damaged_fence_metal.png" id="11_fence_tex"]
+[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/effects/sunset_overlay/warm_sunset_lighting_overlay.png" id="12_overlay_tex"]
+
+[node name="DestroyedCityEnvironment" type="ParallaxBackground"]
+script = ExtResource("1_env_script")
+
+[node name="SkyLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0, 0)
+
+[node name="SkyTexture" type="TextureRect" parent="SkyLayer"]
+offset_left = -6000.0
+offset_top = -2500.0
+offset_right = 35000.0
+offset_bottom = 2500.0
+texture = ExtResource("2_sky_tex")
+stretch_mode = 1
+
+[node name="CloudLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.04, 0.02)
+motion_mirroring = Vector2(1920, 0)
+
+[node name="Clouds" type="Sprite2D" parent="CloudLayer"]
+position = Vector2(960, 100)
+texture = ExtResource("3_cloud_tex")
+
+[node name="DistantSkylineLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.08, 0.04)
+motion_mirroring = Vector2(2240, 0)
+
+[node name="Skyline" type="Sprite2D" parent="DistantSkylineLayer"]
+position = Vector2(560, 260)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("4_skyline_tex")
+
+[node name="SmokePlumes" type="Sprite2D" parent="DistantSkylineLayer"]
+position = Vector2(1600, 240)
+texture = ExtResource("5_smoke_tex")
+
+[node name="Towers" type="Sprite2D" parent="DistantSkylineLayer"]
+position = Vector2(1100, 290)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("6_towers_tex")
+
+[node name="MidgroundLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.18, 0.08)
+motion_mirroring = Vector2(2560, 0)
+
+[node name="Apartments" type="Sprite2D" parent="MidgroundLayer"]
+position = Vector2(960, 280)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("7_buildings_tex")
+
+[node name="Facades" type="Sprite2D" parent="MidgroundLayer"]
+position = Vector2(2100, 310)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("8_facades_tex")
+
+[node name="ForegroundPropsLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.35, 0.15)
+motion_mirroring = Vector2(2800, 0)
+
+[node name="DeadTree" type="Sprite2D" parent="ForegroundPropsLayer"]
+position = Vector2(500, 345)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("9_tree_tex")
+
+[node name="ElectricPole" type="Sprite2D" parent="ForegroundPropsLayer"]
+position = Vector2(1100, 315)
+scale = Vector2(0.65, 0.65)
+texture = ExtResource("10_pole_tex")
+
+[node name="DamagedFence" type="Sprite2D" parent="ForegroundPropsLayer"]
+position = Vector2(2100, 120)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("11_fence_tex")
+
+[node name="AtmosphereOverlayLayer" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="SunsetLightingOverlay" type="TextureRect" parent="AtmosphereOverlayLayer"]
+modulate = Color(1, 1, 1, 0.28)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("12_overlay_tex")
+expand_mode = 1
+stretch_mode = 6

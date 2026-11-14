@@ -1,0 +1,607 @@
+[gd_scene load_steps=33 format=3 uid="uid://vintage_car_garage_001"]
+
+[ext_resource type="Script" path="res://scripts/modes/garage/VintageCarGarageController.gd" id="1_controller"]
+[ext_resource type="Texture2D" path="res://assets/garage/01_background/dark_brick_wall_background.png" id="2_wall"]
+[ext_resource type="Texture2D" path="res://assets/garage/01_background/pillar_left_brick.png" id="3_pillar_l"]
+[ext_resource type="Texture2D" path="res://assets/garage/01_background/pillar_right_brick.png" id="4_pillar_r"]
+[ext_resource type="Texture2D" path="res://assets/garage/01_background/shelf_upper_metal.png" id="5_shelf_up"]
+[ext_resource type="Texture2D" path="res://assets/garage/01_background/shelf_lower_metal.png" id="6_shelf_low"]
+[ext_resource type="Texture2D" path="res://assets/garage/02_decorations/tire_stack_left.png" id="7_tire_l"]
+[ext_resource type="Texture2D" path="res://assets/garage/02_decorations/tire_stack_right.png" id="8_tire_r"]
+[ext_resource type="Texture2D" path="res://assets/garage/02_decorations/pipe_vertical_left.png" id="9_pipe_l"]
+[ext_resource type="Texture2D" path="res://assets/garage/02_decorations/pipe_vertical_right.png" id="10_pipe_r"]
+[ext_resource type="Texture2D" path="res://assets/garage/02_decorations/gear_large_side.png" id="11_gear_l"]
+[ext_resource type="Texture2D" path="res://assets/garage/02_decorations/gear_small_side.png" id="12_gear_s"]
+[ext_resource type="Texture2D" path="res://assets/garage/02_decorations/industrial_machinery_details.png" id="13_machinery"]
+[ext_resource type="Texture2D" path="res://assets/garage/01_background/garage_floor_dark.png" id="14_floor"]
+[ext_resource type="Texture2D" path="res://assets/garage/04_lighting_and_vfx/spotlight_beam_yellow.png" id="15_spotlight"]
+[ext_resource type="Texture2D" path="res://assets/garage/04_lighting_and_vfx/floor_glow_yellow_soft.png" id="16_floor_glow"]
+[ext_resource type="Texture2D" path="res://assets/garage/04_lighting_and_vfx/ambient_vignette_overlay.png" id="17_vignette"]
+[ext_resource type="Texture2D" path="res://assets/garage/05_ui/wooden_panels/panel_left_orange_wood.png" id="18_panel_l"]
+[ext_resource type="Texture2D" path="res://assets/garage/05_ui/wooden_panels/banner_center_coin_wood_empty.png" id="19_banner_c"]
+[ext_resource type="Texture2D" path="res://assets/garage/05_ui/wooden_panels/panel_right_orange_wood.png" id="20_panel_r"]
+[ext_resource type="Texture2D" path="res://assets/garage/05_ui/icons/icon_trophy.png" id="21_ico_trophy"]
+[ext_resource type="Texture2D" path="res://assets/garage/05_ui/icons/icon_crown.png" id="22_ico_crown"]
+[ext_resource type="Texture2D" path="res://assets/garage/05_ui/icons/icon_gold_coin.png" id="23_ico_coin"]
+[ext_resource type="Texture2D" path="res://assets/garage/05_ui/icons/icon_share.png" id="24_ico_share"]
+[ext_resource type="Texture2D" path="res://assets/garage/05_ui/icons/icon_home.png" id="25_ico_home"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future.ttf" id="26_font_future"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future_Narrow.ttf" id="27_font_narrow"]
+[ext_resource type="AudioStream" path="res://assets/garage/06_audio/ambience/sfx_garage_ambience.ogg" id="28_ambience"]
+[ext_resource type="Texture2D" path="res://assets/garage/04_lighting_and_vfx/car_shadow_soft_dark_oval.png" id="29_shadow"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_nav"]
+bg_color = Color(0.18, 0.25, 0.36, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.6, 0.85, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_nav_hover"]
+bg_color = Color(0.25, 0.38, 0.55, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.8, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_select"]
+bg_color = Color(0.16, 0.45, 0.28, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.9, 0.55, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_select_disabled"]
+bg_color = Color(0.1, 0.25, 0.16, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.65, 0.38, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_bg"]
+bg_color = Color(0.1, 0.14, 0.2, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.45, 0.6, 0.7)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_fill"]
+bg_color = Color(0.96, 0.76, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.08, 0.12, 0.18, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.5, 0.75, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 14
+
+[node name="VintageCarGarage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_controller")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_wall")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="GarageEnvironment" type="Node2D" parent="."]
+
+[node name="LeftPillar" type="Sprite2D" parent="GarageEnvironment"]
+position = Vector2(70, 360)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("3_pillar_l")
+
+[node name="RightPillar" type="Sprite2D" parent="GarageEnvironment"]
+position = Vector2(1210, 360)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("4_pillar_r")
+
+[node name="UpperShelf" type="Sprite2D" parent="GarageEnvironment"]
+position = Vector2(640, 140)
+scale = Vector2(0.92, 0.92)
+texture = ExtResource("5_shelf_up")
+
+[node name="LowerShelf" type="Sprite2D" parent="GarageEnvironment"]
+position = Vector2(640, 245)
+scale = Vector2(0.92, 0.92)
+texture = ExtResource("6_shelf_low")
+
+[node name="PipeLeft" type="Sprite2D" parent="GarageEnvironment"]
+position = Vector2(125, 290)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("9_pipe_l")
+
+[node name="PipeRight" type="Sprite2D" parent="GarageEnvironment"]
+position = Vector2(1155, 290)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("10_pipe_r")
+
+[node name="GearLarge" type="Sprite2D" parent="GarageEnvironment"]
+position = Vector2(115, 520)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("11_gear_l")
+
+[node name="GearSmall" type="Sprite2D" parent="GarageEnvironment"]
+position = Vector2(1165, 520)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("12_gear_s")
+
+[node name="Floor" type="Sprite2D" parent="."]
+position = Vector2(640, 645)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("14_floor")
+
+[node name="LightingEffects" type="Node2D" parent="."]
+
+[node name="SpotlightBeam" type="Sprite2D" parent="LightingEffects"]
+modulate = Color(1, 1, 0.88, 0.75)
+position = Vector2(640, 330)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("15_spotlight")
+
+[node name="FloorGlow" type="Sprite2D" parent="LightingEffects"]
+modulate = Color(1, 0.95, 0.65, 0.6)
+position = Vector2(640, 465)
+scale = Vector2(0.72, 0.35)
+texture = ExtResource("16_floor_glow")
+
+[node name="VehicleDisplay" type="Node2D" parent="."]
+position = Vector2(640, 385)
+
+[node name="VehicleShadow" type="Sprite2D" parent="VehicleDisplay"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.65)
+position = Vector2(0, 122)
+scale = Vector2(0.48, 0.32)
+texture = ExtResource("29_shadow")
+
+[node name="CenterContainer" type="CenterContainer" parent="VehicleDisplay"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -145.0
+offset_right = 290.0
+offset_bottom = 145.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VehicleDisplayRect" type="TextureRect" parent="VehicleDisplay/CenterContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(560, 270)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AmbientVignette" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("17_vignette")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="TopUI" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 110.0
+grow_horizontal = 2
+
+[node name="LeftPanel" type="TextureRect" parent="TopUI"]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 16.0
+offset_right = 258.0
+offset_bottom = 107.0
+texture = ExtResource("18_panel_l")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="TopUI/LeftPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -70.0
+offset_top = -22.0
+offset_right = 70.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="TrophyButton" type="TextureButton" parent="TopUI/LeftPanel/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(46, 46)
+layout_mode = 2
+texture_normal = ExtResource("21_ico_trophy")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="CrownButton" type="TextureButton" parent="TopUI/LeftPanel/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 42)
+layout_mode = 2
+texture_normal = ExtResource("22_ico_crown")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="CenterCoinPanel" type="TextureRect" parent="TopUI"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -168.0
+offset_top = 16.0
+offset_right = 167.0
+offset_bottom = 87.0
+grow_horizontal = 2
+texture = ExtResource("19_banner_c")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinHBox" type="HBoxContainer" parent="TopUI/CenterCoinPanel"]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 16.0
+offset_right = 265.0
+offset_bottom = 56.0
+alignment = 1
+
+[node name="CoinBalance" type="Label" parent="TopUI/CenterCoinPanel/CoinHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.4, 1)
+theme_override_fonts/font = ExtResource("26_font_future")
+theme_override_font_sizes/font_size = 22
+text = "100000"
+vertical_alignment = 1
+
+[node name="RightPanel" type="TextureRect" parent="TopUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -244.0
+offset_top = 16.0
+offset_right = -40.0
+offset_bottom = 108.0
+grow_horizontal = 0
+texture = ExtResource("20_panel_r")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="TopUI/RightPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -70.0
+offset_top = -22.0
+offset_right = 70.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="ShareButton" type="TextureButton" parent="TopUI/RightPanel/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+texture_normal = ExtResource("24_ico_share")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="HomeButton" type="TextureButton" parent="TopUI/RightPanel/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 42)
+layout_mode = 2
+texture_normal = ExtResource("25_ico_home")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BottomShowroomUI" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -170.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="CenterVBox" type="VBoxContainer" parent="BottomShowroomUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -380.0
+offset_top = -75.0
+offset_right = 380.0
+offset_bottom = 75.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="VehicleNameLabel" type="Label" parent="BottomShowroomUI/CenterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.3, 1)
+theme_override_fonts/font = ExtResource("26_font_future")
+theme_override_font_sizes/font_size = 20
+text = "BLUE FLAME TRUCK"
+horizontal_alignment = 1
+
+[node name="VehicleDescLabel" type="Label" parent="BottomShowroomUI/CenterVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(700, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 0.85)
+theme_override_fonts/font = ExtResource("27_font_narrow")
+theme_override_font_sizes/font_size = 12
+text = "Heavy off-road powerhouse with custom flame side panels"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="StatsHBox" type="HBoxContainer" parent="BottomShowroomUI/CenterVBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="PowerBox" type="HBoxContainer" parent="BottomShowroomUI/CenterVBox/StatsHBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="PowerLbl" type="Label" parent="BottomShowroomUI/CenterVBox/StatsHBox/PowerBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_fonts/font = ExtResource("27_font_narrow")
+theme_override_font_sizes/font_size = 11
+text = "POWER"
+
+[node name="PowerBar" type="ProgressBar" parent="BottomShowroomUI/CenterVBox/StatsHBox/PowerBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 10)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_bar_fill")
+max_value = 5.0
+step = 1.0
+value = 5.0
+show_percentage = false
+
+[node name="GripBox" type="HBoxContainer" parent="BottomShowroomUI/CenterVBox/StatsHBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="GripLbl" type="Label" parent="BottomShowroomUI/CenterVBox/StatsHBox/GripBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_fonts/font = ExtResource("27_font_narrow")
+theme_override_font_sizes/font_size = 11
+text = "GRIP"
+
+[node name="GripBar" type="ProgressBar" parent="BottomShowroomUI/CenterVBox/StatsHBox/GripBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 10)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_bar_fill")
+max_value = 5.0
+step = 1.0
+value = 4.0
+show_percentage = false
+
+[node name="SuspensionBox" type="HBoxContainer" parent="BottomShowroomUI/CenterVBox/StatsHBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="SuspensionLbl" type="Label" parent="BottomShowroomUI/CenterVBox/StatsHBox/SuspensionBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_fonts/font = ExtResource("27_font_narrow")
+theme_override_font_sizes/font_size = 11
+text = "SUSPENSION"
+
+[node name="SuspensionBar" type="ProgressBar" parent="BottomShowroomUI/CenterVBox/StatsHBox/SuspensionBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 10)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_bar_fill")
+max_value = 5.0
+step = 1.0
+value = 4.0
+show_percentage = false
+
+[node name="FuelBox" type="HBoxContainer" parent="BottomShowroomUI/CenterVBox/StatsHBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="FuelLbl" type="Label" parent="BottomShowroomUI/CenterVBox/StatsHBox/FuelBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_fonts/font = ExtResource("27_font_narrow")
+theme_override_font_sizes/font_size = 11
+text = "FUEL TANK"
+
+[node name="FuelBar" type="ProgressBar" parent="BottomShowroomUI/CenterVBox/StatsHBox/FuelBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 10)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_bar_fill")
+max_value = 5.0
+step = 1.0
+value = 4.0
+show_percentage = false
+
+[node name="ControlsHBox" type="HBoxContainer" parent="BottomShowroomUI/CenterVBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="PrevButton" type="Button" parent="BottomShowroomUI/CenterVBox/ControlsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(95, 36)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("26_font_future")
+theme_override_font_sizes/font_size = 12
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_nav_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_nav")
+text = "◀ PREV"
+
+[node name="SelectVehicleButton" type="Button" parent="BottomShowroomUI/CenterVBox/ControlsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(230, 38)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("26_font_future")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_select_disabled")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_select")
+text = "★ SELECTED (ACTIVE)"
+
+[node name="NextButton" type="Button" parent="BottomShowroomUI/CenterVBox/ControlsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(95, 36)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("26_font_future")
+theme_override_font_sizes/font_size = 12
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_nav_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_nav")
+text = "NEXT ▶"
+
+[node name="InfoDialog" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -140.0
+offset_right = 230.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="InfoDialog"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="InfoDialog/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="InfoTitleLabel" type="Label" parent="InfoDialog/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.3, 1)
+theme_override_fonts/font = ExtResource("26_font_future")
+theme_override_font_sizes/font_size = 18
+text = "ACHIEVEMENTS"
+horizontal_alignment = 1
+
+[node name="InfoBodyLabel" type="Label" parent="InfoDialog/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 0.9)
+theme_override_fonts/font = ExtResource("27_font_narrow")
+theme_override_font_sizes/font_size = 13
+text = "Details will appear here."
+horizontal_alignment = 1
+
+[node name="InfoCloseButton" type="Button" parent="InfoDialog/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("26_font_future")
+theme_override_font_sizes/font_size = 12
+text = "CLOSE"
+
+[node name="AmbiencePlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("28_ambience")
+volume_db = -8.0
+
+[node name="SFXPlayer" type="AudioStreamPlayer" parent="."]
+volume_db = -4.0
