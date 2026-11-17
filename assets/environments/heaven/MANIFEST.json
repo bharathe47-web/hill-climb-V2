@@ -1,46 +1,53 @@
 {
-  "environment": "Heaven (Celestial Palace Above the Clouds)",
+  "environment": "Heaven (The Golden Celestial Kingdom)",
   "biome_id": "HEAVEN",
-  "distance_window_meters": "1,150m \u2013 2,200m",
-  "phase": "Phase 2 Visual Redesign",
+  "distance_window_meters": "1,150m – 2,200m",
+  "phase": "Phase 2 Complete Visual Rebuild",
   "target_platform": "Godot 4.7.2 Forward Mobile Vulkan",
   "target_resolution": "1280x720",
+  "primary_asset_source": {
+    "pack": "Golden Palace Interior",
+    "creator": "Zoeluci",
+    "url": "https://zoeluci.itch.io/golden-palace-interior",
+    "attribution_notice": "Golden Palace Interior assets by Zoeluci"
+  },
   "categories": {
     "sky_and_distant": {
       "puffy_sky_blue_01.png": {
-        "role": "Distant celestial sky backdrop",
-        "node_type": "TextureRect / ParallaxLayer",
-        "dimensions": "1024x512",
-        "source": "Scribe / OpenGameArt",
+        "role": "Rich turquoise-blue celestial sky gradient (royal cyan to morning gold)",
+        "node_type": "TextureRect / ParallaxLayer (SkyLayer)",
+        "dimensions": "1920x1080",
         "license": "CC0 Public Domain"
       },
       "heaven_distant_palace_silhouette.png": {
-        "role": "Distant floating pantheon, dome, and temple silhouettes",
+        "role": "Distant floating celestial islands, temple pantheons, domes, and cascading waterfalls",
         "node_type": "Sprite2D / ParallaxLayer (DistantPalaceLayer)",
-        "dimensions": "1280x360",
-        "source": "Phase 2 Celestial Illustration Engine",
+        "dimensions": "1920x420",
         "license": "CC0 Public Domain"
       }
     },
     "terrain": {
+      "heaven_stone_bridge_arch.png": {
+        "role": "P0 Modular pale stone masonry bridge arch with voussoirs, keystone & cloud openings",
+        "node_type": "Modular Bridge Facade / TerrainSegment",
+        "dimensions": "320x200",
+        "license": "CC0 Public Domain"
+      },
       "heaven_marble_roadway.png": {
-        "role": "Polished ivory marble roadway with fine champagne gold inlays",
+        "role": "Polished royal ivory marble roadway with champagne gold inlays & diamond rosettes",
         "node_type": "GroundPolygon / Polygon2D",
-        "dimensions": "1920x120",
-        "source": "Phase 2 Celestial Illustration Engine",
+        "dimensions": "1920x90",
         "license": "CC0 Public Domain"
       },
       "heaven_marble_floor.png": {
         "role": "Calibrated ivory-gold marble tile (seamlessly compatible)",
-        "dimensions": "1920x120",
-        "source": "Phase 2 Celestial Illustration Engine",
+        "dimensions": "1920x90",
         "license": "CC0 Public Domain"
       },
       "heaven_cloud_underside.png": {
         "role": "Organic floating cloud-island underside with layered white/lavender clouds",
         "node_type": "SubsoilPolygon / Polygon2D",
         "dimensions": "1024x512",
-        "source": "Phase 2 Celestial Illustration Engine",
         "license": "CC0 Public Domain"
       }
     },
@@ -48,97 +55,84 @@
       "heaven_palace_arch_gateway.png": {
         "role": "Symmetrical classical triumphal palace entrance arch with Corinthian columns and gold crest",
         "node_type": "Sprite2D (MidPalaceArchitectureLayer / Transition Gateway)",
-        "dimensions": "800x700",
-        "source": "Phase 2 Celestial Illustration Engine",
-        "license": "CC0 Public Domain"
-      },
-      "heaven_palace_arch_gateway_front.png": {
-        "role": "Foreground plinth and column base framing layer",
-        "node_type": "Sprite2D",
-        "dimensions": "800x700",
-        "source": "Phase 2 Celestial Illustration Engine",
+        "dimensions": "800x720",
         "license": "CC0 Public Domain"
       },
       "heaven_palace_column.png": {
-        "role": "Classical fluted ivory marble column with gold Corinthian capital and stepped base",
-        "node_type": "Sprite2D (Colonnade)",
-        "dimensions": "256x700",
-        "source": "Phase 2 Celestial Illustration Engine",
+        "role": "Master fluted cream marble pillar with gold Corinthian capital & stepped plinth",
+        "node_type": "Sprite2D",
+        "dimensions": "210x938",
+        "source": "Zoeluci (Golden Palace Interior)",
+        "license": "Permitted for commercial games with credit"
+      },
+      "heaven_palace_column_paired.png": {
+        "role": "Paired colonnade: twin coupled fluted columns with gold entablature",
+        "node_type": "Sprite2D",
+        "dimensions": "420x938",
+        "source": "Zoeluci Derivative",
+        "license": "Permitted for commercial games with credit"
+      },
+      "heaven_palace_colonnade_arch.png": {
+        "role": "Arched colonnade: columns spanned by a semicircular marble & gold arch",
+        "node_type": "Sprite2D",
+        "dimensions": "640x938",
+        "source": "Zoeluci Derivative",
+        "license": "Permitted for commercial games with credit"
+      },
+      "heaven_palace_grand_door.png": {
+        "role": "Grand celestial double entrance door with carved marble frame & gold sunburst medallions",
+        "node_type": "Sprite2D",
+        "dimensions": "512x720",
+        "license": "CC0 Public Domain"
+      },
+      "heaven_palace_fountain.png": {
+        "role": "Ceremonial pedestal fountain with carved marble basin, gold trim & crystal water",
+        "node_type": "Sprite2D",
+        "dimensions": "360x460",
+        "license": "CC0 Public Domain"
+      },
+      "heaven_palace_vaulted_ceiling.png": {
+        "role": "Repeating architectural ceiling with vaulted arches, gold cornices & pendant drops",
+        "node_type": "Sprite2D",
+        "dimensions": "1920x130",
         "license": "CC0 Public Domain"
       },
       "heaven_rose_window.png": {
-        "role": "Radiant celestial stained-glass rose window with 12 petals in sapphire, gold, and white",
-        "node_type": "Sprite2D (MidPalaceArchitectureLayer / Behind Archway)",
+        "role": "Radiant 12-petaled stained-glass rose window with turquoise/sapphire blue & gold tracery",
+        "node_type": "Sprite2D",
         "dimensions": "512x512",
-        "source": "Phase 2 Celestial Illustration Engine",
         "license": "CC0 Public Domain"
       },
       "heaven_palace_window.png": {
-        "role": "Cathedral arched palace window",
+        "role": "Arched golden window with glowing stained-glass panels",
+        "node_type": "Sprite2D",
         "dimensions": "310x646",
-        "source": "OpenGameArt / Zoeluci Golden Palace Kit",
-        "license": "CC0 Public Domain / itch.io permitted with credit"
-      },
-      "heaven_palace_ceiling.png": {
-        "role": "Palace corniced ceiling fascia",
-        "dimensions": "1920x38",
-        "source": "OpenGameArt / Zoeluci Golden Palace Kit",
-        "license": "CC0 Public Domain"
+        "source": "Zoeluci (Golden Palace Interior)",
+        "license": "Permitted for commercial games with credit"
       }
     },
-    "monuments_and_decorations": {
+    "monuments_and_flora": {
       "heaven_angel_monument_pedestal.png": {
-        "role": "Magnificent celestial angel sculpture on carved tiered pedestal with golden halo",
-        "node_type": "Sprite2D (IvoryAngelStatue)",
+        "role": "Polished ivory marble angel sculpture with gold accents on three-tiered pedestal",
         "dimensions": "900x900",
-        "source": "Phase 2 Luminous Ivory Enhancement",
         "license": "CC0 / Unsplash Free"
       },
       "celestial_garden_bed.png": {
-        "role": "Carved marble garden bed with white lilies, golden blossoms, and lavender shrubs",
-        "node_type": "Sprite2D (NearFloraLayer / Roadside)",
+        "role": "Manicured marble garden bed with white lilies & lavender shrubs",
         "dimensions": "420x130",
-        "source": "Phase 2 Celestial Illustration Engine",
         "license": "CC0 Public Domain"
       },
       "celestial_planter_urn.png": {
-        "role": "Classical ivory urn planter with gold scroll handles and celestial flora bouquet",
-        "node_type": "Sprite2D (NearFloraLayer / Roadside)",
+        "role": "Classical marble urn planter",
         "dimensions": "180x240",
-        "source": "Phase 2 Celestial Illustration Engine",
         "license": "CC0 Public Domain"
-      },
-      "flowers": {
-        "flower_01..08.png": {
-          "role": "Cohesive celestial ivory, gold, and lavender blossoms",
-          "count": 8,
-          "source": "Phase 2 Cohesive Palette Enhancement",
-          "license": "CC0 Public Domain"
-        }
       }
     },
     "wildlife": {
       "dove_atlas.png": {
-        "role": "Animated flying dove flock with soft feather shading and golden rim lighting",
-        "node_type": "AnimatedSprite2D",
+        "role": "60-frame flight cycle with feathered shading & golden rim lighting",
         "dimensions": "2048x2048",
-        "frames": 60,
-        "source": "Calciumtrice / Phase 2 Feather Shading Enhancement",
         "license": "CC0 Public Domain"
-      }
-    },
-    "audio": {
-      "heavenly_loop.ogg": {
-        "role": "Celestial ambient music stream",
-        "source": "CC0 Public Domain"
-      },
-      "ambience_wind_soft.mp3": {
-        "role": "High-altitude gentle wind ambience",
-        "source": "CC0 Public Domain"
-      },
-      "wind_chimes_settle.mp3": {
-        "role": "Distant celestial chime stinger",
-        "source": "CC0 Public Domain"
       }
     }
   }

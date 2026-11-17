@@ -124,6 +124,18 @@ var visual_surface_band_depth: float = 0.0
 @onready var grass_line: Line2D = $GrassLine
 @onready var grass_highlight_line: Line2D = get_node_or_null("GrassHighlightLine")
 @onready var decorations_root: Node2D = get_node_or_null("DecorationsRoot")
+@onready var bridge_facade_root: Node2D = get_node_or_null("BridgeFacade")
+
+func _get_or_create_bridge_facade() -> Node2D:
+	if not bridge_facade_root or not is_instance_valid(bridge_facade_root):
+		bridge_facade_root = get_node_or_null("BridgeFacade")
+		if not bridge_facade_root:
+			bridge_facade_root = Node2D.new()
+			bridge_facade_root.name = "BridgeFacade"
+			add_child(bridge_facade_root)
+			if ground_polygon:
+				move_child(bridge_facade_root, ground_polygon.get_index())
+	return bridge_facade_root
 
 func _ready() -> void:
 	collision_layer = 1
@@ -392,6 +404,7 @@ const TEX_HEAVEN_FLOWERS: Array = [
 ]
 const TEX_HEAVEN_GARDEN_BED: Texture2D = preload("res://assets/environments/heaven/decorations/celestial_garden_bed.png")
 const TEX_HEAVEN_PLANTER: Texture2D = preload("res://assets/environments/heaven/decorations/celestial_planter_urn.png")
+const TEX_HEAVEN_BRIDGE_ARCH: Texture2D = preload("res://assets/environments/heaven/architecture/heaven_stone_bridge_arch.png")
 const TEX_ROCKS: Array = [
 	preload("res://assets/terrain/rocks/small_stones_pebbles.png"),
 	preload("res://assets/terrain/rocks/large_rock_boulder_01.png")
@@ -502,7 +515,10 @@ func _apply_geometry() -> void:
 	# The Heaven/Hell 1920x99 strips were consequently repeated down the whole
 	# world depth, creating the giant flat slab visible in the supplied captures.
 	var texture_height := active_ground_tex.get_height() if active_ground_tex else 70
-	if is_heaven or is_hell:
+	if is_heaven:
+		# Polished royal ivory marble roadway deck (46px depth) with gold rosettes & bevel
+		visual_surface_band_depth = 46.0
+	elif is_hell:
 		visual_surface_band_depth = clampf(float(texture_height) * active_ground_tex_scale.y, 30.0, 104.0)
 	else:
 		# Clean, slim countryside grass crest (38px depth) seamlessly transitioning to the earth body
@@ -576,6 +592,35 @@ func _apply_geometry() -> void:
 				subsoil_colors.append(Color(shade, shade, shade, 1.0))
 		subsoil_polygon.uv = subsoil_uv
 		subsoil_polygon.vertex_colors = subsoil_colors
+
+	# Modular Pale Stone Bridge Facade with Rounded Arches (P0 Heaven Requirement)
+	var facade := _get_or_create_bridge_facade()
+	if facade:
+		for c in facade.get_children():
+			c.queue_free()
+		if is_heaven and not is_floating_platform and generated_surface_points.size() >= 2:
+			facade.visible = true
+			var arch_w: float = 320.0
+			var total_len: float = last_pt.x - first_pt.x
+			var arch_count: int = int(ceil(total_len / arch_w)) + 1
+			for ai in range(arch_count):
+				var ax := first_pt.x + float(ai) * arch_w
+				if ax > last_pt.x:
+					break
+				var sample_x := clampf(ax + arch_w * 0.5, first_pt.x, last_pt.x)
+				var pt_info := get_surface_point_and_normal_at(sample_x)
+				var pt: Vector2 = pt_info["point"]
+				var norm: Vector2 = pt_info["normal"]
+				var slope_ang := _surface_slope_angle_from_normal(norm)
+				var arch_spr := Sprite2D.new()
+				arch_spr.texture = TEX_HEAVEN_BRIDGE_ARCH
+				arch_spr.position = Vector2(sample_x, pt.y + visual_surface_band_depth + 96.0)
+				arch_spr.rotation = slope_ang * 0.70
+				arch_spr.scale = Vector2(1.02, 1.0)
+				arch_spr.z_index = 0
+				facade.add_child(arch_spr)
+		else:
+			facade.visible = false
 
 	# 3. Grass contour line following collision surface exactly
 	if grass_line:
