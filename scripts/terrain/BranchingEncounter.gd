@@ -407,7 +407,7 @@ func _spawn_column(parent: Node2D, x: float, y: float) -> void:
 	var col := Sprite2D.new()
 	col.texture = TEX_HEAVEN_COLUMN
 	col.scale = Vector2(0.50, 0.50)
-	col.position = Vector2(x, y - 225.0)
+	col.position = Vector2(x, y - 175.0)
 	col.z_index = -2
 	parent.add_child(col)
 

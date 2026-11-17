@@ -76,9 +76,9 @@ static func create_heaven_profile() -> Resource:
 	prof.set("profile_name", "Heaven")
 	prof.set("biome_type", 1) # HEAVEN
 	prof.set("ground_texture", load("res://assets/environments/heaven/architecture/heaven_marble_floor.png"))
-	prof.set("subsoil_texture", load("res://assets/environments/heaven/vfx/clouds/white_puff_06.png"))
-	prof.set("ground_color", Color(1.35, 1.25, 1.05, 1.0))
-	prof.set("subsoil_color", Color(0.98, 0.96, 0.92, 0.90))
+	prof.set("subsoil_texture", load("res://assets/environments/heaven/architecture/heaven_cloud_underside.png"))
+	prof.set("ground_color", Color(1.0, 1.0, 1.0, 1.0))
+	prof.set("subsoil_color", Color(1.0, 1.0, 1.0, 1.0))
 	prof.set("surface_friction", 1.05)
 	prof.set("decorations_enabled", true)
 

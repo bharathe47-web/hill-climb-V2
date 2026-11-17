@@ -390,6 +390,8 @@ const TEX_HEAVEN_FLOWERS: Array = [
 	preload("res://assets/environments/heaven/decorations/flowers/flower_07.png"),
 	preload("res://assets/environments/heaven/decorations/flowers/flower_08.png")
 ]
+const TEX_HEAVEN_GARDEN_BED: Texture2D = preload("res://assets/environments/heaven/decorations/celestial_garden_bed.png")
+const TEX_HEAVEN_PLANTER: Texture2D = preload("res://assets/environments/heaven/decorations/celestial_planter_urn.png")
 const TEX_ROCKS: Array = [
 	preload("res://assets/terrain/rocks/small_stones_pebbles.png"),
 	preload("res://assets/terrain/rocks/large_rock_boulder_01.png")
@@ -459,13 +461,13 @@ func _apply_geometry() -> void:
 
 	if terrain_profile:
 		if is_heaven:
-			# Warm luminous ivory/gold marble neutralizing native cyan texture cast
-			active_ground_col = Color(1.0, 0.95, 0.80, 1.0)
-			active_subsoil_col = Color(0.72, 0.60, 0.40, 1.0)
-			active_grass_col = Color(0.95, 0.82, 0.35, 1.0) # Celestial gold rim
-			active_grass_hl = Color(1.0, 0.95, 0.65, 0.95)
-			active_grass_width = 5.0
-			active_grass_hl_width = 2.5
+			# Pure polished ivory marble road with fine champagne gold edging
+			active_ground_col = Color(1.0, 1.0, 1.0, 1.0)
+			active_subsoil_col = Color(1.0, 1.0, 1.0, 1.0)
+			active_grass_col = Color(0.95, 0.85, 0.45, 0.90) # Fine celestial champagne gold rim
+			active_grass_hl = Color(1.0, 0.96, 0.70, 0.95)
+			active_grass_width = 2.4
+			active_grass_hl_width = 1.2
 			active_ground_tex_scale = Vector2(0.5, 0.75)
 			if "ground_texture" in terrain_profile and terrain_profile.ground_texture:
 				active_ground_tex = terrain_profile.ground_texture
@@ -561,10 +563,14 @@ func _apply_geometry() -> void:
 		for v in subsoil_pts:
 			var world_x: float = position.x + v.x
 			var world_y: float = position.y + v.y
-			subsoil_uv.append(Vector2(world_x, world_y))
-			if is_heaven or is_hell:
+			if is_heaven:
+				subsoil_uv.append(Vector2(world_x * 0.5, world_y * 0.5))
+				subsoil_colors.append(Color.WHITE)
+			elif is_hell:
+				subsoil_uv.append(Vector2(world_x, world_y))
 				subsoil_colors.append(Color.WHITE)
 			else:
+				subsoil_uv.append(Vector2(world_x, world_y))
 				var depth: float = clampf((v.y - visual_surface_band_depth) / 1600.0, 0.0, 1.0)
 				var shade: float = lerpf(1.0, 0.68, depth)
 				subsoil_colors.append(Color(shade, shade, shade, 1.0))
@@ -683,17 +689,23 @@ func _build_decorations() -> void:
 		var slope_deg := absf(rad_to_deg(slope_angle))
 
 		if is_heaven:
-			# Heaven celestial flora & marble details
-			var flower_tex: Texture2D = TEX_HEAVEN_FLOWERS[rng.randi() % TEX_HEAVEN_FLOWERS.size()]
-			var spr := Sprite2D.new()
-			spr.texture = flower_tex
-			spr.z_index = -1
-			var sc := rng.randf_range(0.45, 0.58)
-			spr.scale = Vector2(sc, sc)
-			spr.offset = Vector2(0, -flower_tex.get_height() * 0.5 + 3)
-			spr.position = pt
-			spr.rotation = clampf(slope_angle * 0.3, -0.25, 0.25)
-			decorations_root.add_child(spr)
+			# Heaven celestial gardens & planters: restrained, manicured, clean clearance
+			if slope_deg < 16.0 and rng.randf() < 0.60:
+				var spr := Sprite2D.new()
+				spr.z_index = -1
+				if rng.randf() < 0.5:
+					spr.texture = TEX_HEAVEN_PLANTER
+					var sc := rng.randf_range(0.24, 0.28)
+					spr.scale = Vector2(sc, sc)
+					spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 4)
+				else:
+					spr.texture = TEX_HEAVEN_GARDEN_BED
+					var sc := rng.randf_range(0.28, 0.34)
+					spr.scale = Vector2(sc, sc)
+					spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 4)
+				spr.position = pt
+				spr.rotation = clampf(slope_angle * 0.25, -0.2, 0.2)
+				decorations_root.add_child(spr)
 		elif is_hell:
 			# Hell volcanic rubble & obsidian spikes
 			var rock_tex: Texture2D = TEX_HELL_ROCKS[rng.randi() % TEX_HELL_ROCKS.size()]
