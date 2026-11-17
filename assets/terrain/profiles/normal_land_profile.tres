@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BiomeTerrainProfile" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/terrain/surfaces/countryside_grass_top.png" id="1_grass"]
+[ext_resource type="Script" path="res://scripts/terrain/BiomeTerrainProfile.gd" id="2_script"]
+[ext_resource type="Texture2D" path="res://assets/terrain/surfaces/countryside_earth_strata.png" id="3_subsoil"]
+
+[resource]
+script = ExtResource("2_script")
+profile_name = "Normal Land"
+biome_type = 0
+ground_texture = ExtResource("1_grass")
+subsoil_texture = ExtResource("3_subsoil")
+ground_color = Color(1.0, 1.0, 1.0, 1.0)
+subsoil_color = Color(1.0, 1.0, 1.0, 1.0)
+surface_friction = 1.0

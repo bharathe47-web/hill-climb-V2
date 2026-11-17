@@ -1,0 +1,62 @@
+[gd_scene load_steps=8 format=3 uid="uid://nitro_pickup_001"]
+
+[ext_resource type="Script" path="res://scripts/pickups/FuelPickup.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/nitro/nitro_bottle.png" id="2_bottle"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/pickups/fuel_collection_sound.wav" id="3_audio"]
+[ext_resource type="FontFile" path="res://assets/fonts/Boxy-Bold.ttf" id="4_font"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nitro"]
+size = Vector2(32, 36)
+
+[sub_resource type="Gradient" id="Gradient_nitro_vapor"]
+colors = PackedColorArray(0.15, 0.85, 1, 1, 0.05, 0.45, 0.85, 0)
+
+[node name="NitroPickup" type="Area2D"]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_script")
+is_nitro_pickup = true
+nitro_amount = 50.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_nitro")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="GlowAura" type="Polygon2D" parent="Visual"]
+color = Color(0.1, 0.75, 1, 0.35)
+polygon = PackedVector2Array(-20, 20, 20, 20, 20, -14, 12, -22, -12, -22, -20, -14)
+
+[node name="NitroSprite" type="Sprite2D" parent="Visual"]
+scale = Vector2(0.09, 0.09)
+texture = ExtResource("2_bottle")
+
+[node name="VaporParticles" type="CPUParticles2D" parent="."]
+emitting = false
+amount = 16
+lifetime = 0.6
+one_shot = true
+explosiveness = 0.9
+spread = 180.0
+gravity = Vector2(0, -60)
+initial_velocity_min = 35.0
+initial_velocity_max = 85.0
+scale_amount_min = 3.0
+scale_amount_max = 6.0
+color = Color(0.2, 0.85, 1, 1)
+color_ramp = SubResource("Gradient_nitro_vapor")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_audio")
+volume_db = -3.0
+
+[node name="PopupLabel" type="Label" parent="."]
+visible = false
+offset_left = -30.0
+offset_top = -20.0
+offset_right = 30.0
+offset_bottom = -2.0
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 14
+text = "+50 NITRO"
+horizontal_alignment = 1

@@ -1,0 +1,82 @@
+[
+  {
+    "active_biome_id": "NORMAL_LAND",
+    "active_environments": [
+      "ParallaxEnvironment"
+    ],
+    "device": "AMD Radeon 610M",
+    "displayed_distance_m": 485.0,
+    "front_wheel_contact": true,
+    "rear_wheel_contact": true,
+    "renderer": "Vulkan 1.4 Forward Mobile",
+    "route_outcome": "NORMAL_APPROACH",
+    "screenshot_path": "res://docs/previews/phase7_qa_1_approach_decision_window.png",
+    "simulation_distance_m": 485.0,
+    "vehicle_grounded": false,
+    "viewport_size": "1280x720"
+  },
+  {
+    "active_biome_id": "HEAVEN_ROUTE",
+    "active_environments": [
+      "HeavenEnvironment"
+    ],
+    "device": "AMD Radeon 610M",
+    "displayed_distance_m": 750.0,
+    "front_wheel_contact": true,
+    "rear_wheel_contact": true,
+    "renderer": "Vulkan 1.4 Forward Mobile",
+    "route_outcome": "HEAVEN",
+    "screenshot_path": "res://docs/previews/phase7_qa_2_heaven_active_flight.png",
+    "simulation_distance_m": 750.0,
+    "vehicle_grounded": false,
+    "viewport_size": "1280x720"
+  },
+  {
+    "active_biome_id": "NORMAL_LAND",
+    "active_environments": [
+      "ParallaxEnvironment"
+    ],
+    "device": "AMD Radeon 610M",
+    "displayed_distance_m": 1005.0,
+    "front_wheel_contact": true,
+    "rear_wheel_contact": true,
+    "renderer": "Vulkan 1.4 Forward Mobile",
+    "route_outcome": "NORMAL_MERGE",
+    "screenshot_path": "res://docs/previews/phase7_qa_4_return_merge_normal_land.png",
+    "simulation_distance_m": 1005.0,
+    "vehicle_grounded": false,
+    "viewport_size": "1280x720"
+  },
+  {
+    "active_biome_id": "NORMAL_LAND",
+    "active_environments": [
+      "ParallaxEnvironment"
+    ],
+    "device": "AMD Radeon 610M",
+    "displayed_distance_m": 5020.0,
+    "front_wheel_contact": true,
+    "rear_wheel_contact": true,
+    "renderer": "Vulkan 1.4 Forward Mobile",
+    "route_outcome": "ENDLESS_CYCLE_5",
+    "screenshot_path": "res://docs/previews/phase7_qa_5_continuous_5000m_milestone.png",
+    "simulation_distance_m": 5020.0,
+    "vehicle_grounded": false,
+    "viewport_size": "1280x720"
+  },
+  {
+    "active_biome_id": "HELL_ROUTE",
+    "active_environments": [
+      "HellEnvironment"
+    ],
+    "device": "AMD Radeon 610M",
+    "displayed_distance_m": 750.0,
+    "front_wheel_contact": true,
+    "rear_wheel_contact": true,
+    "renderer": "Vulkan 1.4 Forward Mobile",
+    "route_outcome": "HELL",
+    "screenshot_path": "res://docs/previews/phase7_qa_3_hell_active_cavern.png",
+    "simulation_distance_m": 750.0,
+    "vehicle_grounded": false,
+    "viewport_size": "1280x720"
+  }
+]

@@ -44,6 +44,21 @@ signal segment_despawned(segment: TerrainSegment)
 ## Clearance distance above the top ground surface for fuel canister center (px)
 @export var fuel_surface_clearance: float = 46.0
 
+@export_group("Biome Profile")
+## Active data-driven BiomeTerrainProfile resource (Normal Land, Heaven, or Hell)
+@export var active_terrain_profile: Resource = null:
+	set(val):
+		active_terrain_profile = val
+
+const BranchingEncounterClass = preload("res://scripts/terrain/BranchingEncounter.gd")
+
+@export_group("Branching Encounter Mode")
+@export var enable_branching_encounters: bool = false
+
+var progression_controller: BiomeProgressionController = null
+var active_encounters: Array[Node2D] = []
+var _spawned_encounter_indices: Dictionary = {} # enc_idx -> bool
+
 var active_segments: Array[TerrainSegment] = []
 var segment_pool: Array[TerrainSegment] = []
 var next_attach_point: Vector2 = Vector2.ZERO
@@ -138,6 +153,34 @@ func _generate_initial_track() -> void:
 func _update_generation(target_x: float) -> void:
 	# Keep generating until the end of the track is far enough ahead of the target
 	while next_attach_point.x < target_x + generate_ahead_distance:
+		if _is_branching_mode_enabled():
+			var safe_next_x := maxf(0.0, next_attach_point.x)
+			var next_enc_idx: int = int(floor(safe_next_x / 100000.0))
+			var gate_x: float = float(next_enc_idx) * 100000.0 + 50000.0 # 500m + (n * 1000m)
+			var approach_start_x: float = gate_x - 2000.0
+
+			if not _spawned_encounter_indices.has(next_enc_idx) and next_attach_point.x >= (approach_start_x - default_segment_length):
+				# Smooth bridge to approach ramp start if needed
+				if next_attach_point.x < approach_start_x:
+					var bridge_len := approach_start_x - next_attach_point.x
+					var bridge := _create_segment(TerrainSegment.SegmentType.FLAT, bridge_len, 0.0, 420.0 - next_attach_point.y, 0.0, current_slope, 0.0)
+					_attach_segment(bridge, enable_pickups)
+
+				# Spawn the branching encounter
+				_spawned_encounter_indices[next_enc_idx] = true
+				var encounter = BranchingEncounterClass.new()
+				encounter.encounter_index = next_enc_idx
+				encounter.gate_distance_m = 500.0 + (float(next_enc_idx) * 1000.0)
+				if progression_controller:
+					encounter.bind_progression_controller(progression_controller)
+				add_child(encounter)
+				active_encounters.append(encounter)
+
+				# Next attach point resumes at merge point (1,000m)
+				next_attach_point = Vector2(gate_x + 50000.0, 420.0)
+				current_slope = 0.0
+				continue
+
 		var seg := _generate_next_procedural_segment()
 		_attach_segment(seg, enable_pickups)
 
@@ -158,6 +201,30 @@ func _update_culling(target_x: float) -> void:
 			segment_pool.append(first_seg)
 		else:
 			break
+
+	# Always reconcile encounter nodes. If the controller switches back to the
+	# fixed world cycle while an encounter is still alive, remove that obsolete
+	# branch instead of leaving it attached forever.
+	var branching_enabled := _is_branching_mode_enabled()
+	var remaining_enc: Array[Node2D] = []
+	for enc in active_encounters:
+		if not is_instance_valid(enc):
+			continue
+		if not branching_enabled:
+			enc.queue_free()
+			continue
+		var gate_dist = enc.get("gate_distance_m")
+		var realm_len = enc.get("realm_total_length")
+		var exit_x: float = 0.0
+		if gate_dist != null and realm_len != null:
+			exit_x = (float(gate_dist) * 100.0) + float(realm_len)
+		else:
+			exit_x = enc.global_position.x
+		if exit_x < cull_threshold:
+			enc.queue_free()
+		else:
+			remaining_enc.append(enc)
+	active_encounters = remaining_enc
 
 func _cull_pickups_for_segment(seg: TerrainSegment) -> void:
 	var remaining: Array[Node2D] = []
@@ -264,7 +331,26 @@ func _create_segment(
 	seg.start_slope = start_s
 	seg.end_slope = end_s
 	seg.samples_count = clampi(int(length_val / 28.0), 16, 72)
+	seg.terrain_profile = active_terrain_profile
 	seg.rebuild_segment()
+	return seg
+
+## Spawns a dedicated transition ramp segment attaching seamlessly to the current track
+func spawn_transition_ramp(
+	ramp_type: TerrainSegment.SegmentType,
+	length_val: float = 1200.0,
+	height_change: float = 0.0,
+	amp: float = 85.0,
+	target_exit_slope: float = 0.0,
+	override_profile: Resource = null
+) -> TerrainSegment:
+	var start_s := current_slope
+	var prev_prof := active_terrain_profile
+	if override_profile != null:
+		active_terrain_profile = override_profile
+	var seg := _create_segment(ramp_type, length_val, 0.0, height_change, amp, start_s, target_exit_slope)
+	_attach_segment(seg, enable_pickups)
+	active_terrain_profile = prev_prof
 	return seg
 
 func _attach_segment(seg: TerrainSegment, allow_pickups: bool = true) -> void:
@@ -302,6 +388,8 @@ func _spawn_fuel_on_segment(seg: TerrainSegment, local_x: float) -> void:
 	seg.add_child(fuel_inst)
 	fuel_inst.position = Vector2(local_x, safe_y)
 	fuel_inst.add_to_group("pickups")
+	if active_terrain_profile and fuel_inst.has_method("apply_biome_theme"):
+		fuel_inst.apply_biome_theme(str(active_terrain_profile.get("profile_name")))
 	_spawned_pickups.append(fuel_inst)
 	total_fuel_spawned += 1
 
@@ -359,6 +447,8 @@ func _spawn_coins_on_segment(seg: TerrainSegment) -> void:
 				seg.add_child(coin_inst)
 				coin_inst.position = Vector2(cx, safe_y - arc_height)
 				coin_inst.add_to_group("pickups")
+				if active_terrain_profile and coin_inst.has_method("apply_biome_theme"):
+					coin_inst.apply_biome_theme(str(active_terrain_profile.get("profile_name")))
 				_spawned_pickups.append(coin_inst)
 				
 		TerrainSegment.SegmentType.DOUBLE_CREST, TerrainSegment.SegmentType.PLATEAU_DROP:
@@ -373,6 +463,8 @@ func _spawn_coins_on_segment(seg: TerrainSegment) -> void:
 				seg.add_child(coin_inst)
 				coin_inst.position = Vector2(cx, safe_y)
 				coin_inst.add_to_group("pickups")
+				if active_terrain_profile and coin_inst.has_method("apply_biome_theme"):
+					coin_inst.apply_biome_theme(str(active_terrain_profile.get("profile_name")))
 				_spawned_pickups.append(coin_inst)
 				
 		_:
@@ -387,6 +479,8 @@ func _spawn_coins_on_segment(seg: TerrainSegment) -> void:
 				seg.add_child(coin_inst)
 				coin_inst.position = Vector2(cx, safe_y)
 				coin_inst.add_to_group("pickups")
+				if active_terrain_profile and coin_inst.has_method("apply_biome_theme"):
+					coin_inst.apply_biome_theme(str(active_terrain_profile.get("profile_name")))
 				_spawned_pickups.append(coin_inst)
 
 ## Returns the surface Y in world coordinates at the given world_x
@@ -399,6 +493,20 @@ func get_surface_y_at_world_x(world_x: float) -> float:
 		if world_x >= seg_start_x and world_x <= seg_end_x:
 			var local_x := world_x - seg_start_x
 			return seg.global_position.y + seg.get_surface_y_at(local_x)
+	for enc in active_encounters:
+		if is_instance_valid(enc):
+			var gate_x: float = enc.gate_distance_m * 100.0
+			var realm_len: float = enc.realm_total_length
+			if world_x >= (gate_x - enc.approach_ramp_length) and world_x <= (gate_x + realm_len):
+				if enc.heaven_segment and enc.heaven_segment.visible:
+					var h_start: float = enc.heaven_segment.global_position.x
+					return enc.heaven_segment.global_position.y + enc.heaven_segment.get_surface_y_at(world_x - h_start)
+				elif enc.hell_segment and enc.hell_segment.visible:
+					var l_start: float = enc.hell_segment.global_position.x
+					return enc.hell_segment.global_position.y + enc.hell_segment.get_surface_y_at(world_x - l_start)
+				elif enc.approach_segment:
+					var a_start: float = enc.approach_segment.global_position.x
+					return enc.approach_segment.global_position.y + enc.approach_segment.get_surface_y_at(world_x - a_start)
 	return initial_spawn_point.y
 
 ## Clears all active segments and resets generation state
@@ -417,6 +525,12 @@ func clear_terrain() -> void:
 		if is_instance_valid(seg):
 			seg.queue_free()
 	segment_pool.clear()
+
+	for enc in active_encounters:
+		if is_instance_valid(enc):
+			enc.queue_free()
+	active_encounters.clear()
+	_spawned_encounter_indices.clear()
 	
 	segment_counter = 0
 	current_difficulty = 1.0
@@ -425,6 +539,17 @@ func clear_terrain() -> void:
 	total_coins_spawned = 0
 	total_fuel_spawned = 0
 	next_attach_point = initial_spawn_point
+
+## Returns the live branching state. The exported flag is an explicit manual
+## override; controller mode is read dynamically so changing schedules at
+## runtime cannot leave generation and culling out of sync.
+func _is_branching_mode_enabled() -> bool:
+	return enable_branching_encounters or (is_instance_valid(progression_controller) and progression_controller.is_branching_mode())
+
+## Binds to BiomeProgressionController to wire branching triggers.
+## Do not cache its mode in the exported override: the controller can change it.
+func bind_progression_controller(ctrl: BiomeProgressionController) -> void:
+	progression_controller = ctrl
 
 ## Resets generator to initial condition for a new run
 func reset_generator(at_origin: Vector2 = Vector2(-1200.0, 420.0)) -> void:

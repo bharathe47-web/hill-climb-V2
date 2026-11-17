@@ -24,6 +24,7 @@ signal return_to_main_menu_requested
 @onready var pause_menu: Control = get_node_or_null("UILayer/PauseMenu")
 @onready var music_player: AudioStreamPlayer = get_node_or_null("MusicPlayer")
 @onready var ambience_player: AudioStreamPlayer = get_node_or_null("AmbiencePlayer")
+@onready var biome_environment_host: Node2D = get_node_or_null("BiomeEnvironmentHost")
 
 var vehicle: Node  # VehicleController — typed as Node to avoid parse-time class dependency
 var start_x: float = 0.0
@@ -33,6 +34,7 @@ func _ready() -> void:
 	_setup_vehicle()
 	_setup_camera()
 	setup_terrain()
+	_setup_environment_host()
 	_setup_ui()
 	_setup_audio()
 	
@@ -120,6 +122,9 @@ func _setup_ui() -> void:
 			hud.bind_game_manager(game_manager)
 		if is_instance_valid(vehicle):
 			hud.bind_vehicle(vehicle)
+		var prog_ctrl: Node = get_node_or_null("BiomeProgressionController")
+		if is_instance_valid(prog_ctrl) and hud.has_method("bind_progression_controller"):
+			hud.bind_progression_controller(prog_ctrl)
 			
 	if is_instance_valid(results_screen) and results_screen.has_method("bind_game_manager"):
 		results_screen.bind_game_manager(game_manager)
@@ -131,12 +136,52 @@ func _setup_ui() -> void:
 			pause_menu.menu_requested.connect(exit_to_main_menu)
 
 func _setup_audio() -> void:
+	if is_instance_valid(biome_environment_host):
+		# BiomeEnvironmentHost coordinates dynamic multi-world audio crossfades
+		if is_instance_valid(music_player):
+			music_player.stop()
+		if is_instance_valid(ambience_player):
+			ambience_player.stop()
+		return
+
 	if is_instance_valid(music_player):
 		if not music_player.finished.is_connected(_on_music_finished):
 			music_player.finished.connect(_on_music_finished)
 	if is_instance_valid(ambience_player):
 		if not ambience_player.finished.is_connected(_on_ambience_finished):
 			ambience_player.finished.connect(_on_ambience_finished)
+
+func _setup_environment_host() -> void:
+	if not is_instance_valid(biome_environment_host):
+		biome_environment_host = get_node_or_null("BiomeEnvironmentHost")
+	
+	if not is_instance_valid(biome_environment_host) and use_procedural_terrain:
+		var prog_ctrl: Node = get_node_or_null("BiomeProgressionController")
+		if not is_instance_valid(prog_ctrl):
+			var prog_script: GDScript = load("res://scripts/progression/BiomeProgressionController.gd")
+			prog_ctrl = prog_script.new()
+			prog_ctrl.name = "BiomeProgressionController"
+			add_child(prog_ctrl)
+			if is_instance_valid(game_manager) and prog_ctrl.has_method("connect_to_game_manager"):
+				prog_ctrl.connect_to_game_manager(game_manager)
+
+		var host_script: GDScript = load("res://scripts/environment/BiomeEnvironmentHost.gd")
+		var host: Node2D = host_script.new()
+		host.name = "BiomeEnvironmentHost"
+		host.set("progression_controller", prog_ctrl)
+		var gen = terrain_slot.get_node_or_null("TerrainGenerator")
+		if is_instance_valid(gen):
+			host.set("terrain_generator", gen)
+		var normal_env = get_node_or_null("ParallaxEnvironment")
+		if is_instance_valid(normal_env):
+			host.set("normal_environment", normal_env)
+		if is_instance_valid(follow_camera):
+			host.set("follow_camera", follow_camera)
+		add_child(host)
+		biome_environment_host = host
+		
+		if is_instance_valid(hud) and hud.has_method("bind_progression_controller"):
+			hud.bind_progression_controller(prog_ctrl)
 
 func _on_music_finished() -> void:
 	if is_instance_valid(music_player):
@@ -157,6 +202,8 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("pause") and is_instance_valid(game_manager):
 		if game_manager.current_state != GameManagerScript.RunState.FINISHED:
 			game_manager.toggle_pause()
+			if is_instance_valid(biome_environment_host) and biome_environment_host.has_method("set_audio_paused"):
+				biome_environment_host.set_audio_paused(game_manager.current_state == GameManagerScript.RunState.PAUSED)
 		return
 		
 	if not is_instance_valid(vehicle) or not is_instance_valid(game_manager):
@@ -212,6 +259,9 @@ func _on_run_restarted() -> void:
 		if is_instance_valid(gen) and gen.has_method("reset_generator"):
 			gen.reset_generator(Vector2(-1200.0, 420.0))
 			
+	if is_instance_valid(biome_environment_host) and biome_environment_host.has_method("_on_progression_reset"):
+		biome_environment_host._on_progression_reset()
+
 	_reset_pickups()
 
 func _reset_pickups() -> void:

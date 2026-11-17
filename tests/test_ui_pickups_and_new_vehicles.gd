@@ -38,8 +38,12 @@ func test_nitro_button_redesign() -> void:
 	var nitro_btn: TextureButton = hud.get_node_or_null("%NitroButton")
 	assert(nitro_btn != null, "NitroButton must exist in HUD")
 	assert(nitro_btn.texture_normal != null, "NitroButton must have normal texture")
-	assert(nitro_btn.texture_normal.resource_path.ends_with("nitro_bottle.png"), 
-		"NitroButton must use clean nitro_bottle artwork, got %s" % nitro_btn.texture_normal.resource_path)
+	assert(nitro_btn.texture_normal.resource_path.ends_with("control_button_base.png"),
+		"NitroButton must use the dedicated touch-control frame, got %s" % nitro_btn.texture_normal.resource_path)
+	var nitro_icon: TextureRect = nitro_btn.get_node_or_null("NitroButtonIcon")
+	assert(nitro_icon != null, "NitroButton must contain a separate centered bottle icon")
+	assert(nitro_icon.texture != null and nitro_icon.texture.resource_path.ends_with("nitro_bottle.png"), "NitroButtonIcon must use nitro_bottle artwork")
+	assert(nitro_icon.mouse_filter == Control.MOUSE_FILTER_IGNORE, "The icon must not intercept touch input")
 	
 	# Verify no unnecessary text label node exists on the button
 	var label = nitro_btn.get_node_or_null("NitroButtonLabel")

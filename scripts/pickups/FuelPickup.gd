@@ -7,8 +7,15 @@ extends Area2D
 signal collected(amount: float)
 
 @export var fuel_amount: float = 35.0
+@export var is_nitro_pickup: bool = false
+@export var nitro_amount: float = 50.0
 @export var bob_height: float = 5.0
 @export var bob_frequency: float = 3.5
+@export var biome_theme: String = "normal":
+	set(value):
+		if biome_theme != value:
+			biome_theme = value
+			apply_biome_theme(value)
 
 @onready var visual: Node2D = $Visual
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -34,6 +41,11 @@ func _ready() -> void:
 		popup_label.visible = false
 	if is_instance_valid(vapor_particles):
 		vapor_particles.emitting = false
+	if is_nitro_pickup:
+		if is_instance_valid(glow_aura):
+			glow_aura.color = Color(0.1, 0.75, 1.0, 0.40)
+		if is_instance_valid(vapor_particles):
+			vapor_particles.color = Color(0.2, 0.85, 1.0, 1.0)
 
 func _process(delta: float) -> void:
 	if not is_collected and is_instance_valid(visual):
@@ -46,12 +58,16 @@ func _process(delta: float) -> void:
 func _find_vehicle(node: Node) -> Node:
 	var curr: Node = node
 	while curr != null and curr != get_tree().root:
-		if curr.has_method("refuel"):
+		if is_nitro_pickup and curr.has_method("refill_nitro"):
+			return curr
+		elif not is_nitro_pickup and curr.has_method("refuel"):
 			return curr
 		elif curr.is_in_group("vehicle") or curr.name == "Vehicle":
 			var p := curr
 			while p != null and p != get_tree().root:
-				if p.has_method("refuel"):
+				if is_nitro_pickup and p.has_method("refill_nitro"):
+					return p
+				elif not is_nitro_pickup and p.has_method("refuel"):
 					return p
 				p = p.get_parent()
 			return curr
@@ -76,11 +92,15 @@ func _collect(target_vehicle: Node) -> void:
 	if is_collected:
 		return
 	is_collected = true
-	collected.emit(fuel_amount)
 	
-	# Authoritative refuel via VehicleController
-	if target_vehicle != null and target_vehicle.has_method("refuel"):
-		target_vehicle.refuel(fuel_amount)
+	if is_nitro_pickup:
+		collected.emit(nitro_amount)
+		if target_vehicle != null and target_vehicle.has_method("refill_nitro"):
+			target_vehicle.refill_nitro(nitro_amount)
+	else:
+		collected.emit(fuel_amount)
+		if target_vehicle != null and target_vehicle.has_method("refuel"):
+			target_vehicle.refuel(fuel_amount)
 	
 	# Visual & Audio collection feedback
 	if is_instance_valid(collision_shape):
@@ -94,7 +114,10 @@ func _collect(target_vehicle: Node) -> void:
 		vapor_particles.restart()
 		vapor_particles.emitting = true
 	
-	_show_popup("+%.0f FUEL" % fuel_amount, Color(0.2, 0.95, 0.35))
+	if is_nitro_pickup:
+		_show_popup("+%.0f NITRO" % nitro_amount, Color(0.15, 0.85, 1.0))
+	else:
+		_show_popup("+%.0f FUEL" % fuel_amount, Color(0.2, 0.95, 0.35))
 
 func _show_popup(text_val: String, color_val: Color) -> void:
 	if not is_instance_valid(popup_label):
@@ -113,7 +136,8 @@ func _show_popup(text_val: String, color_val: Color) -> void:
 func reset_pickup() -> void:
 	is_collected = false
 	_elapsed = 0.0
-	collision_shape.set_deferred("disabled", false)
+	if is_instance_valid(collision_shape):
+		collision_shape.set_deferred("disabled", false)
 	if is_instance_valid(visual):
 		visual.visible = true
 		visual.position.y = _initial_visual_y
@@ -122,3 +146,25 @@ func reset_pickup() -> void:
 		popup_label.visible = false
 	if is_instance_valid(vapor_particles):
 		vapor_particles.emitting = false
+	if is_nitro_pickup:
+		if is_instance_valid(glow_aura):
+			glow_aura.color = Color(0.1, 0.75, 1.0, 0.40)
+		if is_instance_valid(vapor_particles):
+			vapor_particles.color = Color(0.2, 0.85, 1.0, 1.0)
+	else:
+		apply_biome_theme(biome_theme)
+
+## Applies optional thematic visual styling per biome without changing collision or fuel replenishment
+func apply_biome_theme(theme_name: String) -> void:
+	if biome_theme != theme_name:
+		biome_theme = theme_name
+	match theme_name.to_lower():
+		"heaven":
+			if is_instance_valid(glow_aura):
+				glow_aura.color = Color(0.85, 0.95, 1.0, 0.35)
+		"hell":
+			if is_instance_valid(glow_aura):
+				glow_aura.color = Color(1.0, 0.4, 0.1, 0.35)
+		_:
+			if is_instance_valid(glow_aura):
+				glow_aura.color = Color(0.2, 0.8, 0.3, 0.22)

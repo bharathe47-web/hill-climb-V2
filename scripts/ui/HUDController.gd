@@ -52,9 +52,21 @@ var _toast_subtitle_label: Label
 var _toast_tween: Tween
 var _milestones_reached: Array[int] = []
 
+# Branching Encounter & Ramp Prompt HUD (Phase 5)
+var progression_controller_ref: BiomeProgressionController = null
+var _ramp_prompt_panel: PanelContainer
+var _ramp_title_label: Label
+var _ramp_subtitle_label: Label
+var _ramp_prompt_tween: Tween
+var _has_seen_first_ramp_tutorial: bool = false
+var _is_launch_window_active: bool = false
+var _launch_pulse_timer: float = 0.0
+var _ramp_stylebox: StyleBoxFlat
+
 func _ready() -> void:
 	_init_fuel_styles()
 	_init_toast_panel()
+	_init_ramp_prompt_panel()
 	
 	if message_banner:
 		message_banner.visible = false
@@ -79,15 +91,20 @@ func _ready() -> void:
 	call_deferred("_auto_discover_bindings")
 
 func _auto_discover_bindings() -> void:
-	if not is_instance_valid(game_manager_ref):
-		var tree_root := get_tree().root
-		if tree_root:
+	var tree_root := get_tree().root
+	if tree_root:
+		if not is_instance_valid(game_manager_ref):
 			var gm = tree_root.find_child("GameManager", true, false)
 			if is_instance_valid(gm):
 				bind_game_manager(gm)
+		if not is_instance_valid(_vehicle_ref):
 			var veh = tree_root.find_child("Vehicle", true, false)
 			if is_instance_valid(veh) and veh.has_method("refuel"):
 				bind_vehicle(veh)
+		if not is_instance_valid(progression_controller_ref):
+			var pc = tree_root.find_child("BiomeProgressionController", true, false)
+			if is_instance_valid(pc) and pc is BiomeProgressionController:
+				bind_progression_controller(pc)
 
 func _init_fuel_styles() -> void:
 	_fuel_style_healthy = StyleBoxFlat.new()
@@ -125,6 +142,17 @@ func _process(delta: float) -> void:
 		var s := 1.0 + sin(_pothole_pulse_timer) * 0.08
 		nitro_button.scale = Vector2(s, s)
 		nitro_button.pivot_offset = nitro_button.size * 0.5
+	elif _is_launch_window_active:
+		# Vibrant pulse on Nitro Button and Nitro Bar during Launch Window (Phase 5)
+		_launch_pulse_timer += delta * 11.0
+		var pulse := (sin(_launch_pulse_timer) * 0.5) + 0.5
+		var s := 1.0 + sin(_launch_pulse_timer) * 0.12
+		if nitro_button:
+			nitro_button.scale = Vector2(s, s)
+			nitro_button.pivot_offset = nitro_button.size * 0.5
+			nitro_button.modulate = Color(0.25, 0.9, 1.0).lerp(Color(1.0, 0.95, 0.25), pulse)
+		if nitro_bar:
+			nitro_bar.modulate = Color(0.25, 0.9, 1.0).lerp(Color(1.0, 0.95, 0.25), pulse)
 	
 	# Animate RPM needle based on vehicle wheel angular velocity
 	if is_instance_valid(_rpm_needle) and is_instance_valid(_vehicle_ref):
@@ -219,9 +247,9 @@ func bind_vehicle(vehicle: Node) -> void:
 	if not is_instance_valid(vehicle):
 		return
 	_vehicle_ref = vehicle
-	if not vehicle.fuel_changed.is_connected(_on_fuel_updated):
+	if vehicle.has_signal("fuel_changed") and not vehicle.fuel_changed.is_connected(_on_fuel_updated):
 		vehicle.fuel_changed.connect(_on_fuel_updated)
-	if not vehicle.crashed.is_connected(_on_vehicle_crashed):
+	if vehicle.has_signal("crashed") and not vehicle.crashed.is_connected(_on_vehicle_crashed):
 		vehicle.crashed.connect(_on_vehicle_crashed)
 	if vehicle.has_signal("trick_performed") and not vehicle.trick_performed.is_connected(_on_trick_performed):
 		vehicle.trick_performed.connect(_on_trick_performed)
@@ -236,8 +264,12 @@ func bind_vehicle(vehicle: Node) -> void:
 	if vehicle.has_signal("pothole_assist_hint") and not vehicle.pothole_assist_hint.is_connected(_on_pothole_assist_hint):
 		vehicle.pothole_assist_hint.connect(_on_pothole_assist_hint)
 	
-	if "current_nitro" in vehicle and "max_nitro" in vehicle:
-		_on_nitro_updated(vehicle.current_nitro, vehicle.max_nitro)
+	var c_nit = vehicle.get("current_nitro")
+	if c_nit != null:
+		_target_nitro = float(c_nit)
+		var m_nit = vehicle.get("max_nitro")
+		var m_val: float = float(m_nit) if m_nit != null else 100.0
+		_on_nitro_updated(float(c_nit), m_val)
 
 func _update_best_distance() -> void:
 	if best_distance_label and is_instance_valid(game_manager_ref) and "best_distance" in game_manager_ref:
@@ -343,9 +375,14 @@ func _on_run_paused(is_paused: bool) -> void:
 func _on_run_started() -> void:
 	_is_low_fuel = false
 	_pothole_pulse_active = false
+	_is_launch_window_active = false
+	_hide_ramp_prompt()
 	if nitro_button:
 		nitro_button.scale = Vector2.ONE
 		nitro_button.modulate = Color.WHITE
+	if nitro_bar:
+		nitro_bar.scale = Vector2.ONE
+		nitro_bar.modulate = Color.WHITE
 	_milestones_reached.clear()
 	if is_instance_valid(_toast_panel):
 		_toast_panel.visible = false
@@ -484,3 +521,200 @@ func show_toast(title: String, subtitle: String = "", highlight_color: Color = C
 	
 	_toast_tween.chain().tween_property(_toast_panel, "modulate:a", 0.0, 0.25)
 	_toast_tween.tween_callback(func(): _toast_panel.visible = false)
+
+# --- BRANCHING ENCOUNTER & RAMP PROMPT SYSTEM (PHASE 5) ---
+
+func _init_ramp_prompt_panel() -> void:
+	if is_instance_valid(_ramp_prompt_panel):
+		return
+	
+	_ramp_prompt_panel = PanelContainer.new()
+	_ramp_prompt_panel.name = "RampPromptPanel"
+	_ramp_prompt_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ramp_prompt_panel.anchors_preset = Control.PRESET_CENTER_TOP
+	_ramp_prompt_panel.anchor_left = 0.5
+	_ramp_prompt_panel.anchor_right = 0.5
+	_ramp_prompt_panel.anchor_top = 0.0
+	_ramp_prompt_panel.offset_left = -220.0
+	_ramp_prompt_panel.offset_top = 92.0
+	_ramp_prompt_panel.offset_right = 220.0
+	_ramp_prompt_panel.offset_bottom = 162.0
+	_ramp_prompt_panel.visible = false
+	
+	_ramp_stylebox = StyleBoxFlat.new()
+	_ramp_stylebox.bg_color = Color(0.04, 0.07, 0.13, 0.94)
+	_ramp_stylebox.border_width_left = 2
+	_ramp_stylebox.border_width_top = 2
+	_ramp_stylebox.border_width_right = 2
+	_ramp_stylebox.border_width_bottom = 2
+	_ramp_stylebox.border_color = Color(1.0, 0.85, 0.25, 0.95)
+	_ramp_stylebox.set_corner_radius_all(10)
+	_ramp_stylebox.shadow_color = Color(0, 0, 0, 0.55)
+	_ramp_stylebox.shadow_size = 12
+	_ramp_prompt_panel.add_theme_stylebox_override("panel", _ramp_stylebox)
+	
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	
+	var vbox := VBoxContainer.new()
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 4)
+	
+	_ramp_title_label = Label.new()
+	_ramp_title_label.name = "RampTitleLabel"
+	_ramp_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ramp_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_ramp_title_label.add_theme_font_size_override("font_size", 16)
+	_ramp_title_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
+	vbox.add_child(_ramp_title_label)
+	
+	_ramp_subtitle_label = Label.new()
+	_ramp_subtitle_label.name = "RampSubtitleLabel"
+	_ramp_subtitle_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ramp_subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_ramp_subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_ramp_subtitle_label.add_theme_font_size_override("font_size", 12)
+	_ramp_subtitle_label.add_theme_color_override("font_color", Color(0.88, 0.94, 0.98))
+	vbox.add_child(_ramp_subtitle_label)
+	
+	margin.add_child(vbox)
+	_ramp_prompt_panel.add_child(margin)
+	add_child(_ramp_prompt_panel)
+
+func _show_ramp_prompt(title: String, subtitle: String, border_color: Color, title_color: Color) -> void:
+	if not is_instance_valid(_ramp_prompt_panel):
+		_init_ramp_prompt_panel()
+	
+	_ramp_title_label.text = title
+	_ramp_title_label.add_theme_color_override("font_color", title_color)
+	_ramp_subtitle_label.text = subtitle
+	if _ramp_stylebox:
+		_ramp_stylebox.border_color = border_color
+	
+	if _ramp_prompt_tween and _ramp_prompt_tween.is_valid():
+		_ramp_prompt_tween.kill()
+	
+	_ramp_prompt_panel.visible = true
+	_ramp_prompt_panel.modulate.a = 0.0
+	_ramp_prompt_panel.scale = Vector2(0.9, 0.9)
+	_ramp_prompt_panel.pivot_offset = Vector2(220.0, 35.0)
+	
+	_ramp_prompt_tween = create_tween()
+	_ramp_prompt_tween.set_parallel(true)
+	_ramp_prompt_tween.tween_property(_ramp_prompt_panel, "modulate:a", 1.0, 0.18)
+	_ramp_prompt_tween.tween_property(_ramp_prompt_panel, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_ramp_prompt_tween.chain().tween_interval(2.8)
+	_ramp_prompt_tween.chain().tween_property(_ramp_prompt_panel, "modulate:a", 0.0, 0.25)
+	_ramp_prompt_tween.tween_callback(func():
+		if is_instance_valid(_ramp_prompt_panel):
+			_ramp_prompt_panel.visible = false
+	)
+
+func _hide_ramp_prompt() -> void:
+	if not is_instance_valid(_ramp_prompt_panel) or not _ramp_prompt_panel.visible:
+		return
+	if _ramp_prompt_tween and _ramp_prompt_tween.is_valid():
+		_ramp_prompt_tween.kill()
+	
+	_ramp_prompt_tween = create_tween()
+	_ramp_prompt_tween.tween_property(_ramp_prompt_panel, "modulate:a", 0.0, 0.2)
+	_ramp_prompt_tween.tween_callback(func():
+		if is_instance_valid(_ramp_prompt_panel):
+			_ramp_prompt_panel.visible = false
+	)
+
+## Binds to BiomeProgressionController for branching encounter cues
+func bind_progression_controller(pc: BiomeProgressionController) -> void:
+	if not is_instance_valid(pc):
+		return
+	progression_controller_ref = pc
+	if not pc.state_changed.is_connected(_on_progression_state_changed):
+		pc.state_changed.connect(_on_progression_state_changed)
+	if not pc.ramp_warning_triggered.is_connected(_on_ramp_warning_triggered):
+		pc.ramp_warning_triggered.connect(_on_ramp_warning_triggered)
+	if not pc.launch_window_entered.is_connected(_on_launch_window_entered):
+		pc.launch_window_entered.connect(_on_launch_window_entered)
+	if not pc.branch_confirmed.is_connected(_on_branch_confirmed):
+		pc.branch_confirmed.connect(_on_branch_confirmed)
+	if not pc.route_merge_completed.is_connected(_on_route_merge_completed):
+		pc.route_merge_completed.connect(_on_route_merge_completed)
+	if not pc.progression_reset.is_connected(_on_progression_reset):
+		pc.progression_reset.connect(_on_progression_reset)
+
+func _on_progression_state_changed(_old_state: int, new_state: int, _state_info: Dictionary) -> void:
+	match new_state:
+		WorldCycleSchedule.WorldState.NORMAL_APPROACH:
+			_hide_ramp_prompt()
+			_is_launch_window_active = false
+		WorldCycleSchedule.WorldState.HEAVEN_ENTRY, WorldCycleSchedule.WorldState.HEAVEN_ACTIVE:
+			_hide_ramp_prompt()
+			_is_launch_window_active = false
+		WorldCycleSchedule.WorldState.HELL_ENTRY, WorldCycleSchedule.WorldState.HELL_ACTIVE:
+			_hide_ramp_prompt()
+			_is_launch_window_active = false
+		WorldCycleSchedule.WorldState.NORMAL_MERGE:
+			_hide_ramp_prompt()
+			_is_launch_window_active = false
+
+func _on_ramp_warning_triggered(_gate_dist_m: float, enc_idx: int) -> void:
+	var title: String = "⚠ RAMP AHEAD!"
+	var subtitle: String = ""
+	if enc_idx == 0 and not _has_seen_first_ramp_tutorial:
+		_has_seen_first_ramp_tutorial = true
+		subtitle = "USE BOOST AT THE RAMP TO REACH HEAVEN. MISS THE LAUNCH AND YOU'LL DROP INTO HELL."
+	else:
+		title = "⚠ RAMP AHEAD"
+		subtitle = "Prepare for Launch"
+	
+	_show_ramp_prompt(title, subtitle, Color(1.0, 0.85, 0.25, 0.95), Color(1.0, 0.9, 0.3))
+
+func _on_launch_window_entered(_gate_dist_m: float, _enc_idx: int) -> void:
+	var has_nitro: bool = false
+	if is_instance_valid(_vehicle_ref) and _vehicle_ref.get("current_nitro") != null:
+		has_nitro = float(_vehicle_ref.get("current_nitro")) > 5.0
+	elif _target_nitro > 5.0 and not is_instance_valid(_vehicle_ref):
+		has_nitro = true
+	else:
+		has_nitro = _target_nitro > 5.0
+
+	if has_nitro:
+		var title := "⚡ BOOST TO REACH HEAVEN! ⚡"
+		var subtitle := "Press BOOST / SHIFT now!"
+		_is_launch_window_active = true
+		_show_ramp_prompt(title, subtitle, Color(0.25, 0.9, 1.0, 0.95), Color(0.4, 0.95, 1.0))
+	else:
+		var title := "⚠ NITRO EMPTY — LOWER ROUTE"
+		var subtitle := "Brace for Hell descent"
+		_is_launch_window_active = false
+		_show_ramp_prompt(title, subtitle, Color(0.95, 0.45, 0.2, 0.95), Color(1.0, 0.55, 0.25))
+
+func _on_branch_confirmed(realm: int, _enc_idx: int) -> void:
+	_hide_ramp_prompt()
+	_is_launch_window_active = false
+	if nitro_button:
+		nitro_button.scale = Vector2.ONE
+	if nitro_bar:
+		nitro_bar.scale = Vector2.ONE
+	
+	if realm == WorldCycleSchedule.BiomeType.HEAVEN:
+		show_toast("✦ HEAVEN ROUTE ✦", "Celestial Ascent Confirmed", Color(1.0, 0.9, 0.25))
+	elif realm == WorldCycleSchedule.BiomeType.HELL:
+		show_toast("▼ HELL ROUTE ▼", "Subterranean Descent Confirmed", Color(1.0, 0.4, 0.15))
+
+func _on_route_merge_completed(_enc_idx: int) -> void:
+	show_toast("NORMAL LAND", "Endless Journey Continues", Color(0.35, 0.95, 0.45))
+
+func _on_progression_reset() -> void:
+	_hide_ramp_prompt()
+	_is_launch_window_active = false
+	if nitro_button:
+		nitro_button.scale = Vector2.ONE
+		nitro_button.modulate = Color.WHITE
+	if nitro_bar:
+		nitro_bar.scale = Vector2.ONE
+		nitro_bar.modulate = Color.WHITE

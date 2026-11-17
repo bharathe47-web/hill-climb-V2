@@ -30,14 +30,18 @@
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_04.png" id="28_xly1g"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_06.png" id="29_rkaed"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/particles/spark_01.png" id="30_3o0b0"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/particles/light_01.png" id="31_light"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/light_masks/streaks_composed_a.png" id="32_streaka"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/light_masks/cone_composed_a.png" id="33_conea"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/light_masks/streaks_composed_e.png" id="34_streake"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cfyg2"]
 shader = ExtResource("3_fphwc")
 shader_parameter/glow_color = Color(1, 0.94, 0.78, 0.6)
-shader_parameter/base_alpha = null
+shader_parameter/base_alpha = 0.35
 shader_parameter/pulse_speed = 0.8
-shader_parameter/pulse_intensity = null
-shader_parameter/vertical_falloff = null
+shader_parameter/pulse_intensity = 0.08
+shader_parameter/radial_sharpness = 1.4
 
 [node name="HeavenEnvironment" type="ParallaxBackground" unique_id=1689200374]
 script = ExtResource("1_g2g6f")
@@ -56,11 +60,13 @@ stretch_mode = 1
 [node name="CelestialSunGlow" type="Sprite2D" parent="SkyLayer" unique_id=1278137849]
 material = SubResource("ShaderMaterial_cfyg2")
 position = Vector2(640, 110)
-scale = Vector2(1.2, 1.2)
-texture = ExtResource("4_1b42l")
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("31_light")
 
 [node name="AtmosphericRays" type="Sprite2D" parent="SkyLayer" unique_id=1617034990]
-modulate = Color(1, 0.95, 0.85, 0.28)
+visible = false
+material = SubResource("ShaderMaterial_cfyg2")
+modulate = Color(1, 0.95, 0.85, 0.18)
 position = Vector2(640, 140)
 scale = Vector2(2.5, 1.6)
 texture = ExtResource("5_krfo3")
@@ -98,7 +104,9 @@ scale = Vector2(0.42, 0.42)
 texture = ExtResource("9_vtxs0")
 
 [node name="WindowBeam1" type="Sprite2D" parent="DistantPalaceLayer" unique_id=2101925379]
-modulate = Color(1, 0.95, 0.75, 0.25)
+visible = false
+material = SubResource("ShaderMaterial_cfyg2")
+modulate = Color(1, 0.95, 0.75, 0.18)
 position = Vector2(420, 360)
 scale = Vector2(0.6, 0.8)
 texture = ExtResource("10_uxo2s")
@@ -110,7 +118,9 @@ scale = Vector2(0.42, 0.42)
 texture = ExtResource("9_vtxs0")
 
 [node name="WindowBeam2" type="Sprite2D" parent="DistantPalaceLayer" unique_id=513687864]
-modulate = Color(1, 0.95, 0.75, 0.25)
+visible = false
+material = SubResource("ShaderMaterial_cfyg2")
+modulate = Color(1, 0.95, 0.75, 0.18)
 position = Vector2(1620, 360)
 scale = Vector2(0.6, 0.8)
 texture = ExtResource("10_uxo2s")
@@ -118,25 +128,25 @@ texture = ExtResource("10_uxo2s")
 [node name="DistantColumn1" type="Sprite2D" parent="DistantPalaceLayer" unique_id=612945871]
 modulate = Color(0.88, 0.92, 0.98, 0.78)
 position = Vector2(200, 320)
-scale = Vector2(0.35, 0.35)
+scale = Vector2(0.22, 0.22)
 texture = ExtResource("11_gr4uw")
 
 [node name="DistantColumn2" type="Sprite2D" parent="DistantPalaceLayer" unique_id=351843309]
 modulate = Color(0.88, 0.92, 0.98, 0.78)
 position = Vector2(800, 320)
-scale = Vector2(0.35, 0.35)
+scale = Vector2(0.22, 0.22)
 texture = ExtResource("11_gr4uw")
 
 [node name="DistantColumn3" type="Sprite2D" parent="DistantPalaceLayer" unique_id=2139356878]
 modulate = Color(0.88, 0.92, 0.98, 0.78)
 position = Vector2(1400, 320)
-scale = Vector2(0.35, 0.35)
+scale = Vector2(0.22, 0.22)
 texture = ExtResource("11_gr4uw")
 
 [node name="DistantColumn4" type="Sprite2D" parent="DistantPalaceLayer" unique_id=341859490]
 modulate = Color(0.88, 0.92, 0.98, 0.78)
 position = Vector2(2000, 320)
-scale = Vector2(0.35, 0.35)
+scale = Vector2(0.22, 0.22)
 texture = ExtResource("11_gr4uw")
 
 [node name="DoveFlockLayer" type="ParallaxLayer" parent="." unique_id=860215217]
@@ -186,6 +196,27 @@ position = Vector2(1750, 170)
 scale = Vector2(0.85, 0.75)
 texture = ExtResource("15_f2jc2")
 
+[node name="SunbeamShaft1" type="Sprite2D" parent="CelestialCloudsLayer"]
+modulate = Color(1, 0.96, 0.82, 0.16)
+position = Vector2(580, 220)
+rotation = 0.35
+scale = Vector2(2.2, 1.8)
+texture = ExtResource("32_streaka")
+
+[node name="SunbeamShaft2" type="Sprite2D" parent="CelestialCloudsLayer"]
+modulate = Color(1, 0.95, 0.8, 0.15)
+position = Vector2(1420, 240)
+rotation = 0.28
+scale = Vector2(2.0, 1.8)
+texture = ExtResource("33_conea")
+
+[node name="SunbeamShaft3" type="Sprite2D" parent="CelestialCloudsLayer"]
+modulate = Color(1, 0.97, 0.85, 0.14)
+position = Vector2(1920, 200)
+rotation = 0.38
+scale = Vector2(1.8, 1.6)
+texture = ExtResource("34_streake")
+
 [node name="MidPalaceArchitectureLayer" type="ParallaxLayer" parent="." unique_id=743859988]
 motion_scale = Vector2(0.28, 0.12)
 motion_mirroring = Vector2(2560, 0)
@@ -197,36 +228,76 @@ texture = ExtResource("16_5ht1h")
 
 [node name="GoldenArchway" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=45960148]
 position = Vector2(650, 220)
-scale = Vector2(0.65, 0.65)
+scale = Vector2(0.55, 0.55)
 texture = ExtResource("17_vckx0")
 
-[node name="GoldenArchwayFront" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=1107477386]
-position = Vector2(650, 220)
-scale = Vector2(0.65, 0.65)
-texture = ExtResource("18_3v20n")
-
 [node name="PalaceColumnLeft" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=906643578]
-position = Vector2(450, 330)
-scale = Vector2(0.55, 0.55)
+position = Vector2(450, 290)
+scale = Vector2(0.26, 0.26)
 texture = ExtResource("11_gr4uw")
 
 [node name="PalaceColumnRight" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=456750397]
-position = Vector2(850, 330)
-scale = Vector2(0.55, 0.55)
+position = Vector2(850, 290)
+scale = Vector2(0.26, 0.26)
 texture = ExtResource("11_gr4uw")
+
+[node name="GoldenArchway2" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(1950, 220)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("17_vckx0")
+
+[node name="PalaceColumn3" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(1750, 290)
+scale = Vector2(0.26, 0.26)
+texture = ExtResource("11_gr4uw")
+
+[node name="PalaceColumn4" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(2150, 290)
+scale = Vector2(0.26, 0.26)
+texture = ExtResource("11_gr4uw")
+
+[node name="PalaceColumnMid1" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(1250, 285)
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("11_gr4uw")
+
+[node name="PalaceColumnMid2" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(1450, 285)
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("11_gr4uw")
+
+[node name="CloudPlatformLeft" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+modulate = Color(1, 0.98, 0.95, 0.85)
+position = Vector2(650, 405)
+scale = Vector2(1.05, 0.62)
+texture = ExtResource("7_n656k")
+
+[node name="CloudPlatformMid" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+modulate = Color(1, 0.98, 0.95, 0.85)
+position = Vector2(1350, 405)
+scale = Vector2(1.00, 0.62)
+texture = ExtResource("6_nag25")
+
+[node name="CloudPlatformRight" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+modulate = Color(1, 0.98, 0.95, 0.85)
+position = Vector2(1950, 405)
+scale = Vector2(1.05, 0.62)
+texture = ExtResource("8_crjeg")
 
 [node name="IvoryAngelStatue" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=338376739]
 position = Vector2(1850, 250)
-scale = Vector2(0.42, 0.42)
+scale = Vector2(0.30, 0.30)
 texture = ExtResource("19_f21b4")
 
 [node name="AngelHaloGlow" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=2303127]
-modulate = Color(1, 0.95, 0.8, 0.35)
-position = Vector2(1850, 180)
-scale = Vector2(0.6, 0.6)
-texture = ExtResource("20_y1lx1")
+material = SubResource("ShaderMaterial_cfyg2")
+modulate = Color(1, 0.92, 0.65, 0.45)
+position = Vector2(1850, 145)
+scale = Vector2(0.32, 0.32)
+texture = ExtResource("31_light")
 
 [node name="PalaceMarbleTrim" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=878558622]
+visible = false
 position = Vector2(1280, 580)
 scale = Vector2(1.35, 0.8)
 texture = ExtResource("21_ds8qq")
@@ -237,52 +308,51 @@ motion_mirroring = Vector2(2048, 0)
 
 [node name="Flower1" type="Sprite2D" parent="NearFloraLayer" unique_id=409454626]
 position = Vector2(340, 470)
-scale = Vector2(0.7, 0.7)
+scale = Vector2(0.55, 0.55)
 texture = ExtResource("22_mhmmp")
 
 [node name="Flower3" type="Sprite2D" parent="NearFloraLayer" unique_id=1733738944]
 position = Vector2(380, 475)
-scale = Vector2(0.65, 0.65)
+scale = Vector2(0.55, 0.55)
 texture = ExtResource("23_oc2x2")
 
 [node name="Flower5" type="Sprite2D" parent="NearFloraLayer" unique_id=1380714282]
 position = Vector2(420, 480)
-scale = Vector2(0.7, 0.7)
+scale = Vector2(0.55, 0.55)
 texture = ExtResource("24_opehk")
 
 [node name="Flower2" type="Sprite2D" parent="NearFloraLayer" unique_id=1311159980]
 position = Vector2(1130, 475)
-scale = Vector2(0.7, 0.7)
+scale = Vector2(0.55, 0.55)
 texture = ExtResource("25_x6ie3")
 
 [node name="Flower7" type="Sprite2D" parent="NearFloraLayer" unique_id=1266384141]
 position = Vector2(1170, 470)
-scale = Vector2(0.65, 0.65)
+scale = Vector2(0.55, 0.55)
 texture = ExtResource("26_nbka4")
 
 [node name="Flower8" type="Sprite2D" parent="NearFloraLayer" unique_id=1531273352]
 position = Vector2(1210, 480)
-scale = Vector2(0.7, 0.7)
+scale = Vector2(0.55, 0.55)
 texture = ExtResource("27_twvql")
 
 [node name="Flower4" type="Sprite2D" parent="NearFloraLayer" unique_id=1296845119]
 position = Vector2(1830, 470)
-scale = Vector2(0.7, 0.7)
+scale = Vector2(0.55, 0.55)
 texture = ExtResource("28_xly1g")
 
 [node name="Flower6" type="Sprite2D" parent="NearFloraLayer" unique_id=27517542]
 position = Vector2(1880, 475)
-scale = Vector2(0.7, 0.7)
+scale = Vector2(0.55, 0.55)
 texture = ExtResource("29_rkaed")
 
 [node name="CelestialSparkles" type="CPUParticles2D" parent="NearFloraLayer" unique_id=950585745]
 position = Vector2(640, 250)
-amount = 12
-texture = ExtResource("30_3o0b0")
+amount = 16
 lifetime = 3.5
 emission_shape = 3
 emission_rect_extents = Vector2(640, 200)
 gravity = Vector2(5, -12)
-scale_amount_min = 0.04
-scale_amount_max = 0.08
-color = Color(1, 0.95, 0.6, 0.65)
+scale_amount_min = 2.0
+scale_amount_max = 4.0
+color = Color(1, 0.95, 0.6, 0.85)

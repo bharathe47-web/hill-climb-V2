@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://d3rud3f2tyn8w"
+
+[deps]
+
+files=["res://docs/PROJECT_FILE_MANIFEST.size.translation", "res://docs/PROJECT_FILE_MANIFEST.sha256.translation"]
+
+source_file="res://docs/PROJECT_FILE_MANIFEST.csv"
+dest_files=["res://docs/PROJECT_FILE_MANIFEST.size.translation", "res://docs/PROJECT_FILE_MANIFEST.sha256.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

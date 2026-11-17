@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BiomeTerrainProfile" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_marble_floor.png" id="1_nmphq"]
+[ext_resource type="Script" path="res://scripts/terrain/BiomeTerrainProfile.gd" id="2_6a0jx"]
+[ext_resource type="Texture2D" path="res://assets/terrain/surfaces/brown_soil_subsurface.png" id="3_hf8k6"]
+
+[resource]
+script = ExtResource("2_6a0jx")
+profile_name = "Heaven"
+biome_type = 1
+ground_texture = ExtResource("1_nmphq")
+subsoil_texture = ExtResource("3_hf8k6")
+ground_color = Color(1, 0.98, 0.92, 1)
+subsoil_color = Color(0.95, 0.9, 0.78, 0.85)
+surface_friction = 1.05

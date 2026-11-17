@@ -1,0 +1,67 @@
+[
+  {
+    "approx_fps": 145.401319759312,
+    "avg_draw_calls": 0.0,
+    "max_ms": 7.414,
+    "mean_ms": 6.87751666666666,
+    "median_ms": 6.885,
+    "min_ms": 6.337,
+    "p95_ms": 7.293,
+    "peak_mem_mb": 225.444297790527,
+    "scenario": "Normal Land Baseline",
+    "static_mem_mb": 222.476524353027,
+    "vram_mb": 0.0
+  },
+  {
+    "approx_fps": 145.303253945286,
+    "avg_draw_calls": 0.0,
+    "max_ms": 7.405,
+    "mean_ms": 6.88215833333333,
+    "median_ms": 6.888,
+    "min_ms": 6.346,
+    "p95_ms": 7.276,
+    "peak_mem_mb": 225.444297790527,
+    "scenario": "Transition 1 (Normal -> Heaven Peak)",
+    "static_mem_mb": 222.561676025391,
+    "vram_mb": 0.0
+  },
+  {
+    "approx_fps": 145.365916295883,
+    "avg_draw_calls": 0.0,
+    "max_ms": 7.629,
+    "mean_ms": 6.87919166666667,
+    "median_ms": 6.874,
+    "min_ms": 6.053,
+    "p95_ms": 7.302,
+    "peak_mem_mb": 225.444297790527,
+    "scenario": "Heaven Environment Baseline",
+    "static_mem_mb": 222.560901641846,
+    "vram_mb": 0.0
+  },
+  {
+    "approx_fps": 145.381238066623,
+    "avg_draw_calls": 0.0,
+    "max_ms": 7.476,
+    "mean_ms": 6.87846666666667,
+    "median_ms": 6.874,
+    "min_ms": 6.39,
+    "p95_ms": 7.244,
+    "peak_mem_mb": 225.444297790527,
+    "scenario": "Transition 3 (Normal -> Hell Peak)",
+    "static_mem_mb": 222.491100311279,
+    "vram_mb": 0.0
+  },
+  {
+    "approx_fps": 145.225529195777,
+    "avg_draw_calls": 0.0,
+    "max_ms": 7.345,
+    "mean_ms": 6.88584166666667,
+    "median_ms": 6.878,
+    "min_ms": 6.428,
+    "p95_ms": 7.189,
+    "peak_mem_mb": 225.444297790527,
+    "scenario": "Hell Environment Baseline",
+    "static_mem_mb": 222.490371704102,
+    "vram_mb": 0.0
+  }
+]

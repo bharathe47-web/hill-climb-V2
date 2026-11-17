@@ -21,26 +21,32 @@
 [ext_resource type="SpriteFrames" path="res://assets/environments/hell/characters/demon_goblin/demon_goblin.tres" id="19_5ew1i"]
 [ext_resource type="SpriteFrames" path="res://assets/environments/hell/characters/horned_fiend/horned_fiend.tres" id="20_leydc"]
 [ext_resource type="Shader" path="res://scripts/shaders/molten_lava_flow.gdshader" id="21_fmoaw"]
-[ext_resource type="Texture2D" path="res://assets/environments/hell/vfx/lava/lava_tiles.png" id="22_ajcpv"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/vfx/lava/lava_strip8.png" id="22_ajcpv"]
 [ext_resource type="Texture2D" path="res://assets/environments/hell/terrain/magma_vent_fissure_prop.png" id="23_c1uj7"]
 [ext_resource type="Shader" path="res://scripts/shaders/heat_distortion_shimmer.gdshader" id="24_1xh10"]
 [ext_resource type="SpriteFrames" path="res://assets/environments/hell/vfx/fire/fire_sheet_5x5.tres" id="25_mocvp"]
 [ext_resource type="Texture2D" path="res://assets/environments/hell/vfx/particles/volcanic_cinder_spark_01.png" id="26_ujhew"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/vfx/particles/floating_ember_orb.png" id="27_ember"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/vfx/particles/glowing_ash_spore.png" id="28_spore"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_e5ctn"]
 shader = ExtResource("21_fmoaw")
-shader_parameter/flow_velocity = null
-shader_parameter/wave_amplitude = null
-shader_parameter/wave_frequency = null
+shader_parameter/flow_velocity = Vector2(0.08, 0.0)
+shader_parameter/wave_amplitude = 0.015
+shader_parameter/wave_frequency = 8.0
 shader_parameter/wave_speed = 1.2
-shader_parameter/magma_glow_tint = null
+shader_parameter/magma_glow_tint = Color(1.05, 0.45, 0.05, 1)
 shader_parameter/thermal_pulse_speed = 1.5
-shader_parameter/thermal_pulse_amount = null
+shader_parameter/thermal_pulse_amount = 0.12
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_eri55"]
 shader = ExtResource("24_1xh10")
 shader_parameter/distortion_strength = 0.02
-shader_parameter/scroll_velocity = null
+shader_parameter/scroll_velocity = Vector2(0.02, -0.06)
+
+[sub_resource type="Gradient" id="Gradient_ember"]
+offsets = PackedFloat32Array(0, 0.18, 0.75, 1)
+colors = PackedColorArray(1, 0.45, 0.05, 0, 1, 0.72, 0.2, 0.85, 1, 0.52, 0.12, 0.8, 0.85, 0.25, 0.05, 0)
 
 [node name="HellEnvironment" type="ParallaxBackground" unique_id=1037132325]
 script = ExtResource("1_c6ukq")
@@ -57,6 +63,7 @@ texture = ExtResource("2_qh3rn")
 stretch_mode = 1
 
 [node name="SubterraneanGlow" type="Sprite2D" parent="SkyLayer" unique_id=228965278]
+visible = false
 modulate = Color(1, 0.35, 0.05, 0.45)
 position = Vector2(640, 550)
 scale = Vector2(3, 1.2)
@@ -84,18 +91,6 @@ position = Vector2(1900, 310)
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("6_m3cco")
 
-[node name="SmokeWisp1" type="Sprite2D" parent="DistantCragsLayer" unique_id=323413666]
-modulate = Color(0.4, 0.25, 0.25, 0.4)
-position = Vector2(650, 180)
-scale = Vector2(0.7, 0.7)
-texture = ExtResource("7_vgkrm")
-
-[node name="SmokeWisp2" type="Sprite2D" parent="DistantCragsLayer" unique_id=570097753]
-modulate = Color(0.35, 0.2, 0.2, 0.35)
-position = Vector2(1500, 150)
-scale = Vector2(0.8, 0.8)
-texture = ExtResource("8_etalr")
-
 [node name="AmbientDragonLayer" type="ParallaxLayer" parent="." unique_id=1972884383]
 motion_scale = Vector2(0.12, 0.05)
 motion_mirroring = Vector2(2400, 0)
@@ -112,56 +107,52 @@ motion_scale = Vector2(0.24, 0.1)
 motion_mirroring = Vector2(2560, 0)
 
 [node name="DragonSkullPortal" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=1079926146]
-position = Vector2(1300, 260)
-scale = Vector2(0.7, 0.7)
+position = Vector2(1300, 250)
+scale = Vector2(0.48, 0.48)
 texture = ExtResource("10_pwbox")
 
 [node name="BasaltColumnLeft" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=1332469849]
-position = Vector2(1000, 310)
-scale = Vector2(0.55, 0.55)
+position = Vector2(1000, 315)
+scale = Vector2(0.26, 0.26)
 texture = ExtResource("11_o3fse")
 
 [node name="BasaltColumnRight" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=241257955]
-position = Vector2(1600, 310)
-scale = Vector2(0.55, 0.55)
+position = Vector2(1600, 315)
+scale = Vector2(0.26, 0.26)
 texture = ExtResource("11_o3fse")
 
 [node name="BasaltArchColumn1" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=923687433]
-position = Vector2(350, 310)
-scale = Vector2(0.5, 0.5)
+position = Vector2(350, 315)
+scale = Vector2(0.24, 0.24)
 texture = ExtResource("11_o3fse")
 
 [node name="BasaltArchColumn2" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=820187384]
-position = Vector2(2150, 310)
-scale = Vector2(0.5, 0.5)
+position = Vector2(2150, 315)
+scale = Vector2(0.24, 0.24)
 texture = ExtResource("11_o3fse")
 
 [node name="CatacombSkullPile" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=755527228]
+visible = false
 position = Vector2(450, 460)
 scale = Vector2(0.4, 0.4)
-texture = ExtResource("12_ohr00")
-
-[node name="SkullDecal1" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=1089604574]
-position = Vector2(950, 440)
-scale = Vector2(0.25, 0.25)
-texture = ExtResource("13_wf1c8")
-
-[node name="SkullDecal2" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=1355826938]
-position = Vector2(1650, 440)
-scale = Vector2(0.25, 0.25)
-texture = ExtResource("14_ywfna")
 
 [node name="ObsidianSpikesCluster" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=314967425]
-position = Vector2(250, 430)
-scale = Vector2(0.35, 0.35)
+position = Vector2(250, 425)
+scale = Vector2(0.19, 0.19)
+texture = ExtResource("15_ofmxp")
+
+[node name="ObsidianSpikesCluster2" type="Sprite2D" parent="MidBasaltArchitectureLayer"]
+position = Vector2(1450, 425)
+scale = Vector2(0.19, 0.19)
 texture = ExtResource("15_ofmxp")
 
 [node name="ObsidianSpikeSingle" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=921598122]
-position = Vector2(2250, 440)
-scale = Vector2(0.35, 0.35)
+position = Vector2(2250, 435)
+scale = Vector2(0.20, 0.20)
 texture = ExtResource("16_a8vpo")
 
 [node name="BasaltPlatformTrim" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=2009579863]
+visible = false
 modulate = Color(0.6, 0.5, 0.5, 0.9)
 position = Vector2(1280, 580)
 scale = Vector2(1.35, 0.8)
@@ -172,22 +163,23 @@ motion_scale = Vector2(0.24, 0.1)
 motion_mirroring = Vector2(2560, 0)
 
 [node name="SkeletonKnight" type="AnimatedSprite2D" parent="AmbientCharactersLayer" unique_id=948682642]
-position = Vector2(1020, 275)
-scale = Vector2(0.35, 0.35)
+position = Vector2(1050, 300)
+scale = Vector2(0.23, 0.23)
 sprite_frames = ExtResource("18_os1mi")
 animation = &"idle"
 autoplay = "idle"
 
 [node name="DemonGoblin" type="AnimatedSprite2D" parent="AmbientCharactersLayer" unique_id=1350796230]
-position = Vector2(1580, 275)
-scale = Vector2(0.35, 0.35)
+position = Vector2(1620, 300)
+scale = Vector2(0.23, 0.23)
 sprite_frames = ExtResource("19_5ew1i")
 animation = &"idle"
 autoplay = "idle"
 
 [node name="HornedFiend" type="AnimatedSprite2D" parent="AmbientCharactersLayer" unique_id=1575353815]
-position = Vector2(450, 370)
-scale = Vector2(0.35, 0.35)
+modulate = Color(0.7, 0.48, 0.42, 0.85)
+position = Vector2(1950, 160)
+scale = Vector2(0.18, 0.18)
 sprite_frames = ExtResource("20_leydc")
 animation = &"walk"
 autoplay = "walk"
@@ -196,10 +188,25 @@ autoplay = "walk"
 motion_scale = Vector2(0.35, 0.14)
 motion_mirroring = Vector2(2048, 0)
 
+[node name="VolcanicAshDrift" type="CPUParticles2D" parent="LavaThermalLayer"]
+position = Vector2(640, 200)
+amount = 24
+lifetime = 4.0
+emission_shape = 3
+emission_rect_extents = Vector2(700, 250)
+direction = Vector2(0.8, 0.4)
+spread = 25.0
+gravity = Vector2(15, 12)
+initial_velocity_min = 20.0
+initial_velocity_max = 50.0
+scale_amount_min = 1.5
+scale_amount_max = 3.5
+color = Color(0.18, 0.14, 0.16, 0.75)
+
 [node name="LavaStreamSurface" type="Sprite2D" parent="LavaThermalLayer" unique_id=1478252982]
 material = SubResource("ShaderMaterial_e5ctn")
 position = Vector2(1024, 640)
-scale = Vector2(8, 0.6)
+scale = Vector2(16, 1.8)
 texture = ExtResource("22_ajcpv")
 
 [node name="MagmaVentProp" type="Sprite2D" parent="LavaThermalLayer" unique_id=924907997]
@@ -215,6 +222,7 @@ offset_right = 850.0
 offset_bottom = 540.0
 
 [node name="TorchFlameLeft" type="AnimatedSprite2D" parent="LavaThermalLayer" unique_id=1394612055]
+visible = false
 position = Vector2(950, 330)
 scale = Vector2(0.35, 0.35)
 sprite_frames = ExtResource("25_mocvp")
@@ -222,6 +230,7 @@ animation = &"burn"
 autoplay = "burn"
 
 [node name="TorchFlameRight" type="AnimatedSprite2D" parent="LavaThermalLayer" unique_id=1932186325]
+visible = false
 position = Vector2(1650, 330)
 scale = Vector2(0.35, 0.35)
 sprite_frames = ExtResource("25_mocvp")
@@ -230,12 +239,28 @@ autoplay = "burn"
 
 [node name="FloatingCinders" type="CPUParticles2D" parent="LavaThermalLayer" unique_id=17443693]
 position = Vector2(640, 580)
-amount = 16
-texture = ExtResource("26_ujhew")
+amount = 20
 lifetime = 3.0
 emission_shape = 3
 emission_rect_extents = Vector2(640, 100)
 gravity = Vector2(10, -35)
-scale_amount_min = 0.03
-scale_amount_max = 0.07
-color = Color(1, 0.55, 0.1, 0.8)
+scale_amount_min = 2.0
+scale_amount_max = 4.5
+color = Color(1, 0.55, 0.1, 0.85)
+
+[node name="AtmosphericEmbers" type="CPUParticles2D" parent="LavaThermalLayer"]
+position = Vector2(640, 520)
+texture = ExtResource("27_ember")
+amount = 22
+lifetime = 4.5
+preprocess = 2.0
+emission_shape = 3
+emission_rect_extents = Vector2(700, 220)
+direction = Vector2(0.25, -1)
+spread = 28.0
+gravity = Vector2(8, -20)
+initial_velocity_min = 18.0
+initial_velocity_max = 40.0
+scale_amount_min = 0.04
+scale_amount_max = 0.08
+color_ramp = SubResource("Gradient_ember")
