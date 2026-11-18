@@ -208,15 +208,41 @@ func _is_recurring_900m_mode() -> bool:
 		return progression_controller.schedule.schedule_mode == WorldCycleSchedule.ScheduleMode.RECURRING_900M
 	return true
 
-func get_profile_for_world_x(world_x: float) -> Resource:
+func get_biome_type_for_world_x(world_x: float) -> int:
 	var safe_x := maxf(0.0, world_x)
 	var cycle_pos_m := fposmod(safe_x / 100.0, 900.0)
 	if cycle_pos_m < 300.0:
-		return normal_terrain_profile
+		return 0 # WorldCycleSchedule.BiomeType.NORMAL_LAND
 	elif cycle_pos_m < 600.0:
-		return heaven_terrain_profile
+		return 1 # WorldCycleSchedule.BiomeType.HEAVEN
 	else:
-		return hell_terrain_profile
+		return 2 # WorldCycleSchedule.BiomeType.HELL
+
+func get_distance_to_next_biome_boundary(world_x: float) -> float:
+	var safe_x := maxf(0.0, world_x)
+	var cycle_pos_px := fposmod(safe_x, 90000.0)
+	if cycle_pos_px < 30000.0:
+		return 30000.0 - cycle_pos_px
+	elif cycle_pos_px < 60000.0:
+		return 60000.0 - cycle_pos_px
+	else:
+		return 90000.0 - cycle_pos_px
+
+func get_profile_for_world_x(world_x: float) -> Resource:
+	var b_type := get_biome_type_for_world_x(world_x)
+	match b_type:
+		1:
+			return heaven_terrain_profile
+		2:
+			return hell_terrain_profile
+		_:
+			return normal_terrain_profile
+
+func cull_outgoing_decorations(active_biome: int) -> void:
+	for seg in active_segments:
+		if is_instance_valid(seg) and seg is TerrainSegment:
+			if seg.biome_type != active_biome:
+				seg.set_decorations_visible(false)
 
 func _update_recurring_900m_generation() -> void:
 	var safe_x: float = maxf(0.0, next_attach_point.x)
@@ -298,12 +324,17 @@ func _update_recurring_900m_generation() -> void:
 		return
 
 func _on_portal_traversed(_portal: Node2D, cycle_idx: int, portal_type: String) -> void:
-	if is_instance_valid(progression_controller):
-		if portal_type == "heaven":
+	if portal_type == "heaven":
+		cull_outgoing_decorations(1)
+		if is_instance_valid(progression_controller):
 			progression_controller.update_distance(float(cycle_idx) * 900.0 + 300.0)
-		elif portal_type == "hell":
+	elif portal_type == "hell":
+		cull_outgoing_decorations(2)
+		if is_instance_valid(progression_controller):
 			progression_controller.update_distance(float(cycle_idx) * 900.0 + 600.0)
-		elif portal_type == "return":
+	elif portal_type == "return":
+		cull_outgoing_decorations(0)
+		if is_instance_valid(progression_controller):
 			progression_controller.update_distance(float(cycle_idx) * 900.0 + 900.0)
 
 func _update_culling(target_x: float) -> void:
@@ -375,10 +406,15 @@ func _generate_next_procedural_segment(custom_length: float = -1.0, profile_over
 	current_difficulty = 1.0 + (progress_m / 250.0) * difficulty_growth
 	current_difficulty = clampf(current_difficulty, 1.0, 3.0)
 	
+	var dist_to_boundary := get_distance_to_next_biome_boundary(next_attach_point.x)
 	var seg_type := _select_segment_type(current_difficulty)
 	var seg_length := default_segment_length * rng.randf_range(0.9, 1.25)
 	if custom_length > 0.0:
 		seg_length = custom_length
+
+	# Strictly clamp segment length so it never crosses a biome boundary
+	if seg_length >= dist_to_boundary or dist_to_boundary < default_segment_length * 1.35:
+		seg_length = dist_to_boundary
 
 	if profile_override != null:
 		active_terrain_profile = profile_override
@@ -392,7 +428,7 @@ func _generate_next_procedural_segment(custom_length: float = -1.0, profile_over
 
 	if seg_type == TerrainSegment.SegmentType.FLAT:
 		# Relatively flat section to gain speed and momentum
-		seg_length = rng.randf_range(600.0, 800.0) if custom_length <= 0.0 else custom_length
+		seg_length = minf(rng.randf_range(600.0, 800.0), dist_to_boundary) if custom_length <= 0.0 else seg_length
 		amp = 0.0
 		height_change = 0.0
 		target_slope = 0.0
@@ -464,6 +500,12 @@ func _create_segment(
 	else:
 		seg = TerrainSegment.new()
 	
+	seg.start_world_x = next_attach_point.x
+	seg.end_world_x = next_attach_point.x + length_val
+	seg.start_distance_m = seg.start_world_x / 100.0
+	seg.end_distance_m = seg.end_world_x / 100.0
+	seg.biome_type = get_biome_type_for_world_x(seg.start_world_x)
+	seg.terrain_profile = get_profile_for_world_x(seg.start_world_x) if active_terrain_profile == null else active_terrain_profile
 	seg.segment_type = type
 	seg.segment_length = length_val
 	seg.start_height = start_h
@@ -472,7 +514,6 @@ func _create_segment(
 	seg.start_slope = start_s
 	seg.end_slope = end_s
 	seg.samples_count = clampi(int(length_val / 28.0), 16, 72)
-	seg.terrain_profile = active_terrain_profile
 	seg.rebuild_segment()
 	return seg
 
@@ -666,11 +707,15 @@ func get_surface_y_at_world_x(world_x: float) -> float:
 func clear_terrain() -> void:
 	for p in _spawned_pickups:
 		if is_instance_valid(p):
+			p.visible = false
 			p.queue_free()
 	_spawned_pickups.clear()
 	
 	for seg in active_segments:
 		if is_instance_valid(seg):
+			seg.visible = false
+			seg.set_process(false)
+			seg.set_physics_process(false)
 			seg.queue_free()
 	active_segments.clear()
 	
@@ -681,12 +726,15 @@ func clear_terrain() -> void:
 
 	for enc in active_encounters:
 		if is_instance_valid(enc):
+			enc.visible = false
 			enc.queue_free()
 	active_encounters.clear()
 	_spawned_encounter_indices.clear()
 
 	for portal in active_portals:
 		if is_instance_valid(portal):
+			portal.visible = false
+			portal.set_process(false)
 			portal.queue_free()
 	active_portals.clear()
 	_spawned_heaven_portal_cycles.clear()
@@ -699,6 +747,7 @@ func clear_terrain() -> void:
 	distance_since_last_fuel = 0.0
 	total_coins_spawned = 0
 	total_fuel_spawned = 0
+	active_terrain_profile = normal_terrain_profile
 	next_attach_point = initial_spawn_point
 
 ## Returns the live branching state. The exported flag is an explicit manual

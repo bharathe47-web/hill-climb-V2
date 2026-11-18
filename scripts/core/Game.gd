@@ -29,6 +29,7 @@ signal return_to_main_menu_requested
 var vehicle: Node  # VehicleController — typed as Node to avoid parse-time class dependency
 var start_x: float = 0.0
 var _stopped_timer: float = 0.0
+var _is_executing_restart: bool = false
 
 func _ready() -> void:
 	_setup_vehicle()
@@ -43,6 +44,7 @@ func _ready() -> void:
 		snowfall.bind_game_manager(game_manager)
 	
 	if is_instance_valid(game_manager):
+		game_manager.set("game_ref", self)
 		game_manager.run_restarted.connect(_on_run_restarted)
 		game_manager.run_finished.connect(_on_run_finished)
 		game_manager.start_run()
@@ -251,49 +253,129 @@ func _on_run_restarted() -> void:
 		if not music_player.playing:
 			music_player.play()
 	_stopped_timer = 0.0
+
+## Authoritative 8-Phase atomic restart transaction
+func execute_restart_transaction() -> void:
+	if _is_executing_restart:
+		return
+	_is_executing_restart = true
+
+	var prog_ctrl: BiomeProgressionController = get_node_or_null("BiomeProgressionController")
+	if not is_instance_valid(prog_ctrl):
+		var host_cand = get_node_or_null("BiomeEnvironmentHost")
+		if is_instance_valid(host_cand) and host_cand.get("progression_controller"):
+			prog_ctrl = host_cand.get("progression_controller") as BiomeProgressionController
+
+	var host: BiomeEnvironmentHost = biome_environment_host as BiomeEnvironmentHost
+	var gen: TerrainGenerator = null
+	if is_instance_valid(terrain_slot):
+		gen = terrain_slot.get_node_or_null("TerrainGenerator") as TerrainGenerator
+
+	# PHASE 1: FREEZE
+	get_tree().paused = false
+	if is_instance_valid(game_manager):
+		game_manager.set("is_restart_in_progress", true)
+		game_manager.current_state = GameManagerScript.RunState.READY
+	if is_instance_valid(prog_ctrl):
+		prog_ctrl.is_restart_in_progress = true
+	if is_instance_valid(vehicle):
+		if vehicle.has_method("set_active"):
+			vehicle.set_active(false)
+
+	# PHASE 2: RESET PROGRESSION
+	if is_instance_valid(prog_ctrl):
+		prog_ctrl.reset_progression()
+
+	# PHASE 3: CLEAR OLD CONTENT
+	if is_instance_valid(gen):
+		gen.clear_terrain()
+	_reset_pickups()
+
+	# PHASE 4: RESET ENVIRONMENT
+	if is_instance_valid(host):
+		host._on_progression_reset()
+	else:
+		var normal_env = get_node_or_null("ParallaxEnvironment")
+		if is_instance_valid(normal_env):
+			normal_env.visible = true
+			if normal_env.has_method("reset_environment_state"):
+				normal_env.reset_environment_state()
+
+	# PHASE 5: REBUILD TERRAIN
+	if is_instance_valid(gen):
+		gen.reset_generator(spawn_position + Vector2(-1200.0, 38.0))
+
+	# PHASE 6: RESET VEHICLE & CAMERA
+	_stopped_timer = 0.0
 	start_x = spawn_position.x
 	if is_instance_valid(vehicle):
 		vehicle.reset_vehicle(spawn_position)
+		if vehicle.has_method("set_active"):
+			vehicle.set_active(true)
 	if is_instance_valid(follow_camera) and is_instance_valid(vehicle):
 		if follow_camera.has_method("snap_to_target"):
 			follow_camera.snap_to_target()
 		else:
 			follow_camera.global_position = vehicle.global_position + Vector2(180.0, -50.0)
-	
-	# If procedural generator is active, reset it to spawn origin
-	if is_instance_valid(terrain_slot):
-		var gen = terrain_slot.get_node_or_null("TerrainGenerator")
-		if is_instance_valid(gen) and gen.has_method("reset_generator"):
-			gen.reset_generator(Vector2(-1200.0, 420.0))
-			
-	if is_instance_valid(biome_environment_host) and biome_environment_host.has_method("_on_progression_reset"):
-		biome_environment_host._on_progression_reset()
 
-	_reset_pickups()
+	# PHASE 7: RESET RUN STATS & HUD
+	if is_instance_valid(game_manager):
+		game_manager.current_distance = 0.0
+		game_manager.coins_collected = 0
+		game_manager.run_time = 0.0
+		game_manager.finish_reason = ""
+		game_manager.is_new_record = false
+		if is_instance_valid(vehicle):
+			if "current_fuel" in vehicle:
+				game_manager.current_fuel = float(vehicle.current_fuel)
+			if "max_fuel" in vehicle:
+				game_manager.max_fuel = float(vehicle.max_fuel)
+		else:
+			game_manager.current_fuel = game_manager.max_fuel
+		game_manager.distance_updated.emit(0.0)
+		game_manager.fuel_updated.emit(game_manager.current_fuel, game_manager.max_fuel)
+		game_manager.coins_updated.emit(0)
+
+	if is_instance_valid(pause_menu):
+		pause_menu.visible = false
+	if is_instance_valid(results_screen):
+		results_screen.visible = false
+
+	# PHASE 8: START GAMEPLAY
+	if is_instance_valid(host):
+		host.activate_biome_exclusive(WorldCycleSchedule.BiomeType.NORMAL_LAND)
+	if is_instance_valid(prog_ctrl):
+		prog_ctrl.is_restart_in_progress = false
+	if is_instance_valid(game_manager):
+		game_manager.set("is_restart_in_progress", false)
+		game_manager.current_state = GameManagerScript.RunState.PLAYING
+		game_manager.run_restarted.emit()
+		game_manager.run_started.emit()
+
+	_is_executing_restart = false
 
 func _reset_pickups() -> void:
-	# Resets all collectible items in terrain or pickup containers
 	var pickups = get_tree().get_nodes_in_group("pickups")
 	for p in pickups:
-		if p.has_method("reset_pickup"):
+		if is_instance_valid(p) and p.has_method("reset_pickup"):
 			p.reset_pickup()
 			
-	# Also inspect children of terrain slot for any pickups
 	if is_instance_valid(terrain_slot):
 		_reset_pickups_in_node(terrain_slot)
 
 func _reset_pickups_in_node(parent: Node) -> void:
 	for child in parent.get_children():
-		if child.has_method("reset_pickup"):
-			child.reset_pickup()
-		if child.get_child_count() > 0:
-			_reset_pickups_in_node(child)
+		if is_instance_valid(child):
+			if child.has_method("reset_pickup"):
+				child.reset_pickup()
+			if child.get_child_count() > 0:
+				_reset_pickups_in_node(child)
 
 func restart_game() -> void:
 	if is_instance_valid(game_manager):
 		game_manager.restart_run()
 	else:
-		_on_run_restarted()
+		execute_restart_transaction()
 
 func exit_to_main_menu() -> void:
 	if is_instance_valid(game_manager):

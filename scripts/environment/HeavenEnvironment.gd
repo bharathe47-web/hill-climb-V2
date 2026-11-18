@@ -90,16 +90,25 @@ func set_environment_active(active: bool) -> void:
 	set_process(active)
 	set_physics_process(active)
 	
+	for child in get_children():
+		if child is CanvasItem:
+			child.visible = active
+			child.modulate.a = 1.0 if active else 0.0
+
 	# Manage particle emissions to preserve mobile fill-rate
 	for node in find_children("*", "CPUParticles2D", true, false):
 		var cpu_particles := node as CPUParticles2D
 		if cpu_particles:
 			cpu_particles.emitting = active
+			if not active:
+				cpu_particles.restart()
 			
 	for node in find_children("*", "GPUParticles2D", true, false):
 		var gpu_particles := node as GPUParticles2D
 		if gpu_particles:
 			gpu_particles.emitting = active
+			if not active:
+				gpu_particles.restart()
 
 	# Manage animated sprites playback
 	for node in find_children("*", "AnimatedSprite2D", true, false):
@@ -109,3 +118,9 @@ func set_environment_active(active: bool) -> void:
 				anim_sprite.play()
 			else:
 				anim_sprite.pause()
+
+func reset_environment_state() -> void:
+	for child in get_children():
+		if child is ParallaxLayer:
+			child.motion_offset = Vector2.ZERO
+	set_environment_active(false)

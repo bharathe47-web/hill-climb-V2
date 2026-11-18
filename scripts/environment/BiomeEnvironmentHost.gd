@@ -80,6 +80,7 @@ var is_in_transition: bool = false
 var current_transition_progress: float = 0.0
 var _is_audio_paused: bool = false
 var _last_spawned_ramp_state: int = -1
+var _transition_lock: bool = false
 
 func _ready() -> void:
 	_init_transition_overlays()
@@ -266,14 +267,7 @@ func _resolve_environment_references() -> void:
 			terrain_generator = parent_node.find_child("TerrainGenerator", true, false) as TerrainGenerator
 
 func _apply_initial_visual_state() -> void:
-	# Normal Land starts 100% visible and active
-	_set_environment_opacity(normal_environment, 1.0)
-	# Heaven and Hell start completely hidden and inactive (0 draw calls, 0 active emitters)
-	_set_environment_opacity(heaven_environment, 0.0)
-	_set_environment_opacity(hell_environment, 0.0)
-
-	if terrain_generator:
-		terrain_generator.active_terrain_profile = _get_safe_profile(normal_terrain_profile)
+	activate_biome_exclusive(WorldCycleSchedule.BiomeType.NORMAL_LAND)
 
 ## Safe profile resolver providing cosmetic fallback without breaking physics
 func _get_safe_profile(requested_profile: Resource) -> Resource:
@@ -285,37 +279,74 @@ func _get_safe_profile(requested_profile: Resource) -> Resource:
 	var fallback := BiomeTerrainProfile.create_normal_land_profile()
 	return fallback
 
-## Sets visual opacity and automatically enables/disables processes and emitters
+## Authoritative, mutually exclusive biome activation.
+## Exactly ONE environment root is active/visible; the other two are completely hidden and stopped.
+func activate_biome_exclusive(target_biome: int) -> void:
+	current_biome = target_biome
+	var is_normal: bool = (target_biome == WorldCycleSchedule.BiomeType.NORMAL_LAND)
+	var is_heaven: bool = (target_biome == WorldCycleSchedule.BiomeType.HEAVEN)
+	var is_hell: bool = (target_biome == WorldCycleSchedule.BiomeType.HELL)
+
+	_set_hierarchy_active(normal_environment, is_normal)
+	_set_hierarchy_active(heaven_environment, is_heaven)
+	_set_hierarchy_active(hell_environment, is_hell)
+
+	if terrain_generator and is_instance_valid(terrain_generator):
+		terrain_generator.cull_outgoing_decorations(target_biome)
+		match target_biome:
+			WorldCycleSchedule.BiomeType.HEAVEN:
+				terrain_generator.active_terrain_profile = _get_safe_profile(heaven_terrain_profile)
+			WorldCycleSchedule.BiomeType.HELL:
+				terrain_generator.active_terrain_profile = _get_safe_profile(hell_terrain_profile)
+			_:
+				terrain_generator.active_terrain_profile = _get_safe_profile(normal_terrain_profile)
+
+## Recursively toggles visibility, processes, particle emissions, and animations for an environment root
+func _set_hierarchy_active(root_node: Node, active: bool) -> void:
+	if not is_instance_valid(root_node) or root_node.is_queued_for_deletion():
+		return
+
+	if root_node.has_method("set_environment_active"):
+		root_node.set_environment_active(active)
+	else:
+		if "visible" in root_node:
+			root_node.visible = active
+		root_node.set_process(active)
+		root_node.set_physics_process(active)
+
+	_recursive_walk_active(root_node, active)
+
+func _recursive_walk_active(node: Node, active: bool) -> void:
+	for child in node.get_children():
+		if child is CanvasItem:
+			child.visible = active
+			child.modulate.a = 1.0 if active else 0.0
+		elif child is CanvasLayer:
+			child.visible = active
+
+		if child is CPUParticles2D or child is GPUParticles2D:
+			child.emitting = active
+			if not active:
+				child.restart()
+
+		if child is AnimatedSprite2D:
+			if active:
+				child.play()
+			else:
+				child.pause()
+
+		child.set_process(active)
+		child.set_physics_process(active)
+
+		if child.get_child_count() > 0:
+			_recursive_walk_active(child, active)
+
+## Sets visual opacity and automatically enables/disables processes and emitters (delegates to exclusive activation)
 func _set_environment_opacity(env: Node, alpha: float) -> void:
 	if not is_instance_valid(env) or env.is_queued_for_deletion():
 		return
-	
-	var clamped_alpha := clampf(alpha, 0.0, 1.0)
-	var is_visible := clamped_alpha > 0.001
-
-	if "visible" in env:
-		env.visible = is_visible
-	if "layer" in env:
-		env.set("layer", -100 if is_visible else -120)
-
-	if env.has_method("set_environment_active"):
-		env.set_environment_active(is_visible)
-	else:
-		env.set_process(is_visible)
-
-	# NOTE: this loop only recurses 2 levels and only affects CanvasItem nodes.
-	# It works today because Heaven/Hell implement set_environment_active() which
-	# handles particles/animations recursively. If a new biome root is added
-	# without that method, or nests a CanvasLayer 3+ levels deep, this loop will
-	# NOT hide it. Fix properly (recursive CanvasItem + CanvasLayer walk) before
-	# relying on this for a new environment.
-	for child in env.get_children():
-		if child is CanvasItem:
-			child.modulate.a = clamped_alpha
-			child.visible = is_visible
-			for grandchild in child.get_children():
-				if grandchild is CanvasItem:
-					grandchild.visible = is_visible
+	var is_visible := alpha > 0.5
+	_set_hierarchy_active(env, is_visible)
 
 ## Handles state transition from BiomeProgressionController
 func _on_progression_state_changed(old_state: int, new_state: int, state_info: Dictionary) -> void:
@@ -353,44 +384,9 @@ func _on_progression_state_changed(old_state: int, new_state: int, state_info: D
 			else:
 				_enter_transition_from_hell()
 
-## Progressive blending during transition window
-func _on_transition_progress_updated(progress: float, transition_state: int) -> void:
+## Transition progress update (no visual opacity crossfades — atomic portal switching only)
+func _on_transition_progress_updated(progress: float, _transition_state: int) -> void:
 	current_transition_progress = progress
-	var p := clampf(progress, 0.0, 1.0)
-
-	match transition_state:
-		WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HEAVEN, WorldCycleSchedule.WorldState.HEAVEN_ENTRY:
-			_set_environment_opacity(normal_environment, 1.0 - p)
-			_set_environment_opacity(heaven_environment, p)
-			_set_environment_opacity(hell_environment, 0.0)
-
-		WorldCycleSchedule.WorldState.TRANSITION_HEAVEN_TO_NORMAL:
-			_set_environment_opacity(heaven_environment, 1.0 - p)
-			_set_environment_opacity(normal_environment, p)
-			_set_environment_opacity(hell_environment, 0.0)
-
-		WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HELL, WorldCycleSchedule.WorldState.HELL_ENTRY:
-			_set_environment_opacity(normal_environment, 1.0 - p)
-			_set_environment_opacity(hell_environment, p)
-			_set_environment_opacity(heaven_environment, 0.0)
-
-		WorldCycleSchedule.WorldState.TRANSITION_HELL_TO_NORMAL:
-			_set_environment_opacity(hell_environment, 1.0 - p)
-			_set_environment_opacity(normal_environment, p)
-			_set_environment_opacity(heaven_environment, 0.0)
-
-		WorldCycleSchedule.WorldState.EXIT_TRANSITION:
-			var from_b: int = -1
-			if progression_controller:
-				from_b = progression_controller.get_current_state_info().get("from_biome", -1)
-			if from_b == WorldCycleSchedule.BiomeType.HEAVEN:
-				_set_environment_opacity(heaven_environment, 1.0 - p)
-				_set_environment_opacity(normal_environment, p)
-				_set_environment_opacity(hell_environment, 0.0)
-			else:
-				_set_environment_opacity(hell_environment, 1.0 - p)
-				_set_environment_opacity(normal_environment, p)
-				_set_environment_opacity(heaven_environment, 0.0)
 
 # ----------------------------------------------------
 # State Entry Handlers
@@ -407,11 +403,8 @@ func apply_biome_state(biome_type: int) -> void:
 			_enter_normal_land_state()
 
 func _enter_normal_land_state() -> void:
-	current_biome = WorldCycleSchedule.BiomeType.NORMAL_LAND
 	_last_spawned_ramp_state = -1
-	_set_environment_opacity(normal_environment, 1.0)
-	_set_environment_opacity(heaven_environment, 0.0)
-	_set_environment_opacity(hell_environment, 0.0)
+	activate_biome_exclusive(WorldCycleSchedule.BiomeType.NORMAL_LAND)
 
 	# Reset transition overlays
 	if is_instance_valid(_heaven_golden_flash):
@@ -422,9 +415,6 @@ func _enter_normal_land_state() -> void:
 		_cloud_tunnel_overlay.color.a = 0.0
 	if is_instance_valid(_geyser_escape_flash):
 		_geyser_escape_flash.color.a = 0.0
-
-	if terrain_generator:
-		terrain_generator.active_terrain_profile = _get_safe_profile(normal_terrain_profile)
 
 	crossfade_music(STREAM_NORMAL_MUSIC, normal_music_volume_db, music_crossfade_duration)
 	crossfade_ambience(STREAM_NORMAL_AMBIENCE, normal_ambience_volume_db, ambience_crossfade_duration)
@@ -444,12 +434,6 @@ func _should_spawn_sequential_ramps() -> bool:
 
 func _enter_transition_to_heaven() -> void:
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.HEAVEN, WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HEAVEN)
-	current_biome = WorldCycleSchedule.BiomeType.HEAVEN
-	
-	# Pre-arm Heaven environment
-	_set_environment_opacity(heaven_environment, 0.05)
-	if terrain_generator:
-		terrain_generator.active_terrain_profile = _get_safe_profile(heaven_terrain_profile)
 	
 	# Spawn Transition Ramp 1: Normal Land -> Heaven (sequential mode only)
 	if _should_spawn_sequential_ramps() and _last_spawned_ramp_state != WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HEAVEN:
@@ -475,27 +459,15 @@ func _enter_transition_to_heaven() -> void:
 	if is_instance_valid(_hell_darkness_vignette):
 		_hell_darkness_vignette.color.a = 0.0
 
+func _enter_heaven_state() -> void:
+	_last_spawned_ramp_state = -1
+	activate_biome_exclusive(WorldCycleSchedule.BiomeType.HEAVEN)
 	crossfade_music(STREAM_HEAVEN_MUSIC, heaven_music_volume_db, music_crossfade_duration)
 	crossfade_ambience(STREAM_HEAVEN_AMBIENCE, heaven_ambience_volume_db, ambience_crossfade_duration)
-
-func _enter_heaven_state() -> void:
-	current_biome = WorldCycleSchedule.BiomeType.HEAVEN
-	_last_spawned_ramp_state = -1
-	_set_environment_opacity(heaven_environment, 1.0)
-	_set_environment_opacity(normal_environment, 0.0)
-	_set_environment_opacity(hell_environment, 0.0)
-
-	if terrain_generator:
-		terrain_generator.active_terrain_profile = _get_safe_profile(heaven_terrain_profile)
-
 	biome_transition_completed.emit(current_biome)
 
 func _enter_transition_from_heaven() -> void:
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.NORMAL_LAND, WorldCycleSchedule.WorldState.TRANSITION_HEAVEN_TO_NORMAL)
-	current_biome = WorldCycleSchedule.BiomeType.NORMAL_LAND
-	_set_environment_opacity(normal_environment, 0.05)
-	if terrain_generator:
-		terrain_generator.active_terrain_profile = _get_safe_profile(normal_terrain_profile)
 
 	# Spawn Transition Ramp 2: Heaven -> Normal Land (sequential mode only)
 	if _should_spawn_sequential_ramps() and _last_spawned_ramp_state != WorldCycleSchedule.WorldState.TRANSITION_HEAVEN_TO_NORMAL:
@@ -512,15 +484,8 @@ func _enter_transition_from_heaven() -> void:
 		tw.tween_property(_cloud_tunnel_overlay, "color:a", 0.28, 0.4).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(_cloud_tunnel_overlay, "color:a", 0.0, 1.2).set_trans(Tween.TRANS_SINE)
 
-	crossfade_music(STREAM_NORMAL_MUSIC, normal_music_volume_db, music_crossfade_duration)
-	crossfade_ambience(STREAM_NORMAL_AMBIENCE, normal_ambience_volume_db, ambience_crossfade_duration)
-
 func _enter_transition_to_hell() -> void:
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.HELL, WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HELL)
-	current_biome = WorldCycleSchedule.BiomeType.HELL
-	_set_environment_opacity(hell_environment, 0.05)
-	if terrain_generator:
-		terrain_generator.active_terrain_profile = _get_safe_profile(hell_terrain_profile)
 
 	# Spawn Transition Ramp 3: Normal Land -> Hell (sequential mode only)
 	if _should_spawn_sequential_ramps() and _last_spawned_ramp_state != WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HELL:
@@ -548,27 +513,15 @@ func _enter_transition_to_hell() -> void:
 	if is_instance_valid(follow_camera):
 		follow_camera.trigger_hell_rumble()
 
+func _enter_hell_state() -> void:
+	_last_spawned_ramp_state = -1
+	activate_biome_exclusive(WorldCycleSchedule.BiomeType.HELL)
 	crossfade_music(STREAM_HELL_MUSIC, hell_music_volume_db, music_crossfade_duration)
 	crossfade_ambience(STREAM_HELL_AMBIENCE, hell_ambience_volume_db, ambience_crossfade_duration)
-
-func _enter_hell_state() -> void:
-	current_biome = WorldCycleSchedule.BiomeType.HELL
-	_last_spawned_ramp_state = -1
-	_set_environment_opacity(hell_environment, 1.0)
-	_set_environment_opacity(normal_environment, 0.0)
-	_set_environment_opacity(heaven_environment, 0.0)
-
-	if terrain_generator:
-		terrain_generator.active_terrain_profile = _get_safe_profile(hell_terrain_profile)
-
 	biome_transition_completed.emit(current_biome)
 
 func _enter_transition_from_hell() -> void:
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.NORMAL_LAND, WorldCycleSchedule.WorldState.TRANSITION_HELL_TO_NORMAL)
-	current_biome = WorldCycleSchedule.BiomeType.NORMAL_LAND
-	_set_environment_opacity(normal_environment, 0.05)
-	if terrain_generator:
-		terrain_generator.active_terrain_profile = _get_safe_profile(normal_terrain_profile)
 
 	# Spawn Transition Ramp 4: Hell -> Normal Land (sequential mode only)
 	if _should_spawn_sequential_ramps() and _last_spawned_ramp_state != WorldCycleSchedule.WorldState.TRANSITION_HELL_TO_NORMAL:
@@ -589,9 +542,6 @@ func _enter_transition_from_hell() -> void:
 		var tw2 := create_tween()
 		tw2.tween_property(_hell_darkness_vignette, "color:a", 0.0, 0.8)
 
-	crossfade_music(STREAM_NORMAL_MUSIC, normal_music_volume_db, music_crossfade_duration)
-	crossfade_ambience(STREAM_NORMAL_AMBIENCE, normal_ambience_volume_db, ambience_crossfade_duration)
-
 ## Plays physical landing sound and tactile camera trauma
 func play_landing_thud() -> void:
 	if _sfx_player and STREAM_LANDING_THUD and is_inside_tree():
@@ -610,6 +560,7 @@ func _on_cycle_completed(old_cycle: int, new_cycle: int) -> void:
 	pass
 
 func _on_progression_reset() -> void:
+	_transition_lock = false
 	current_biome = WorldCycleSchedule.BiomeType.NORMAL_LAND
 	current_world_state = WorldCycleSchedule.WorldState.NORMAL_LAND_1
 	is_in_transition = false
@@ -617,6 +568,24 @@ func _on_progression_reset() -> void:
 	_last_spawned_ramp_state = -1
 
 	_apply_initial_visual_state()
+
+	# Reset parallax offsets to 0
+	if normal_environment and normal_environment.has_method("reset_environment_state"):
+		normal_environment.reset_environment_state()
+	if heaven_environment and heaven_environment.has_method("reset_environment_state"):
+		heaven_environment.reset_environment_state()
+	if hell_environment and hell_environment.has_method("reset_environment_state"):
+		hell_environment.reset_environment_state()
+
+	# Reset overlay alphas to 0.0
+	if is_instance_valid(_heaven_golden_flash):
+		_heaven_golden_flash.color.a = 0.0
+	if is_instance_valid(_hell_darkness_vignette):
+		_hell_darkness_vignette.color.a = 0.0
+	if is_instance_valid(_cloud_tunnel_overlay):
+		_cloud_tunnel_overlay.color.a = 0.0
+	if is_instance_valid(_geyser_escape_flash):
+		_geyser_escape_flash.color.a = 0.0
 
 	# Reset audio channels immediately to Normal Land
 	if _music_tween and _music_tween.is_valid():

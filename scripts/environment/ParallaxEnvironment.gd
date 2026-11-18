@@ -31,3 +31,28 @@ func set_environment_active(active: bool) -> void:
 		is_active = active
 	visible = active
 	set_process(active)
+	set_physics_process(active)
+	_set_node_hierarchy_active(self, active)
+
+func _set_node_hierarchy_active(node: Node, active: bool) -> void:
+	for child in node.get_children():
+		if child is CanvasItem:
+			child.visible = active
+			child.modulate.a = 1.0 if active else 0.0
+		if child is CanvasLayer:
+			child.visible = active
+		if child is CPUParticles2D or child is GPUParticles2D:
+			child.emitting = active
+		if child is AnimatedSprite2D:
+			if active:
+				child.play()
+			else:
+				child.pause()
+		if child.get_child_count() > 0:
+			_set_node_hierarchy_active(child, active)
+
+func reset_environment_state() -> void:
+	for child in get_children():
+		if child is ParallaxLayer:
+			child.motion_offset = Vector2.ZERO
+	set_environment_active(true)

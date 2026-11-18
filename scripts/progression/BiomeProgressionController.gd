@@ -41,6 +41,7 @@ var current_biome_local_distance: float = 0.0
 var current_state: int = WorldCycleSchedule.WorldState.NORMAL_LAND
 var current_transition_progress: float = 0.0
 var is_launch_zone_active: bool = false
+var is_restart_in_progress: bool = false
 var last_state_info: Dictionary = {}
 
 var confirmed_realms: Dictionary = {}
@@ -98,6 +99,9 @@ func connect_to_game_manager(gm: Node) -> void:
 
 	if gm.has_signal("run_finished") and not gm.run_finished.is_connected(_on_run_finished):
 		gm.run_finished.connect(_on_run_finished)
+
+	if gm.has_signal("run_restarted") and not gm.run_restarted.is_connected(reset_progression):
+		gm.run_restarted.connect(reset_progression)
 
 func _on_distance_updated(distance_m: float) -> void:
 	if is_paused:
@@ -169,7 +173,7 @@ func attempt_nitro_launch() -> bool:
 
 ## Authoritative distance update function. Resolves cycle index, world state, and progress.
 func update_distance(new_distance_m: float) -> void:
-	if is_paused:
+	if is_paused or is_restart_in_progress:
 		return
 
 	var safe_dist := maxf(0.0, new_distance_m)
@@ -309,6 +313,7 @@ func reset_progression() -> void:
 	_hell_portal_emitted_cycles.clear()
 	_return_portal_emitted_cycles.clear()
 	_nitro_launch_triggered_cycles.clear()
+	var old_b := _last_resolved_biome
 	_last_resolved_biome = WorldCycleSchedule.BiomeType.NORMAL_LAND
 
 	if is_branching_mode():
@@ -319,6 +324,8 @@ func reset_progression() -> void:
 		last_state_info = schedule.resolve_distance(0.0)
 
 	progression_reset.emit()
+	if old_b != WorldCycleSchedule.BiomeType.NORMAL_LAND:
+		biome_changed.emit(old_b, WorldCycleSchedule.BiomeType.NORMAL_LAND, 0)
 
 func set_paused(paused: bool) -> void:
 	is_paused = paused

@@ -99,6 +99,33 @@ enum SegmentType {
 		surface_friction = val
 		_update_physics_material()
 
+@export_group("Biome Identity")
+@export var biome_type: int = 0: # WorldCycleSchedule.BiomeType.NORMAL_LAND
+	set(val):
+		biome_type = val
+		_update_biome_group()
+@export var start_world_x: float = 0.0
+@export var end_world_x: float = 0.0
+@export var start_distance_m: float = 0.0
+@export var end_distance_m: float = 0.0
+@export var decoration_profile: Resource = null
+
+func _update_biome_group() -> void:
+	remove_from_group("biome_normal_segment")
+	remove_from_group("biome_heaven_segment")
+	remove_from_group("biome_hell_segment")
+	match biome_type:
+		1: # HEAVEN
+			add_to_group("biome_heaven_segment")
+		2: # HELL
+			add_to_group("biome_hell_segment")
+		_: # NORMAL_LAND
+			add_to_group("biome_normal_segment")
+
+func set_decorations_visible(val: bool) -> void:
+	if decorations_root and is_instance_valid(decorations_root):
+		decorations_root.visible = val
+
 @export_group("Platform Mode")
 @export var is_floating_platform: bool = false:
 	set(val):
@@ -724,8 +751,9 @@ func _build_decorations() -> void:
 	rng.seed = seed_val
 
 	var prof_name: String = str(terrain_profile.get("profile_name")) if terrain_profile else ""
-	var is_heaven := prof_name.begins_with("Heaven")
-	var is_hell := prof_name.begins_with("Hell")
+	var is_heaven := (biome_type == 1) or prof_name.begins_with("Heaven")
+	var is_hell := (biome_type == 2) or prof_name.begins_with("Hell")
+	var vis_group := "biome_heaven_visual" if is_heaven else ("biome_hell_visual" if is_hell else "biome_normal_visual")
 
 	# Five widely spaced dressing zones make the long route feel inhabited
 	# without turning the driving line into a cluttered obstacle course.
@@ -750,6 +778,7 @@ func _build_decorations() -> void:
 			if slope_deg < 16.0 and rng.randf() < 0.60:
 				var spr := Sprite2D.new()
 				spr.z_index = -1
+				spr.add_to_group(vis_group)
 				if rng.randf() < 0.5:
 					spr.texture = TEX_HEAVEN_PLANTER
 					var sc := rng.randf_range(0.24, 0.28)
@@ -767,6 +796,7 @@ func _build_decorations() -> void:
 			# Hell volcanic rubble & obsidian spikes
 			var rock_tex: Texture2D = TEX_HELL_ROCKS[rng.randi() % TEX_HELL_ROCKS.size()]
 			var spr := Sprite2D.new()
+			spr.add_to_group(vis_group)
 			spr.texture = rock_tex
 			spr.modulate = Color(0.96, 0.91, 0.86, 1.0)
 			spr.z_index = 1 # Small foreground boulders sit on the crust, not behind it.
@@ -783,6 +813,7 @@ func _build_decorations() -> void:
 				# Countryside wooden fence, broken fence, signpost, stump, stones, hay bale, or log
 				var prop_tex: Texture2D = TEX_PROPS[rng.randi() % TEX_PROPS.size()]
 				var spr := Sprite2D.new()
+				spr.add_to_group(vis_group)
 				spr.texture = prop_tex
 				spr.z_index = -2 # Behind car and flora
 				var sc := rng.randf_range(0.48, 0.62)
@@ -796,6 +827,7 @@ func _build_decorations() -> void:
 				# Rounded green bush, berry bush, or lavender shrub
 				var bush_tex: Texture2D = TEX_BUSHES[rng.randi() % TEX_BUSHES.size()]
 				var spr := Sprite2D.new()
+				spr.add_to_group(vis_group)
 				spr.texture = bush_tex
 				spr.z_index = -1
 				var sc := rng.randf_range(0.38, 0.52) if bush_tex.get_height() > 180 else rng.randf_range(0.55, 0.70)
@@ -808,6 +840,7 @@ func _build_decorations() -> void:
 				# Wild ferns, grass clumps, yellow/purple flowers, or small tufts
 				var flora_tex: Texture2D = TEX_FLOWERS[rng.randi() % TEX_FLOWERS.size()]
 				var spr := Sprite2D.new()
+				spr.add_to_group(vis_group)
 				spr.texture = flora_tex
 				spr.z_index = -1
 				var sc := rng.randf_range(0.42, 0.58) if flora_tex.get_width() > 180 else rng.randf_range(0.58, 0.76)
