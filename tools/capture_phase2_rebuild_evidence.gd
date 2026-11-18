@@ -8,10 +8,6 @@ func _init() -> void:
 
 func _capture_all_heaven_rebuild_evidence() -> void:
 	var output_dir := "res://docs/previews"
-	var dir := DirAccess.open(output_dir)
-	if not dir:
-		DirAccess.make_dir_recursive_absolute(output_dir)
-		
 	var brain_dir := "/home/danny/.gemini/antigravity-cli/brain/d9f98545-c20d-4126-ade2-ec8c8495335b/previews"
 
 	var packed_game: PackedScene = load("res://scenes/game/Game.tscn")
@@ -48,83 +44,124 @@ func _capture_all_heaven_rebuild_evidence() -> void:
 	if host:
 		host.apply_biome_state(WorldCycleSchedule.BiomeType.HEAVEN)
 
+	# Targets ordered with monotonically increasing distance to guarantee continuous active terrain segments
 	var targets := [
 		{
 			"name": "heaven_1_full_environment",
-			"dist": 1600.0,
-			"cam_offset": Vector2(160.0, -40.0),
+			"dist": 1382.8,
+			"cam_offset": Vector2(120.0, -25.0),
 			"hud": true,
 			"truck": true,
 			"desc": "1. Full Celestial Palace View (Panoramic Corridor)"
 		},
 		{
 			"name": "heaven_2_main_palace_arch",
-			"dist": 1598.0,
-			"cam_offset": Vector2(0.0, -80.0),
+			"dist": 1382.8,
+			"cam_offset": Vector2(0.0, -35.0),
 			"hud": false,
 			"truck": true,
 			"desc": "2. Grand Arch and Column Composition (Section A)"
 		},
 		{
-			"name": "heaven_3_grand_door",
-			"dist": 1549.0,
-			"cam_offset": Vector2(0.0, -70.0),
-			"hud": false,
+			"name": "heaven_section_a_gateway",
+			"dist": 1382.8,
+			"cam_offset": Vector2(0.0, -25.0),
+			"hud": true,
 			"truck": true,
-			"desc": "3. Main Decorative Double Door (Section D)"
+			"desc": "Section A: Gateway Arch & Columns"
 		},
 		{
 			"name": "heaven_4_rose_window_colonnade",
-			"dist": 1620.0,
-			"cam_offset": Vector2(0.0, -90.0),
+			"dist": 1405.7,
+			"cam_offset": Vector2(0.0, -35.0),
 			"hud": false,
-			"truck": false,
+			"truck": true,
 			"desc": "4. Stained-Glass Rose Window and Colonnade (Section B)"
 		},
 		{
+			"name": "heaven_section_b_rose_window",
+			"dist": 1405.7,
+			"cam_offset": Vector2(0.0, -25.0),
+			"hud": true,
+			"truck": true,
+			"desc": "Section B: Rose Window & Colonnade Arch"
+		},
+		{
 			"name": "heaven_5_central_fountain",
-			"dist": 1527.0,
-			"cam_offset": Vector2(0.0, -60.0),
+			"dist": 1428.6,
+			"cam_offset": Vector2(0.0, -35.0),
 			"hud": false,
 			"truck": true,
 			"desc": "5. Central Ceremonial Fountain (Section C)"
 		},
 		{
+			"name": "heaven_section_c_fountain",
+			"dist": 1428.6,
+			"cam_offset": Vector2(0.0, -25.0),
+			"hud": true,
+			"truck": true,
+			"desc": "Section C: Ceremonial Pedestal Fountain"
+		},
+		{
+			"name": "heaven_3_grand_door",
+			"dist": 1451.4,
+			"cam_offset": Vector2(0.0, -35.0),
+			"hud": false,
+			"truck": true,
+			"desc": "3. Main Decorative Double Door Landmark (Section D)"
+		},
+		{
+			"name": "heaven_section_d_grand_door",
+			"dist": 1451.4,
+			"cam_offset": Vector2(0.0, -25.0),
+			"hud": true,
+			"truck": true,
+			"desc": "Section D: Grand Celestial Double Door"
+		},
+		{
+			"name": "heaven_section_e_causeway",
+			"dist": 1474.3,
+			"cam_offset": Vector2(0.0, -25.0),
+			"hud": true,
+			"truck": true,
+			"desc": "Section E: Angel Monument Terrace & Causeway"
+		},
+		{
 			"name": "heaven_6_marble_bridge_driving_surface",
-			"dist": 1605.0,
-			"cam_offset": Vector2(50.0, 40.0),
+			"dist": 1480.0,
+			"cam_offset": Vector2(60.0, 30.0),
 			"hud": false,
 			"truck": true,
 			"desc": "6. Marble Bridge Driving Surface (Paving, Gold Inlays & Rosettes)"
 		},
 		{
 			"name": "heaven_7_bridge_masonry_underside",
-			"dist": 1605.0,
-			"cam_offset": Vector2(0.0, 160.0),
+			"dist": 1480.0,
+			"cam_offset": Vector2(0.0, 140.0),
 			"hud": false,
 			"truck": false,
 			"desc": "7. Bridge Masonry Underside and Rounded Arch Openings (Clouds Visible)"
 		},
 		{
 			"name": "heaven_8_floating_islands_layered_sky",
-			"dist": 1580.0,
-			"cam_offset": Vector2(0.0, -140.0),
+			"dist": 1485.0,
+			"cam_offset": Vector2(0.0, -110.0),
 			"hud": false,
 			"truck": false,
 			"desc": "8. Floating Islands and Layered Turquoise Sky with Pantheons"
 		},
 		{
 			"name": "heaven_9_doves_and_celestial_garden",
-			"dist": 1660.0,
-			"cam_offset": Vector2(50.0, -40.0),
+			"dist": 1474.3,
+			"cam_offset": Vector2(40.0, -25.0),
 			"hud": false,
 			"truck": true,
-			"desc": "9. Doves and Celestial Garden (Urns, Planters, Flowers)"
+			"desc": "9. Celestial Garden Terraces on Marble Plinths (No Doves)"
 		},
 		{
 			"name": "heaven_10_vehicle_driving_inside_heaven",
-			"dist": 1600.0,
-			"cam_offset": Vector2(160.0, -40.0),
+			"dist": 1451.4,
+			"cam_offset": Vector2(140.0, -25.0),
 			"hud": true,
 			"truck": true,
 			"desc": "10. Vehicle Driving Inside the New Heaven (Live Action & HUD)"
@@ -158,7 +195,7 @@ func _capture_all_heaven_rebuild_evidence() -> void:
 		if game.vehicle:
 			game.vehicle.visible = item["truck"]
 			game.vehicle.reset_vehicle(Vector2(world_x, surf_y - 36.0))
-			game.vehicle.linear_velocity = Vector2(500.0, 0.0)
+			game.vehicle.linear_velocity = Vector2(480.0, 0.0)
 
 		if is_instance_valid(game.follow_camera):
 			game.follow_camera.global_position = Vector2(world_x, surf_y) + item["cam_offset"]
@@ -170,8 +207,8 @@ func _capture_all_heaven_rebuild_evidence() -> void:
 			if game.hud.message_banner:
 				game.hud.message_banner.visible = false
 
-		# Let physics, shaders and parallax settle
-		for f in range(25):
+		# Settle
+		for f in range(20):
 			await physics_frame
 			await process_frame
 
@@ -193,4 +230,4 @@ func _capture_all_heaven_rebuild_evidence() -> void:
 
 	game.queue_free()
 	vp.queue_free()
-	print("=== ALL 11 HEAVEN REBUILD SCREENSHOTS CAPTURED SUCCESSFULLY ===")
+	print("=== ALL HEAVEN REBUILD SCREENSHOTS CAPTURED SUCCESSFULLY ===")

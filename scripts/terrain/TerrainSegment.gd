@@ -516,8 +516,8 @@ func _apply_geometry() -> void:
 	# world depth, creating the giant flat slab visible in the supplied captures.
 	var texture_height := active_ground_tex.get_height() if active_ground_tex else 70
 	if is_heaven:
-		# Polished royal ivory marble roadway deck (46px depth) with gold rosettes & bevel
-		visual_surface_band_depth = 46.0
+		# Substantial royal ivory marble roadway deck (68px depth) with gold rosettes & panel bevel
+		visual_surface_band_depth = 68.0
 	elif is_hell:
 		visual_surface_band_depth = clampf(float(texture_height) * active_ground_tex_scale.y, 30.0, 104.0)
 	else:
@@ -614,8 +614,8 @@ func _apply_geometry() -> void:
 				var slope_ang := _surface_slope_angle_from_normal(norm)
 				var arch_spr := Sprite2D.new()
 				arch_spr.texture = TEX_HEAVEN_BRIDGE_ARCH
-				arch_spr.position = Vector2(sample_x, pt.y + visual_surface_band_depth + 96.0)
-				arch_spr.rotation = slope_ang * 0.70
+				arch_spr.position = Vector2(sample_x, pt.y + visual_surface_band_depth + 118.0)
+				arch_spr.rotation = 0.0 # Classical masonry piers stand strictly vertical supporting the road
 				arch_spr.scale = Vector2(1.02, 1.0)
 				arch_spr.z_index = 0
 				facade.add_child(arch_spr)

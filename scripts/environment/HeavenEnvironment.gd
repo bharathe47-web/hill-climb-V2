@@ -31,6 +31,8 @@ var _dove_time: float = 0.0
 func _ready() -> void:
 	if is_instance_valid(dove_flock_layer):
 		_dove_base_y = dove_flock_layer.motion_offset.y
+		dove_flock_layer.visible = false
+		dove_flock_layer.modulate = Color(1, 1, 1, 0.0)
 		
 	_setup_visibility_culling()
 	_start_animations()

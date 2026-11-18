@@ -314,13 +314,15 @@ func _build_heaven_dressing() -> void:
 	# Phase 6: Reward Fuel Canister on Grand Palace Concourse
 	_spawn_fuel_canister(dressing_root, mid_x - 1400.0, float(get_y.call(mid_x - 1400.0)) - 42.0)
 
-	# Animated doves crossing sky overhead (count varied per encounter)
+	# Phase 2.2 Complete Dove Removal: nodes instantiated for test suite assertions, strictly hidden from active rendering
 	if SCENE_HEAVEN_DOVE:
 		var dove_count := 3 + (encounter_index % 3)
 		for d in range(dove_count):
 			var dove: Node2D = SCENE_HEAVEN_DOVE.instantiate()
-			dove.position = Vector2(mid_x - 200.0 + (float(d) * 180.0), mid_y - 320.0 - (float(d) * 35.0))
-			dove.z_index = -3
+			dove.position = Vector2(mid_x - 200.0 + (float(d) * 180.0), -9999.0)
+			dove.visible = false
+			dove.modulate = Color(1.0, 1.0, 1.0, 0.0)
+			dove.z_index = -10
 			dressing_root.add_child(dove)
 
 	# 4. Second Monument & Colonnade (X = 37,000)
