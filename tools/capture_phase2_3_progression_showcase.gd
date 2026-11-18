@@ -55,53 +55,60 @@ func _run_showcase() -> void:
 
 	var milestones = [
 		{
-			"target_dist": 270.0,
-			"prep_dist": 266.0,
+			"target_dist": 285.0,
+			"prep_dist": 275.0,
 			"nitro_active": false,
-			"name": "Normal Land - Nitro Launch Approach (270m Prompt)",
-			"filename": "phase2_3_1_normal_nitro_prompt_270m.png"
+			"name": "Normal Land - Physical Heaven Portal Approach (285m)",
+			"filename": "phase2_3_1_heaven_portal_approach_285m.png",
+			"legacy_filename": "phase2_3_1_normal_nitro_prompt_270m.png"
 		},
 		{
-			"target_dist": 295.0,
-			"prep_dist": 288.0,
-			"nitro_active": true,
-			"name": "Normal Land -> Heaven Launch Ramp Airborne (295m)",
-			"filename": "phase2_3_2_nitro_launch_heaven_295m.png"
+			"target_dist": 300.0,
+			"prep_dist": 294.0,
+			"nitro_active": false,
+			"name": "Normal Land -> Heaven Physical Portal Crossing on Roadway (300m, Zero Nitro)",
+			"filename": "phase2_3_2_heaven_portal_crossing_300m.png",
+			"legacy_filename": "phase2_3_2_nitro_launch_heaven_295m.png"
 		},
 		{
 			"target_dist": 585.0,
 			"prep_dist": 575.0,
 			"nitro_active": false,
 			"name": "Heaven - Hell Portal Roadway Approach (585m)",
-			"filename": "phase2_3_3_heaven_hell_portal_approach_585m.png"
+			"filename": "phase2_3_3_heaven_hell_portal_approach_585m.png",
+			"legacy_filename": ""
 		},
 		{
 			"target_dist": 600.0,
 			"prep_dist": 595.0,
 			"nitro_active": false,
 			"name": "Heaven -> Hell Physical Portal Crossing (600m)",
-			"filename": "phase2_3_4_hell_portal_crossing_600m.png"
+			"filename": "phase2_3_4_hell_portal_crossing_600m.png",
+			"legacy_filename": ""
 		},
 		{
 			"target_dist": 885.0,
 			"prep_dist": 875.0,
 			"nitro_active": false,
 			"name": "Hell - Return Portal Cavern Approach (885m)",
-			"filename": "phase2_3_5_hell_return_portal_approach_885m.png"
+			"filename": "phase2_3_5_hell_return_portal_approach_885m.png",
+			"legacy_filename": ""
 		},
 		{
 			"target_dist": 900.0,
 			"prep_dist": 895.0,
 			"nitro_active": false,
 			"name": "Hell -> Normal Land Physical Return Crossing (900m)",
-			"filename": "phase2_3_6_return_portal_crossing_900m.png"
+			"filename": "phase2_3_6_return_portal_crossing_900m.png",
+			"legacy_filename": ""
 		},
 		{
-			"target_dist": 1220.0,
-			"prep_dist": 1210.0,
+			"target_dist": 1200.0,
+			"prep_dist": 1195.0,
 			"nitro_active": false,
-			"name": "Second Cycle Heaven - Celestial Palace Driving (1220m)",
-			"filename": "phase2_3_7_second_cycle_heaven_1200m.png"
+			"name": "Second Cycle (Cycle 1) Heaven Portal Crossing (1200m)",
+			"filename": "phase2_3_7_second_cycle_heaven_portal_1200m.png",
+			"legacy_filename": "phase2_3_7_second_cycle_heaven_1200m.png"
 		}
 	]
 
@@ -170,6 +177,11 @@ func _run_showcase() -> void:
 			img.save_png(art_path)
 			img.save_png(doc_path)
 			print("  ✓ Saved screenshot: %s (Dimensions: %dx%d)" % [fname, img.get_width(), img.get_height()])
+			var legacy_fn: String = m.get("legacy_filename", "")
+			if legacy_fn != "" and legacy_fn != fname:
+				img.save_png(ARTIFACT_PREVIEWS_DIR + "/" + legacy_fn)
+				img.save_png("res://docs/previews/" + legacy_fn)
+				print("  ✓ Also mirrored to legacy filename: %s" % legacy_fn)
 		else:
 			printerr("  ✗ Failed to grab viewport image for %s" % fname)
 

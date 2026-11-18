@@ -54,11 +54,12 @@ signal segment_despawned(segment: TerrainSegment)
 @export var normal_terrain_profile: Resource = preload("res://assets/terrain/profiles/normal_land_profile.tres")
 @export var heaven_terrain_profile: Resource = preload("res://assets/terrain/profiles/heaven_terrain_profile.tres")
 @export var hell_terrain_profile: Resource = preload("res://assets/terrain/profiles/hell_terrain_profile.tres")
+@export var heaven_portal_scene: PackedScene = preload("res://scenes/environment/portals/HeavenPortal.tscn")
 @export var hell_portal_scene: PackedScene = preload("res://scenes/environment/portals/HellPortal.tscn")
 @export var return_portal_scene: PackedScene = preload("res://scenes/environment/portals/ReturnPortal.tscn")
 
 var active_portals: Array[Node2D] = []
-var _spawned_launch_ramp_cycles: Dictionary = {}
+var _spawned_heaven_portal_cycles: Dictionary = {}
 var _spawned_hell_portal_cycles: Dictionary = {}
 var _spawned_return_portal_cycles: Dictionary = {}
 
@@ -235,36 +236,32 @@ func _update_recurring_900m_generation() -> void:
 			add_child(ret_portal)
 			active_portals.append(ret_portal)
 
-	var launch_start_x: float = cycle_base_x + 28500.0 # 285m
 	var heaven_start_x: float = cycle_base_x + 30000.0 # 300m
 	var hell_start_x: float = cycle_base_x + 60000.0   # 600m
 	var return_start_x: float = cycle_base_x + 90000.0 # 900m
 
-	# 2. Normal Land Approach [0m, 285m)
-	if safe_x < launch_start_x:
-		var dist_to_launch: float = launch_start_x - safe_x
-		if dist_to_launch < default_segment_length * 1.35:
-			var seg := _generate_next_procedural_segment(dist_to_launch, normal_terrain_profile)
+	# 2. Normal Land Section [0m, 300m) - Procedural countryside road up to Heaven Portal
+	if safe_x < heaven_start_x:
+		var dist_to_heaven: float = heaven_start_x - safe_x
+		if dist_to_heaven < default_segment_length * 1.35:
+			var seg := _generate_next_procedural_segment(dist_to_heaven, normal_terrain_profile)
 			_attach_segment(seg, enable_pickups)
 		else:
 			var seg := _generate_next_procedural_segment(-1.0, normal_terrain_profile)
 			_attach_segment(seg, enable_pickups)
 		return
 
-	# 3. Countryside Launch Ramp [285m, 300m) - NO portal!
-	if safe_x < heaven_start_x:
-		if not _spawned_launch_ramp_cycles.has(cycle_idx):
-			_spawned_launch_ramp_cycles[cycle_idx] = true
-			var ramp_len: float = heaven_start_x - next_attach_point.x
-			spawn_transition_ramp(
-				TerrainSegment.SegmentType.JUMP_RAMP,
-				ramp_len,
-				-90.0,
-				45.0,
-				0.20,
-				normal_terrain_profile
-			)
-		return
+	# 3. Heaven Portal Spawning at 300m boundary
+	if safe_x >= heaven_start_x and not _spawned_heaven_portal_cycles.has(cycle_idx):
+		_spawned_heaven_portal_cycles[cycle_idx] = true
+		if heaven_portal_scene:
+			var heaven_portal: HeavenPortal = heaven_portal_scene.instantiate() as HeavenPortal
+			heaven_portal.cycle_index = cycle_idx
+			heaven_portal.portal_distance_m = float(cycle_idx) * 900.0 + 300.0
+			heaven_portal.global_position = Vector2(heaven_start_x, next_attach_point.y)
+			heaven_portal.traversed.connect(func(_p, c_idx): _on_portal_traversed(_p, c_idx, "heaven"))
+			add_child(heaven_portal)
+			active_portals.append(heaven_portal)
 
 	# 4. Hell Portal Spawning at 600m boundary
 	if safe_x >= hell_start_x and not _spawned_hell_portal_cycles.has(cycle_idx):
@@ -302,7 +299,9 @@ func _update_recurring_900m_generation() -> void:
 
 func _on_portal_traversed(_portal: Node2D, cycle_idx: int, portal_type: String) -> void:
 	if is_instance_valid(progression_controller):
-		if portal_type == "hell":
+		if portal_type == "heaven":
+			progression_controller.update_distance(float(cycle_idx) * 900.0 + 300.0)
+		elif portal_type == "hell":
 			progression_controller.update_distance(float(cycle_idx) * 900.0 + 600.0)
 		elif portal_type == "return":
 			progression_controller.update_distance(float(cycle_idx) * 900.0 + 900.0)
@@ -690,7 +689,7 @@ func clear_terrain() -> void:
 		if is_instance_valid(portal):
 			portal.queue_free()
 	active_portals.clear()
-	_spawned_launch_ramp_cycles.clear()
+	_spawned_heaven_portal_cycles.clear()
 	_spawned_hell_portal_cycles.clear()
 	_spawned_return_portal_cycles.clear()
 	

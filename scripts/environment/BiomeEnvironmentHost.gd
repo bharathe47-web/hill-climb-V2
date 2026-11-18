@@ -110,6 +110,8 @@ func _bind_progression_controller(controller: BiomeProgressionController) -> voi
 		controller.cycle_completed.connect(_on_cycle_completed)
 	if not controller.nitro_launch_activated.is_connected(_on_nitro_launch_activated):
 		controller.nitro_launch_activated.connect(_on_nitro_launch_activated)
+	if not controller.heaven_portal_entered.is_connected(_on_heaven_portal_entered):
+		controller.heaven_portal_entered.connect(_on_heaven_portal_entered)
 	if not controller.hell_portal_entered.is_connected(_on_hell_portal_entered):
 		controller.hell_portal_entered.connect(_on_hell_portal_entered)
 	if not controller.return_portal_entered.is_connected(_on_return_portal_entered):
@@ -772,6 +774,13 @@ func play_stinger(strm: AudioStream, vol_db: float = -7.0) -> void:
 		_stinger_player.play()
 
 func _on_nitro_launch_activated(_cycle_idx: int) -> void:
+	if is_instance_valid(_heaven_golden_flash):
+		var tw := create_tween()
+		tw.tween_property(_heaven_golden_flash, "color:a", 0.45, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tw.tween_property(_heaven_golden_flash, "color:a", 0.0, 0.75).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	play_stinger(STREAM_HEAVEN_STINGER)
+
+func _on_heaven_portal_entered(_portal_dist_m: float, _cycle_idx: int) -> void:
 	if is_instance_valid(_heaven_golden_flash):
 		var tw := create_tween()
 		tw.tween_property(_heaven_golden_flash, "color:a", 0.45, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)

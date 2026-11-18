@@ -61,15 +61,15 @@ func _record_video() -> void:
 	var prog: BiomeProgressionController = host.progression_controller if is_instance_valid(host) else null
 	var gen: TerrainGenerator = game.terrain_slot.get_node_or_null("TerrainGenerator")
 
-	# Sequence phases through the run
-	# Phase 1: Normal Land approaching launch ramp (250m - 300m)
-	# Phase 2: Heaven palace driving and Hell portal crossing (550m - 620m)
-	# Phase 3: Hell cavern driving and Return portal crossing (850m - 920m)
-	# Phase 4: Normal Land cycle 1 continuation (920m - 950m)
+	# Sequence phases through the run:
+	# Phase 1: Normal Land approaching and traversing Heaven Portal on roadway (270m - 320m) - ZERO nitro required!
+	# Phase 2: Heaven palace driving and Hell portal crossing on roadway (570m - 620m)
+	# Phase 3: Hell cavern driving and Return portal crossing on roadway (870m - 920m)
+	# Phase 4: Normal Land cycle 1 continuation (915m - 950m)
 
 	var phases = [
-		{"start_dist": 260.0, "frames": 130, "nitro": true, "name": "Normal Land -> Heaven Nitro Launch"},
-		{"start_dist": 570.0, "frames": 130, "nitro": false, "name": "Heaven -> Hell Portal Crossing"},
+		{"start_dist": 270.0, "frames": 130, "nitro": false, "name": "Normal Land -> Heaven Physical Portal Crossing (Zero Nitro)"},
+		{"start_dist": 570.0, "frames": 130, "nitro": false, "name": "Heaven -> Hell Physical Portal Crossing"},
 		{"start_dist": 870.0, "frames": 140, "nitro": false, "name": "Hell -> Normal Land Return Portal Crossing"},
 		{"start_dist": 915.0, "frames": 50, "nitro": false, "name": "Second Cycle Normal Land Continuation"}
 	]
@@ -126,12 +126,9 @@ func _record_video() -> void:
 				if absf(vehicle.rotation) > 0.15:
 					vehicle.angular_velocity = -vehicle.rotation * 4.0
 
-				# In launch zone [285m, 300m), engage nitro
-				if cur_d >= 285.0 and cur_d <= 305.0 and use_nitro:
-					if vehicle.has_method("set_nitro_active"):
-						vehicle.set_nitro_active(true)
-					if prog and not prog._nitro_launch_triggered_cycles.has(0):
-						prog.attempt_nitro_launch()
+				# Optional nitro boost (purely standard gameplay speed boost, not required for portals)
+				if use_nitro and vehicle.has_method("set_nitro_active"):
+					vehicle.set_nitro_active(true)
 
 			await physics_frame
 			await process_frame

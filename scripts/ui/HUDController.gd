@@ -647,6 +647,12 @@ func bind_progression_controller(pc: BiomeProgressionController) -> void:
 		pc.nitro_prompt_triggered.connect(_on_nitro_prompt_triggered)
 	if not pc.launch_zone_entered.is_connected(_on_launch_zone_entered_900m):
 		pc.launch_zone_entered.connect(_on_launch_zone_entered_900m)
+	if not pc.heaven_portal_entered.is_connected(_on_heaven_portal_entered_900m):
+		pc.heaven_portal_entered.connect(_on_heaven_portal_entered_900m)
+	if not pc.hell_portal_entered.is_connected(_on_hell_portal_entered_900m):
+		pc.hell_portal_entered.connect(_on_hell_portal_entered_900m)
+	if not pc.return_portal_entered.is_connected(_on_return_portal_entered_900m):
+		pc.return_portal_entered.connect(_on_return_portal_entered_900m)
 	if not pc.biome_changed.is_connected(_on_biome_changed_900m):
 		pc.biome_changed.connect(_on_biome_changed_900m)
 	if not pc.progression_reset.is_connected(_on_progression_reset):
@@ -719,6 +725,21 @@ func _on_nitro_prompt_triggered(_target_dist_m: float, _cycle_idx: int) -> void:
 	var title := "⚡ NITRO TO REACH HEAVEN! ⚡"
 	var subtitle := "Activate Nitro at the Ramp to Launch"
 	_show_ramp_prompt(title, subtitle, Color(0.25, 0.9, 1.0, 0.95), Color(0.4, 0.95, 1.0))
+
+func _on_heaven_portal_entered_900m(_target_dist_m: float, _cycle_idx: int) -> void:
+	var title := "✦ HEAVEN PORTAL AHEAD ✦"
+	var subtitle := "Cross the Gateway to Enter the Celestial Realm"
+	_show_ramp_prompt(title, subtitle, Color(1.0, 0.9, 0.25, 0.95), Color(1.0, 0.95, 0.4))
+
+func _on_hell_portal_entered_900m(_target_dist_m: float, _cycle_idx: int) -> void:
+	var title := "▼ HELL PORTAL AHEAD ▼"
+	var subtitle := "Gateway to the Underworld Ahead"
+	_show_ramp_prompt(title, subtitle, Color(1.0, 0.45, 0.2, 0.95), Color(1.0, 0.55, 0.25))
+
+func _on_return_portal_entered_900m(_target_dist_m: float, _cycle_idx: int) -> void:
+	var title := "✦ RETURN PORTAL AHEAD ✦"
+	var subtitle := "Return to the Overworld Ahead"
+	_show_ramp_prompt(title, subtitle, Color(0.35, 0.95, 0.45, 0.95), Color(0.5, 1.0, 0.5))
 
 func _on_launch_zone_entered_900m(_target_dist_m: float, _cycle_idx: int) -> void:
 	var has_nitro: bool = false

@@ -12,6 +12,7 @@ enum WorldState {
 	NORMAL_LAND = 0,
 	NORMAL_NITRO_PROMPT = 1,
 	NORMAL_HEAVEN_LAUNCH = 2,
+	NORMAL_TO_HEAVEN_PORTAL = 2,
 	HEAVEN = 3,
 	HEAVEN_TO_HELL_PORTAL = 4,
 	HELL = 5,
@@ -499,20 +500,12 @@ func resolve_distance(cumulative_distance_m: float, confirmed_realm: int = -1) -
 			state_name = "Normal Land (Countryside)"
 			is_trans = false
 			trans_prog = 0.0
-		elif cycle_pos < 285.0:
-			state = WorldState.NORMAL_NITRO_PROMPT
-			state_name = "Normal Land (Nitro Prompt Ahead)"
-			is_prompt_active = true
-			is_trans = false
-			trans_prog = 0.0
-		else: # [285.0, 300.0)
-			state = WorldState.NORMAL_HEAVEN_LAUNCH
-			state_name = "Normal Land (Heaven Nitro Launch Zone)"
-			is_prompt_active = true
-			is_launch_zone = true
+		else: # [270.0, 300.0)
+			state = WorldState.NORMAL_TO_HEAVEN_PORTAL
+			state_name = "Normal Land (Heaven Portal Approach)"
+			is_portal_zone = true
 			is_trans = true
-			trans_prog = clampf((cycle_pos - 285.0) / 15.0, 0.0, 1.0)
-			profile_key = "ramp_normal_to_heaven"
+			trans_prog = clampf((cycle_pos - 270.0) / 30.0, 0.0, 1.0)
 
 	elif cycle_pos < 600.0:
 		active_biome = BiomeType.HEAVEN

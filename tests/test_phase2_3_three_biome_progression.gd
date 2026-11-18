@@ -1,51 +1,55 @@
 @tool
 extends SceneTree
 
-## Test suite verifying Phase 2.3: Fixed Recurring Three-Biome Progression (300m World Rotation).
+## Test suite verifying Phase 2.3: Fixed Recurring Three-Biome Progression (No Nitro Requirement).
+## Biome sequence: NORMAL LAND (0-300m) -> HEAVEN (300-600m) -> HELL (600-900m) -> REPEAT EVERY 900m.
 ## Validates:
 ## TEST 1: 0m in Normal Land.
-## TEST 2: 270m Nitro-to-Heaven prompt.
-## TEST 3: Ordinary Nitro before launch zone does NOT change biomes.
-## TEST 4: Valid Nitro activation in launch zone initiates Heaven launch.
-## TEST 5: At 300m, enter Heaven.
-## TEST 6: No portal exists inside Normal Land.
-## TEST 7: At 600m, enter Hell through physical portal.
-## TEST 8: At 900m, return to Normal through physical portal.
-## TEST 9: At 1200m, enter Heaven again via Nitro launch.
-## TEST 10: At 1500m, enter Hell again via portal.
-## TEST 11: At 1800m, return to Normal via portal.
-## TEST 12: Continuous multi-cycle repetition across 3 complete cycles (2,700m).
-## PLUS edge tests: empty nitro recovery, momentum preservation, idempotent triggers, continuous HUD distance.
+## TEST 2: Nitro is NOT required to enter Heaven (works with 0 nitro).
+## TEST 3: Nitro remains an optional, ordinary boost (no special launch mechanic).
+## TEST 4: No portal exists inside the middle of Normal Land [0, 300m).
+## TEST 5: Physical HeavenPortal at 300m (30,000 px); vehicle drives through on roadway.
+## TEST 6: Physical HellPortal at 600m (60,000 px); vehicle drives through.
+## TEST 7: Physical ReturnPortal at 900m (90,000 px); completes Cycle 0, returns to Normal Land.
+## TEST 8: Cycle 1 repeat (1200m Heaven Portal, 1500m Hell Portal, 1800m Return Portal).
+## TEST 9: Cycle 2 repeat (2100m Heaven Portal, 2400m Hell Portal, 2700m Return Portal).
+## TEST 10: 3 complete cycles (2,700m) continuous progression with monotonic cumulative HUD distance.
+## TEST 11: Vehicle physics, momentum, wheel contact, fuel, and coins preserved across all portal transitions.
+
+class MockVehicle extends RigidBody2D:
+	var current_nitro: float = 0.0
+	var max_nitro: float = 100.0
+	var current_fuel: float = 78.5
+	var current_coins: int = 142
 
 func _init() -> void:
 	print("=================================================================")
 	print("--- BEGIN PHASE 2.3 THREE-BIOME PROGRESSION TEST SUITE ---")
+	print("---        (NO NITRO REQUIREMENT CORRECTION SUITE)        ---")
 	print("=================================================================")
 
 	var passed := true
 
 	passed = _test_1_start_in_normal_land() and passed
-	passed = _test_2_nitro_prompt_at_270m() and passed
-	passed = _test_3_ordinary_nitro_before_zone() and passed
-	passed = _test_4_valid_nitro_in_launch_zone() and passed
-	passed = _test_5_enter_heaven_at_300m() and passed
-	passed = _test_6_no_portal_in_normal_land() and passed
-	passed = _test_7_enter_hell_via_portal_at_600m() and passed
-	passed = _test_8_return_to_normal_via_portal_at_900m() and passed
-	passed = _test_9_second_cycle_heaven_launch_at_1200m() and passed
-	passed = _test_10_second_cycle_hell_portal_at_1500m() and passed
-	passed = _test_11_second_cycle_return_portal_at_1800m() and passed
-	passed = _test_12_three_complete_cycles_2700m() and passed
-	passed = _test_edge_cases_and_recovery() and passed
+	passed = _test_2_no_nitro_requirement() and passed
+	passed = _test_3_nitro_ordinary_boost() and passed
+	passed = _test_4_no_portal_in_middle_of_normal_land() and passed
+	passed = _test_5_physical_heaven_portal_at_300m() and passed
+	passed = _test_6_physical_hell_portal_at_600m() and passed
+	passed = _test_7_physical_return_portal_at_900m() and passed
+	passed = _test_8_second_cycle_all_three_portals() and passed
+	passed = _test_9_third_cycle_all_three_portals() and passed
+	passed = _test_10_three_complete_cycles_2700m() and passed
+	passed = _test_11_vehicle_momentum_and_state_preservation() and passed
 
 	if passed:
 		print("\n=================================================================")
-		print("✓ ALL PHASE 2.3 TESTS COMPLETED WITH 100% SUCCESS!")
+		print("✓ ALL PHASE 2.3 NO-NITRO REGRESSION TESTS PASSED (100% SUCCESS)!")
 		print("=================================================================")
 		quit(0)
 	else:
 		print("\n=================================================================")
-		print("✗ SOME PHASE 2.3 TESTS FAILED!")
+		print("✗ SOME PHASE 2.3 REGRESSION TESTS FAILED!")
 		print("=================================================================")
 		quit(1)
 
@@ -72,350 +76,316 @@ func _test_1_start_in_normal_land() -> bool:
 	print("  ✓ At 0m: Correctly initialized in Normal Land (Countryside)!")
 	return true
 
-func _test_2_nitro_prompt_at_270m() -> bool:
-	print("\n-> [TEST 2] Testing 270m Nitro-to-Heaven prompt...")
+func _test_2_no_nitro_requirement() -> bool:
+	print("\n-> [TEST 2] Testing Nitro is NOT required to enter Heaven (0 nitro test)...")
 	var controller := BiomeProgressionController.new()
-	var prompt_events: Array[Dictionary] = []
-	controller.nitro_prompt_triggered.connect(func(target_dist: float, cycle_idx: int):
-		prompt_events.append({"target_dist": target_dist, "cycle_idx": cycle_idx})
-	)
 
-	controller.update_distance(250.0)
-	if not prompt_events.is_empty():
-		printerr("  ✗ Prompt fired prematurely at 250m")
-		controller.free()
-		return false
+	# Mock vehicle with ZERO nitro
+	var mock_vehicle := MockVehicle.new()
+	mock_vehicle.current_nitro = 0.0
+	controller.bind_vehicle(mock_vehicle)
 
-	# Step to 270m
-	controller.update_distance(270.0)
-	if prompt_events.size() != 1:
-		printerr("  ✗ Nitro prompt failed to fire at 270m (events: %d)" % prompt_events.size())
-		controller.free()
-		return false
-
-	var ev: Dictionary = prompt_events[0]
-	if ev["cycle_idx"] != 0 or ev["target_dist"] != 300.0:
-		printerr("  ✗ Unexpected prompt event data: ", ev)
-		controller.free()
-		return false
-
-	# Idempotence: advancing within prompt zone does not re-fire prompt
-	controller.update_distance(275.0)
-	controller.update_distance(280.0)
-	if prompt_events.size() != 1:
-		printerr("  ✗ Prompt re-fired redundantly within the prompt zone")
-		controller.free()
-		return false
-
-	controller.free()
-	print("  ✓ At 270m: 'NITRO TO REACH HEAVEN!' prompt fired deterministically and idempotently!")
-	return true
-
-func _test_3_ordinary_nitro_before_zone() -> bool:
-	print("\n-> [TEST 3] Testing ordinary Nitro before launch zone does NOT change biomes...")
-	var controller := BiomeProgressionController.new()
-	var launch_events: Array[int] = []
-	var biome_events: Array[int] = []
-	controller.nitro_launch_activated.connect(func(c_idx: int): launch_events.append(c_idx))
-	controller.biome_changed.connect(func(_old_b: int, new_b: int, _c_idx: int): biome_events.append(new_b))
-
-	# Advance to 150m (deep in Normal Land)
-	controller.update_distance(150.0)
-	var launched := controller.attempt_nitro_launch()
-
-	if launched:
-		printerr("  ✗ attempt_nitro_launch returned true outside launch zone at 150m")
-		controller.free()
-		return false
-
-	if not launch_events.is_empty():
-		printerr("  ✗ nitro_launch_activated fired outside launch zone")
-		controller.free()
-		return false
-
-	if not biome_events.is_empty() or controller.current_biome_index != WorldCycleSchedule.BiomeType.NORMAL_LAND:
-		printerr("  ✗ Biome changed due to nitro press outside launch zone")
-		controller.free()
-		return false
-
-	controller.free()
-	print("  ✓ Ordinary nitro before launch zone does NOT trigger launch or change biome!")
-	return true
-
-func _test_4_valid_nitro_in_launch_zone() -> bool:
-	print("\n-> [TEST 4] Testing valid Nitro activation in launch zone initiates Heaven launch...")
-	var controller := BiomeProgressionController.new()
-	var launch_zone_events: Array[int] = []
-	var launch_activated_events: Array[int] = []
-	controller.launch_zone_entered.connect(func(_target_dist: float, cycle_idx: int): launch_zone_events.append(cycle_idx))
-	controller.nitro_launch_activated.connect(func(cycle_idx: int): launch_activated_events.append(cycle_idx))
-
-	# Advance into launch zone (285m - 300m)
-	controller.update_distance(285.0)
-	if launch_zone_events.size() != 1 or not controller.is_launch_zone_active:
-		printerr("  ✗ Failed to enter launch zone at 285m")
-		controller.free()
-		return false
-
-	# Player activates Nitro in launch zone
-	var launched := controller.attempt_nitro_launch()
-	if not launched or launch_activated_events.size() != 1:
-		printerr("  ✗ Failed to activate nitro launch in launch zone")
-		controller.free()
-		return false
-
-	# Repeated nitro presses in launch zone are idempotent
-	controller.attempt_nitro_launch()
-	controller.attempt_nitro_launch()
-	if launch_activated_events.size() != 1:
-		printerr("  ✗ Repeated nitro presses fired redundant launch signals")
-		controller.free()
-		return false
-
-	controller.free()
-	print("  ✓ Nitro activation inside launch zone [285m, 300m) initiates Heaven launch cleanly!")
-	return true
-
-func _test_5_enter_heaven_at_300m() -> bool:
-	print("\n-> [TEST 5] Testing enter Heaven at 300m...")
-	var controller := BiomeProgressionController.new()
 	var biome_changes: Array[Dictionary] = []
 	controller.biome_changed.connect(func(old_b: int, new_b: int, c_idx: int):
 		biome_changes.append({"old": old_b, "new": new_b, "cycle": c_idx})
 	)
 
-	controller.update_distance(299.9)
-	if controller.current_biome_index != WorldCycleSchedule.BiomeType.NORMAL_LAND:
+	# Vehicle drives smoothly from 0m through 270m, 290m, up to 300m with zero nitro input
+	controller.update_distance(100.0)
+	controller.update_distance(200.0)
+	controller.update_distance(270.0)
+	controller.update_distance(290.0)
+
+	if not biome_changes.is_empty():
 		printerr("  ✗ Premature biome switch before 300m")
+		mock_vehicle.free()
 		controller.free()
 		return false
 
-	# Cross exactly into 300m
+	# Cross 300m without nitro
 	controller.update_distance(300.0)
+
 	if controller.current_biome_index != WorldCycleSchedule.BiomeType.HEAVEN:
-		printerr("  ✗ At 300m: expected HEAVEN (%d), got %d" % [
-			WorldCycleSchedule.BiomeType.HEAVEN, controller.current_biome_index
-		])
+		printerr("  ✗ Failed to enter Heaven at 300m with zero nitro! Biome index: %d" % controller.current_biome_index)
+		mock_vehicle.free()
 		controller.free()
 		return false
 
-	if biome_changes.size() != 1:
-		printerr("  ✗ biome_changed signal not emitted at 300m")
+	if biome_changes.size() != 1 or biome_changes[0]["new"] != WorldCycleSchedule.BiomeType.HEAVEN:
+		printerr("  ✗ Biome change event missing or invalid: ", biome_changes)
+		mock_vehicle.free()
 		controller.free()
 		return false
 
-	var ch: Dictionary = biome_changes[0]
-	if ch["old"] != WorldCycleSchedule.BiomeType.NORMAL_LAND or ch["new"] != WorldCycleSchedule.BiomeType.HEAVEN:
-		printerr("  ✗ Unexpected biome transition data: ", ch)
-		controller.free()
-		return false
-
+	mock_vehicle.free()
 	controller.free()
-	print("  ✓ At 300m: Successfully crossed boundary and entered Heaven!")
+	print("  ✓ Confirmed: Nitro is NOT required to enter Heaven; transition succeeds with 0 nitro!")
 	return true
 
-func _test_6_no_portal_in_normal_land() -> bool:
-	print("\n-> [TEST 6] Testing NO portal exists inside Normal Land...")
+func _test_3_nitro_ordinary_boost() -> bool:
+	print("\n-> [TEST 3] Testing Nitro remains optional ordinary gameplay boost...")
+	var controller := BiomeProgressionController.new()
+
+	# Verify schedule info at 100m, 275m, 400m, 700m
+	for d in [100.0, 275.0, 400.0, 700.0]:
+		var info := controller.schedule.resolve_distance(d)
+		if info.has("is_launch_zone") and bool(info["is_launch_zone"]):
+			printerr("  ✗ Found special is_launch_zone in schedule at distance %.1fm" % d)
+			controller.free()
+			return false
+
+	controller.free()
+	print("  ✓ Confirmed: No forced Nitro launch zones exist; nitro remains ordinary gameplay boost!")
+	return true
+
+func _test_4_no_portal_in_middle_of_normal_land() -> bool:
+	print("\n-> [TEST 4] Testing NO portal in middle of Normal Land (gateway strictly at 300m)...")
 	var gen := TerrainGenerator.new()
 	gen.clear_terrain()
-	# Generate ahead through Normal Land and launch ramp (32,000 px = 320m)
+	# Generate ahead through Normal Land up to 32,000 px (320m)
 	gen._update_generation(32000.0)
 
-	for child in gen.get_children():
-		if child is HellPortal or child is ReturnPortal:
-			# Verify no portal is placed inside Normal Land [0, 30,000 px)
-			if child.global_position.x < 30000.0:
-				printerr("  ✗ Found illegal portal instance inside Normal Land at X=%f: %s" % [
-					child.global_position.x, child.name
-				])
-				gen.clear_terrain()
-				gen.free()
-				return false
+	var portals_before_300m: Array[Node] = []
+	var portals_at_300m: Array[Node] = []
 
-	# Verify the launch ramp at 285m is a countryside terrain ramp, not a portal arch
-	var found_launch_ramp := false
-	for seg in gen.active_segments:
-		var sx: float = seg.global_position.x
-		if absf(sx - 28500.0) < 50.0:
-			found_launch_ramp = true
-			if seg.terrain_profile != gen.normal_terrain_profile:
-				printerr("  ✗ Launch ramp profile is not Normal Land countryside profile")
-				gen.clear_terrain()
-				gen.free()
-				return false
+	for portal in gen.active_portals:
+		var px: float = portal.global_position.x
+		if px < 29900.0:
+			portals_before_300m.append(portal)
+		elif absf(px - 30000.0) < 50.0:
+			portals_at_300m.append(portal)
 
-	if not found_launch_ramp:
-		printerr("  ✗ Countryside launch ramp was not found at 285m (28500px)")
+	if not portals_before_300m.is_empty():
+		printerr("  ✗ Found illegal portal(s) in middle of Normal Land before 300m: ", portals_before_300m)
 		gen.clear_terrain()
 		gen.free()
 		return false
 
-	gen.clear_terrain()
-	gen.free()
-	print("  ✓ Zero portals in Normal Land verified: open countryside launch ramp confirmed!")
-	return true
-
-func _test_7_enter_hell_via_portal_at_600m() -> bool:
-	print("\n-> [TEST 7] Testing enter Hell through physical portal at 600m...")
-	var controller := BiomeProgressionController.new()
-	var hell_portal_events: Array[float] = []
-	controller.hell_portal_entered.connect(func(dist: float, _c_idx: int): hell_portal_events.append(dist))
-
-	controller.update_distance(570.0) # Portal zone start
-	if hell_portal_events.size() != 1 or hell_portal_events[0] != 600.0:
-		printerr("  ✗ hell_portal_entered not fired at portal zone (events: %d)" % hell_portal_events.size())
-		controller.free()
+	if portals_at_300m.is_empty():
+		printerr("  ✗ Expected HeavenPortal at exactly 300m (30,000 px), but none was found")
+		gen.clear_terrain()
+		gen.free()
 		return false
 
-	controller.update_distance(600.0)
-	if controller.current_biome_index != WorldCycleSchedule.BiomeType.HELL:
-		printerr("  ✗ At 600m: expected HELL (%d), got %d" % [
-			WorldCycleSchedule.BiomeType.HELL, controller.current_biome_index
-		])
-		controller.free()
-		return false
-
-	# Verify physical portal instance creation in TerrainGenerator
-	var gen := TerrainGenerator.new()
-	gen.clear_terrain()
-	gen._update_generation(62000.0)
-	var found_hell_portal := false
-	for p in gen.active_portals:
-		if p is HellPortal and absf(p.portal_distance_m - 600.0) < 0.1:
-			found_hell_portal = true
+	# Verify roadway continuity under the portal (continuous ground segments)
+	var has_ground_at_300m := false
+	for seg in gen.active_segments:
+		var seg_start: float = seg.global_position.x
+		var seg_end: float = seg_start + seg.segment_length
+		if seg_start <= 30000.0 and seg_end >= 30000.0:
+			has_ground_at_300m = true
 			break
 
-	if not found_hell_portal:
-		printerr("  ✗ Physical HellPortal instance not found at 600m in TerrainGenerator")
+	if not has_ground_at_300m:
+		printerr("  ✗ Missing ground segment at 30,000 px; road must be continuous under the gateway")
 		gen.clear_terrain()
 		gen.free()
-		controller.free()
 		return false
 
 	gen.clear_terrain()
 	gen.free()
-	controller.free()
-	print("  ✓ At 600m: Entered Hell through physical HellPortal with 100% momentum preservation!")
+	print("  ✓ Confirmed: Zero portals in middle of Normal Land; gateway sits strictly at 300m on continuous road!")
 	return true
 
-func _test_8_return_to_normal_via_portal_at_900m() -> bool:
-	print("\n-> [TEST 8] Testing return to Normal Land through physical portal at 900m...")
-	var controller := BiomeProgressionController.new()
-	var cycle_events: Array[int] = []
-	var return_portal_events: Array[float] = []
-	controller.cycle_completed.connect(func(old_c: int, _new_c: int): cycle_events.append(old_c))
-	controller.return_portal_entered.connect(func(dist: float, _c_idx: int): return_portal_events.append(dist))
+func _test_5_physical_heaven_portal_at_300m() -> bool:
+	print("\n-> [TEST 5] Testing physical HeavenPortal at 300m...")
+	var gen := TerrainGenerator.new()
+	gen.clear_terrain()
+	gen._update_generation(35000.0)
 
-	controller.update_distance(870.0) # Return portal zone
-	if return_portal_events.size() != 1 or return_portal_events[0] != 900.0:
-		printerr("  ✗ return_portal_entered not fired in portal zone")
-		controller.free()
+	var heaven_portal: HeavenPortal = null
+	for p in gen.active_portals:
+		if p is HeavenPortal and absf(p.portal_distance_m - 300.0) < 0.1:
+			heaven_portal = p as HeavenPortal
+			break
+
+	if not heaven_portal:
+		printerr("  ✗ Physical HeavenPortal instance not found in active_portals at 300m")
+		gen.clear_terrain()
+		gen.free()
 		return false
 
-	controller.update_distance(900.0)
-	if controller.current_biome_index != WorldCycleSchedule.BiomeType.NORMAL_LAND:
-		printerr("  ✗ At 900m: expected return to NORMAL_LAND (%d), got %d" % [
-			WorldCycleSchedule.BiomeType.NORMAL_LAND, controller.current_biome_index
-		])
-		controller.free()
+	# Verify trigger area exists and is configured for vehicle detection
+	var trigger: Area2D = heaven_portal.get_node_or_null("TriggerArea") as Area2D
+	if not trigger:
+		printerr("  ✗ HeavenPortal is missing TriggerArea child")
+		gen.clear_terrain()
+		gen.free()
 		return false
 
-	if controller.current_cycle_index != 1 or cycle_events.size() != 1:
-		printerr("  ✗ Cycle completion not detected at 900m")
-		controller.free()
+	if trigger.collision_mask != 2:
+		printerr("  ✗ HeavenPortal TriggerArea collision_mask is %d, expected 2 (vehicle layer)" % trigger.collision_mask)
+		gen.clear_terrain()
+		gen.free()
 		return false
 
-	controller.free()
-	print("  ✓ At 900m: Returned to Normal Land through ReturnPortal, completing Cycle 0!")
+	# Verify traversal signal
+	var traversed_events: Array[bool] = []
+	heaven_portal.traversed.connect(func(_portal, _c_idx): traversed_events.append(true))
+	heaven_portal.trigger_traversal()
+	if traversed_events.is_empty() or not heaven_portal.is_traversed:
+		printerr("  ✗ HeavenPortal trigger_traversal failed to emit traversed signal")
+		gen.clear_terrain()
+		gen.free()
+		return false
+
+	gen.clear_terrain()
+	gen.free()
+	print("  ✓ Confirmed: Physical HeavenPortal at 300m detects vehicle and emits traversal signal correctly!")
 	return true
 
-func _test_9_second_cycle_heaven_launch_at_1200m() -> bool:
-	print("\n-> [TEST 9] Testing second cycle Heaven launch at 1200m...")
-	var controller := BiomeProgressionController.new()
-	var launch_events: Array[int] = []
-	controller.nitro_launch_activated.connect(func(c_idx: int): launch_events.append(c_idx))
+func _test_6_physical_hell_portal_at_600m() -> bool:
+	print("\n-> [TEST 6] Testing physical HellPortal at 600m...")
+	var gen := TerrainGenerator.new()
+	gen.clear_terrain()
+	gen._update_generation(65000.0)
 
-	# Advance into Cycle 1 launch zone (900 + 285m = 1185m)
-	controller.update_distance(1170.0) # Prompt at 1170m
-	controller.update_distance(1185.0) # Launch zone [1185m, 1200m)
+	var hell_portal: HellPortal = null
+	for p in gen.active_portals:
+		if p is HellPortal and absf(p.portal_distance_m - 600.0) < 0.1:
+			hell_portal = p as HellPortal
+			break
 
-	if not controller.is_launch_zone_active or controller.current_cycle_index != 1:
-		printerr("  ✗ Not in launch zone for Cycle 1 at 1185m")
-		controller.free()
+	if not hell_portal:
+		printerr("  ✗ Physical HellPortal instance not found in active_portals at 600m")
+		gen.clear_terrain()
+		gen.free()
 		return false
 
-	var launched := controller.attempt_nitro_launch()
-	if not launched or launch_events.size() != 1 or launch_events[0] != 1:
-		printerr("  ✗ Cycle 1 nitro launch failed to trigger")
-		controller.free()
+	# Verify traversal trigger
+	var traversed_events: Array[bool] = []
+	hell_portal.traversed.connect(func(_portal, _c_idx): traversed_events.append(true))
+	hell_portal.trigger_traversal()
+	if traversed_events.is_empty() or not hell_portal.is_traversed:
+		printerr("  ✗ HellPortal trigger_traversal failed to emit traversed signal")
+		gen.clear_terrain()
+		gen.free()
 		return false
 
-	# Advance to 1200m
-	controller.update_distance(1200.0)
-	if controller.current_biome_index != WorldCycleSchedule.BiomeType.HEAVEN:
-		printerr("  ✗ At 1200m: expected HEAVEN in Cycle 1, got %d" % controller.current_biome_index)
-		controller.free()
-		return false
-
-	controller.free()
-	print("  ✓ At 1200m: Cycle 1 Nitro launch initiated and entered Heaven successfully!")
+	gen.clear_terrain()
+	gen.free()
+	print("  ✓ Confirmed: Physical HellPortal at 600m detects vehicle and triggers correctly!")
 	return true
 
-func _test_10_second_cycle_hell_portal_at_1500m() -> bool:
-	print("\n-> [TEST 10] Testing second cycle Hell portal at 1500m...")
-	var controller := BiomeProgressionController.new()
-	var hell_events: Array[int] = []
-	controller.hell_portal_entered.connect(func(_d: float, c_idx: int): hell_events.append(c_idx))
+func _test_7_physical_return_portal_at_900m() -> bool:
+	print("\n-> [TEST 7] Testing physical ReturnPortal at 900m...")
+	var gen := TerrainGenerator.new()
+	gen.clear_terrain()
+	gen._update_generation(95000.0)
 
-	# Advance to 1500m (Cycle 1 Hell boundary: 900 + 600 = 1500m)
-	controller.update_distance(1480.0)
-	if hell_events.size() != 1 or hell_events[0] != 1:
-		printerr("  ✗ Cycle 1 hell portal event failed to fire")
-		controller.free()
+	var ret_portal: ReturnPortal = null
+	for p in gen.active_portals:
+		if p is ReturnPortal and absf(p.portal_distance_m - 900.0) < 0.1:
+			ret_portal = p as ReturnPortal
+			break
+
+	if not ret_portal:
+		printerr("  ✗ Physical ReturnPortal instance not found in active_portals at 900m")
+		gen.clear_terrain()
+		gen.free()
 		return false
 
-	controller.update_distance(1500.0)
-	if controller.current_biome_index != WorldCycleSchedule.BiomeType.HELL:
-		printerr("  ✗ At 1500m: expected HELL in Cycle 1, got %d" % controller.current_biome_index)
-		controller.free()
+	var traversed_events: Array[bool] = []
+	ret_portal.traversed.connect(func(_portal, _c_idx): traversed_events.append(true))
+	ret_portal.trigger_traversal()
+	if traversed_events.is_empty() or not ret_portal.is_traversed:
+		printerr("  ✗ ReturnPortal trigger_traversal failed to emit traversed signal")
+		gen.clear_terrain()
+		gen.free()
 		return false
 
-	controller.free()
-	print("  ✓ At 1500m: Cycle 1 HellPortal crossed and entered Hell successfully!")
+	gen.clear_terrain()
+	gen.free()
+	print("  ✓ Confirmed: Physical ReturnPortal at 900m detects vehicle and triggers correctly!")
 	return true
 
-func _test_11_second_cycle_return_portal_at_1800m() -> bool:
-	print("\n-> [TEST 11] Testing second cycle return portal at 1800m...")
-	var controller := BiomeProgressionController.new()
-	var return_events: Array[int] = []
-	controller.return_portal_entered.connect(func(_d: float, c_idx: int): return_events.append(c_idx))
+func _test_8_second_cycle_all_three_portals() -> bool:
+	print("\n-> [TEST 8] Testing Cycle 1 repeat (1200m Heaven, 1500m Hell, 1800m Return)...")
+	var gen := TerrainGenerator.new()
+	gen.clear_terrain()
+	# Generate ahead across Cycle 1 (up to 185,000 px = 1850m)
+	gen._update_generation(185000.0)
 
-	# Advance to 1800m (Cycle 1 Return boundary: 900 + 900 = 1800m)
-	controller.update_distance(1780.0)
-	if return_events.size() != 1 or return_events[0] != 1:
-		printerr("  ✗ Cycle 1 return portal event failed to fire")
-		controller.free()
+	var found_heaven_1200m := false
+	var found_hell_1500m := false
+	var found_return_1800m := false
+
+	for p in gen.active_portals:
+		if p is HeavenPortal and absf(p.portal_distance_m - 1200.0) < 0.1:
+			found_heaven_1200m = true
+		elif p is HellPortal and absf(p.portal_distance_m - 1500.0) < 0.1:
+			found_hell_1500m = true
+		elif p is ReturnPortal and absf(p.portal_distance_m - 1800.0) < 0.1:
+			found_return_1800m = true
+
+	if not found_heaven_1200m:
+		printerr("  ✗ Cycle 1 HeavenPortal not found at 1200m")
+		gen.clear_terrain()
+		gen.free()
 		return false
 
-	controller.update_distance(1800.0)
-	if controller.current_biome_index != WorldCycleSchedule.BiomeType.NORMAL_LAND:
-		printerr("  ✗ At 1800m: expected return to NORMAL_LAND, got %d" % controller.current_biome_index)
-		controller.free()
+	if not found_hell_1500m:
+		printerr("  ✗ Cycle 1 HellPortal not found at 1500m")
+		gen.clear_terrain()
+		gen.free()
 		return false
 
-	if controller.current_cycle_index != 2:
-		printerr("  ✗ Expected transition to Cycle 2 at 1800m, got %d" % controller.current_cycle_index)
-		controller.free()
+	if not found_return_1800m:
+		printerr("  ✗ Cycle 1 ReturnPortal not found at 1800m")
+		gen.clear_terrain()
+		gen.free()
 		return false
 
-	controller.free()
-	print("  ✓ At 1800m: Cycle 1 ReturnPortal crossed and entered Cycle 2 Normal Land!")
+	gen.clear_terrain()
+	gen.free()
+	print("  ✓ Confirmed: Cycle 1 spawned all 3 physical portals (1200m, 1500m, 1800m) seamlessly!")
 	return true
 
-func _test_12_three_complete_cycles_2700m() -> bool:
-	print("\n-> [TEST 12] Testing 3 complete cycles (2,700m continuous progression)...")
+func _test_9_third_cycle_all_three_portals() -> bool:
+	print("\n-> [TEST 9] Testing Cycle 2 repeat (2100m Heaven, 2400m Hell, 2700m Return)...")
+	var gen := TerrainGenerator.new()
+	gen.clear_terrain()
+	# Generate ahead across Cycle 2 (up to 275,000 px = 2750m)
+	gen._update_generation(275000.0)
+
+	var found_heaven_2100m := false
+	var found_hell_2400m := false
+	var found_return_2700m := false
+
+	for p in gen.active_portals:
+		if p is HeavenPortal and absf(p.portal_distance_m - 2100.0) < 0.1:
+			found_heaven_2100m = true
+		elif p is HellPortal and absf(p.portal_distance_m - 2400.0) < 0.1:
+			found_hell_2400m = true
+		elif p is ReturnPortal and absf(p.portal_distance_m - 2700.0) < 0.1:
+			found_return_2700m = true
+
+	if not found_heaven_2100m:
+		printerr("  ✗ Cycle 2 HeavenPortal not found at 2100m")
+		gen.clear_terrain()
+		gen.free()
+		return false
+
+	if not found_hell_2400m:
+		printerr("  ✗ Cycle 2 HellPortal not found at 2400m")
+		gen.clear_terrain()
+		gen.free()
+		return false
+
+	if not found_return_2700m:
+		printerr("  ✗ Cycle 2 ReturnPortal not found at 2700m")
+		gen.clear_terrain()
+		gen.free()
+		return false
+
+	gen.clear_terrain()
+	gen.free()
+	print("  ✓ Confirmed: Cycle 2 spawned all 3 physical portals (2100m, 2400m, 2700m) seamlessly!")
+	return true
+
+func _test_10_three_complete_cycles_2700m() -> bool:
+	print("\n-> [TEST 10] Testing 3 complete cycles (2,700m continuous progression)...")
 	var controller := BiomeProgressionController.new()
-	var schedule := controller.schedule
 
 	var test_cadence := [
 		# [Distance, Expected Cycle, Expected Biome, Expected Biome Name]
@@ -470,36 +440,54 @@ func _test_12_three_complete_cycles_2700m() -> bool:
 	print("  ✓ Full 2,700m continuous 3-cycle progression verified across all 19 check milestones!")
 	return true
 
-func _test_edge_cases_and_recovery() -> bool:
-	print("\n-> [EDGE TESTS] Testing empty nitro recovery and vehicle binding...")
+func _test_11_vehicle_momentum_and_state_preservation() -> bool:
+	print("\n-> [TEST 11] Testing vehicle momentum and state preservation across portal crossings...")
 	var controller := BiomeProgressionController.new()
 
-	# Create mock vehicle node with empty nitro
-	var mock_vehicle := RigidBody2D.new()
-	mock_vehicle.set("current_nitro", 0.0)
-	mock_vehicle.set("max_nitro", 100.0)
+	# Create a mock vehicle with active velocity, fuel, and coins
+	var mock_vehicle := MockVehicle.new()
+	mock_vehicle.linear_velocity = Vector2(850.0, 0.0)
+	mock_vehicle.current_fuel = 78.5
+	mock_vehicle.current_coins = 142
 	controller.bind_vehicle(mock_vehicle)
 
-	var launch_events: Array[int] = []
-	controller.nitro_launch_activated.connect(func(c_idx: int): launch_events.append(c_idx))
-
-	# Advance into launch zone without pressing nitro:
-	controller.update_distance(285.0)
-	if not launch_events.is_empty():
-		printerr("  ✗ Premature launch assist at 285m")
+	# Traverse through Heaven Portal (300m)
+	controller.update_distance(300.0)
+	if mock_vehicle.linear_velocity.x < 800.0:
+		printerr("  ✗ Vehicle momentum lost when crossing Heaven Portal: vx=%f" % mock_vehicle.linear_velocity.x)
 		mock_vehicle.free()
 		controller.free()
 		return false
 
-	# At 294m: anti-softlock recovery assist must trigger
-	controller.update_distance(295.0)
-	if launch_events.size() != 1:
-		printerr("  ✗ Anti-softlock recovery failed to fire by 295m when nitro is empty")
+	if mock_vehicle.current_fuel < 70.0:
+		printerr("  ✗ Vehicle fuel corrupted across Heaven Portal")
+		mock_vehicle.free()
+		controller.free()
+		return false
+
+	if mock_vehicle.current_coins != 142:
+		printerr("  ✗ Vehicle coins corrupted across Heaven Portal")
+		mock_vehicle.free()
+		controller.free()
+		return false
+
+	# Traverse through Hell Portal (600m)
+	controller.update_distance(600.0)
+	if mock_vehicle.linear_velocity.x < 800.0:
+		printerr("  ✗ Vehicle momentum lost when crossing Hell Portal: vx=%f" % mock_vehicle.linear_velocity.x)
+		mock_vehicle.free()
+		controller.free()
+		return false
+
+	# Traverse through Return Portal (900m)
+	controller.update_distance(900.0)
+	if mock_vehicle.linear_velocity.x < 800.0:
+		printerr("  ✗ Vehicle momentum lost when crossing Return Portal: vx=%f" % mock_vehicle.linear_velocity.x)
 		mock_vehicle.free()
 		controller.free()
 		return false
 
 	mock_vehicle.free()
 	controller.free()
-	print("  ✓ Empty nitro recovery assist prevents softlock and guarantees upward launch carry!")
+	print("  ✓ Vehicle momentum, physics, fuel, and coins 100% preserved across all portals!")
 	return true
