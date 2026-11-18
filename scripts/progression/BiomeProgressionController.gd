@@ -5,14 +5,22 @@ extends Node
 ## by consuming authoritative run distance from GameManager.
 ## Resolves biomes, transitions, cycle repetition, and emits one-shot state change signals.
 ## Completely decoupled from terrain geometry and visual rendering.
-## Supports both legacy FIXED_5150M cycle and skill-based BRANCHING_1000M encounters.
+## Phase 2.3: Active 900m recurring three-biome schedule (Normal Land -> Heaven -> Hell -> repeat).
 
 signal state_changed(old_state: int, new_state: int, state_info: Dictionary)
 signal cycle_completed(completed_cycle: int, new_cycle: int)
 signal transition_progress_updated(progress: float, transition_state: int)
 signal progression_reset()
 
-# Branching encounter signals (Section 5.3 & Phase 1 TODO)
+# Phase 2.3 Dedicated Signals
+signal nitro_prompt_triggered(target_dist_m: float, cycle_idx: int)
+signal launch_zone_entered(target_dist_m: float, cycle_idx: int)
+signal nitro_launch_activated(cycle_idx: int)
+signal hell_portal_entered(portal_dist_m: float, cycle_idx: int)
+signal return_portal_entered(portal_dist_m: float, cycle_idx: int)
+signal biome_changed(old_biome: int, new_biome: int, cycle_idx: int)
+
+# Branching encounter compatibility signals
 signal ramp_warning_triggered(gate_dist_m: float, encounter_idx: int)
 signal launch_window_entered(gate_dist_m: float, encounter_idx: int)
 signal branch_confirmed(realm: int, encounter_idx: int)
@@ -21,25 +29,34 @@ signal route_merge_completed(encounter_idx: int)
 @export var schedule: WorldCycleSchedule
 @export var is_paused: bool = false
 
-## Proposed cycle difficulty scaling (+0.15 per completed 5,150m cycle).
-## Kept false by default to respect TerrainGenerator's existing difficulty clamp.
 @export var enable_cycle_difficulty_scaling: bool = false
 @export var difficulty_growth_per_cycle: float = 0.15
 
 var current_cumulative_distance: float = 0.0
 var current_cycle_index: int = 0
 var current_encounter_index: int = 0
-var current_state: int = WorldCycleSchedule.WorldState.NORMAL_LAND_1
+var current_biome_index: int = WorldCycleSchedule.BiomeType.NORMAL_LAND
+var current_biome_local_distance: float = 0.0
+var current_state: int = WorldCycleSchedule.WorldState.NORMAL_LAND
 var current_transition_progress: float = 0.0
+var is_launch_zone_active: bool = false
 var last_state_info: Dictionary = {}
 
-# Branching encounter route resolution
-var confirmed_realms: Dictionary = {} # encounter_idx (int) -> BiomeType (HEAVEN or HELL)
+var confirmed_realms: Dictionary = {}
 var _warning_emitted_encounters: Dictionary = {}
 var _launch_window_emitted_encounters: Dictionary = {}
 var _merge_emitted_encounters: Dictionary = {}
 
+# One-shot tracking for Phase 2.3 900m cycle
+var _prompt_emitted_cycles: Dictionary = {}
+var _launch_emitted_cycles: Dictionary = {}
+var _hell_portal_emitted_cycles: Dictionary = {}
+var _return_portal_emitted_cycles: Dictionary = {}
+var _nitro_launch_triggered_cycles: Dictionary = {}
+var _last_resolved_biome: int = WorldCycleSchedule.BiomeType.NORMAL_LAND
+
 var _game_manager_ref: Node = null
+var _vehicle_ref: Node = null
 
 func _init() -> void:
 	if not schedule:
@@ -64,6 +81,10 @@ func enable_branching_mode(enable: bool = true) -> void:
 		schedule.init_default_schedule()
 	reset_progression()
 
+## Binds to a VehicleController instance to detect and interact with nitro state
+func bind_vehicle(veh: Node) -> void:
+	_vehicle_ref = veh
+
 ## Connects to the authoritative GameManager instance to track distance and reset signals.
 func connect_to_game_manager(gm: Node) -> void:
 	if not gm:
@@ -82,19 +103,15 @@ func _on_distance_updated(distance_m: float) -> void:
 	update_distance(distance_m)
 
 func _on_run_finished(_final_distance: float, _coins: int, _reason: String) -> void:
-	# Run completed; state remains frozen until explicit reset
 	pass
 
-## Confirms route selection (Heaven or Hell) for an encounter.
-## Idempotent: a gate can resolve only once per encounter.
-## Returns true if confirmed successfully, false if duplicate or invalid.
+## Confirms route selection (Heaven or Hell) for a branching encounter.
 func confirm_route(realm: int, encounter_idx: int = -1) -> bool:
 	if is_paused:
 		return false
 
 	var enc_idx := current_encounter_index if encounter_idx < 0 else encounter_idx
 
-	# Once resolved/confirmed, reject duplicate trigger calls
 	if confirmed_realms.has(enc_idx):
 		return false
 
@@ -105,7 +122,6 @@ func confirm_route(realm: int, encounter_idx: int = -1) -> bool:
 	confirmed_realms[enc_idx] = realm
 	branch_confirmed.emit(realm, enc_idx)
 
-	# If currently at or past gate, recalculate progression state immediately
 	if is_branching_mode():
 		_recalculate_progression_state()
 
@@ -130,15 +146,32 @@ func _recalculate_progression_state() -> void:
 
 	last_state_info = info
 
+## Attempts to initiate the special Heaven Nitro launch.
+## Only initiates if inside the active launch zone [285m, 300m) mod 900.
+## Ordinary nitro presses elsewhere return false without affecting progression.
+func attempt_nitro_launch() -> bool:
+	if not is_launch_zone_active:
+		return false
+
+	var cycle_idx := current_cycle_index
+	if _nitro_launch_triggered_cycles.has(cycle_idx):
+		return true # Already triggered for this cycle
+
+	_nitro_launch_triggered_cycles[cycle_idx] = true
+	nitro_launch_activated.emit(cycle_idx)
+
+	if is_instance_valid(_vehicle_ref) and _vehicle_ref.has_method("apply_central_force"):
+		_vehicle_ref.apply_central_force(Vector2(32000.0, -12000.0))
+
+	return true
+
 ## Authoritative distance update function. Resolves cycle index, world state, and progress.
 func update_distance(new_distance_m: float) -> void:
 	if is_paused:
 		return
 
 	var safe_dist := maxf(0.0, new_distance_m)
-	# Distance in Endless Map should be monotonic
 	if safe_dist < current_cumulative_distance and not is_equal_approx(safe_dist, 0.0):
-		# Distance went backwards without reset
 		return
 
 	current_cumulative_distance = safe_dist
@@ -153,7 +186,6 @@ func _update_branching_distance(safe_dist: float) -> void:
 	current_encounter_index = enc_idx
 	var gate_dist_m: float = schedule.get_gate_distance_for_encounter(enc_idx)
 
-	# 1. Gate crossing resolution check: Fallback to Hell if unconfirmed or missed launch
 	if safe_dist >= gate_dist_m and not confirmed_realms.has(enc_idx):
 		confirmed_realms[enc_idx] = WorldCycleSchedule.BiomeType.HELL
 		branch_confirmed.emit(WorldCycleSchedule.BiomeType.HELL, enc_idx)
@@ -164,39 +196,33 @@ func _update_branching_distance(safe_dist: float) -> void:
 	var new_state: int = info["state"]
 	var new_trans_prog: float = info["transition_progress"]
 
-	# 2. Warning Zone Signal (One-shot per encounter)
 	if new_state == WorldCycleSchedule.WorldState.RAMP_WARNING:
 		if not _warning_emitted_encounters.has(enc_idx):
 			_warning_emitted_encounters[enc_idx] = true
 			ramp_warning_triggered.emit(gate_dist_m, enc_idx)
 
-	# 3. Launch Window Signal (One-shot per encounter)
 	if new_state == WorldCycleSchedule.WorldState.LAUNCH_WINDOW:
 		if not _launch_window_emitted_encounters.has(enc_idx):
 			_launch_window_emitted_encounters[enc_idx] = true
 			launch_window_entered.emit(gate_dist_m, enc_idx)
 
-	# 4. Route Merge Signal (One-shot when entering next encounter's approach)
 	if new_state == WorldCycleSchedule.WorldState.NORMAL_APPROACH and enc_idx > 0:
 		var prev_enc := enc_idx - 1
 		if not _merge_emitted_encounters.has(prev_enc):
 			_merge_emitted_encounters[prev_enc] = true
 			route_merge_completed.emit(prev_enc)
 
-	# 5. Cycle Crossing
 	if new_cycle > current_cycle_index:
 		var old_cycle := current_cycle_index
 		current_cycle_index = new_cycle
 		cycle_completed.emit(old_cycle, new_cycle)
 
-	# 6. State Change
 	if new_state != current_state or last_state_info.is_empty():
 		var old_st := current_state
 		current_state = new_state
 		last_state_info = info
 		state_changed.emit(old_st, new_state, info)
 
-	# 7. Transition Progress Update
 	if info["is_transition"]:
 		current_transition_progress = new_trans_prog
 		transition_progress_updated.emit(new_trans_prog, new_state)
@@ -209,7 +235,10 @@ func _update_fixed_distance(safe_dist: float) -> void:
 	var info := schedule.resolve_distance(safe_dist)
 	var new_cycle: int = info["cycle_index"]
 	var new_state: int = info["state"]
+	var new_biome: int = info["active_biome"]
 	var new_trans_prog: float = info["transition_progress"]
+
+	current_biome_local_distance = info.get("biome_local_distance", 0.0)
 
 	# 1. Detect Cycle Crossing
 	if new_cycle > current_cycle_index:
@@ -217,14 +246,60 @@ func _update_fixed_distance(safe_dist: float) -> void:
 		current_cycle_index = new_cycle
 		cycle_completed.emit(old_cycle, new_cycle)
 
-	# 2. Detect State Change
+	# 2. Detect Biome Change
+	if new_biome != _last_resolved_biome:
+		var old_b := _last_resolved_biome
+		_last_resolved_biome = new_biome
+		current_biome_index = new_biome
+		biome_changed.emit(old_b, new_biome, new_cycle)
+
+	# 3. Detect Phase 2.3 One-Shot Milestones (Prompt, Launch, Portals)
+	if schedule.schedule_mode == WorldCycleSchedule.ScheduleMode.RECURRING_900M:
+		# Nitro prompt at ~270m
+		if info.get("is_prompt_active", false) and not _prompt_emitted_cycles.has(new_cycle):
+			_prompt_emitted_cycles[new_cycle] = true
+			nitro_prompt_triggered.emit(float(new_cycle) * 900.0 + 300.0, new_cycle)
+			ramp_warning_triggered.emit(float(new_cycle) * 900.0 + 300.0, new_cycle)
+
+		# Special Heaven launch zone [285m, 300m)
+		is_launch_zone_active = info.get("is_launch_zone", false)
+		if is_launch_zone_active and not _launch_emitted_cycles.has(new_cycle):
+			_launch_emitted_cycles[new_cycle] = true
+			launch_zone_entered.emit(float(new_cycle) * 900.0 + 300.0, new_cycle)
+			launch_window_entered.emit(float(new_cycle) * 900.0 + 300.0, new_cycle)
+
+		# Auto-evaluate Nitro press or recovery assist in launch zone
+		if is_launch_zone_active:
+			if is_instance_valid(_vehicle_ref):
+				var is_nitro: bool = (_vehicle_ref.get("is_nitro_active") == true) or Input.is_action_pressed("nitro") or Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_SPACE)
+				if is_nitro:
+					attempt_nitro_launch()
+
+				# Recovery path: prevent softlock if nitro is empty or missed by 294m
+				var c_pos: float = info.get("cycle_position", 0.0)
+				if c_pos >= 294.0 and not _nitro_launch_triggered_cycles.has(new_cycle):
+					attempt_nitro_launch()
+		else:
+			is_launch_zone_active = false
+
+		# Hell portal zone [570m, 600m)
+		if new_state == WorldCycleSchedule.WorldState.HEAVEN_TO_HELL_PORTAL and not _hell_portal_emitted_cycles.has(new_cycle):
+			_hell_portal_emitted_cycles[new_cycle] = true
+			hell_portal_entered.emit(float(new_cycle) * 900.0 + 600.0, new_cycle)
+
+		# Return portal zone [870m, 900m)
+		if new_state == WorldCycleSchedule.WorldState.HELL_TO_NORMAL_PORTAL and not _return_portal_emitted_cycles.has(new_cycle):
+			_return_portal_emitted_cycles[new_cycle] = true
+			return_portal_entered.emit(float(new_cycle) * 900.0 + 900.0, new_cycle)
+
+	# 4. Detect State Change
 	if new_state != current_state or last_state_info.is_empty():
 		var old_st := current_state
 		current_state = new_state
 		last_state_info = info
 		state_changed.emit(old_st, new_state, info)
 
-	# 3. Detect Transition Progress Update
+	# 5. Detect Transition Progress Update
 	if info["is_transition"]:
 		current_transition_progress = new_trans_prog
 		transition_progress_updated.emit(new_trans_prog, new_state)
@@ -233,35 +308,40 @@ func _update_fixed_distance(safe_dist: float) -> void:
 
 	last_state_info = info
 
-## Handles a large arbitrary distance jump (e.g. testing teleports or milestone leaps).
 func handle_distance_jump(target_distance_m: float) -> void:
 	update_distance(target_distance_m)
 
-## Resets progression state cleanly on run restart.
 func reset_progression() -> void:
 	current_cumulative_distance = 0.0
 	current_cycle_index = 0
 	current_encounter_index = 0
+	current_biome_index = WorldCycleSchedule.BiomeType.NORMAL_LAND
+	current_biome_local_distance = 0.0
 	current_transition_progress = 0.0
+	is_launch_zone_active = false
 	confirmed_realms.clear()
 	_warning_emitted_encounters.clear()
 	_launch_window_emitted_encounters.clear()
 	_merge_emitted_encounters.clear()
+	_prompt_emitted_cycles.clear()
+	_launch_emitted_cycles.clear()
+	_hell_portal_emitted_cycles.clear()
+	_return_portal_emitted_cycles.clear()
+	_nitro_launch_triggered_cycles.clear()
+	_last_resolved_biome = WorldCycleSchedule.BiomeType.NORMAL_LAND
 
 	if is_branching_mode():
 		current_state = WorldCycleSchedule.WorldState.NORMAL_APPROACH
 		last_state_info = schedule.resolve_branching_encounter(0.0)
 	else:
-		current_state = WorldCycleSchedule.WorldState.NORMAL_LAND_1
+		current_state = WorldCycleSchedule.WorldState.NORMAL_LAND
 		last_state_info = schedule.resolve_distance(0.0)
 
 	progression_reset.emit()
 
-## Sets paused state to prevent duplicate events during pause/menu interactions.
 func set_paused(paused: bool) -> void:
 	is_paused = paused
 
-## Returns current resolved state snapshot.
 func get_current_state_info() -> Dictionary:
 	if last_state_info.is_empty():
 		if is_branching_mode():
@@ -271,7 +351,6 @@ func get_current_state_info() -> Dictionary:
 			last_state_info = schedule.resolve_distance(current_cumulative_distance)
 	return last_state_info
 
-## Computes cycle difficulty multiplier (+0.15 per cycle if enabled).
 func get_cycle_difficulty_multiplier(cycle_idx: int = -1) -> float:
 	var target_cycle := current_cycle_index if cycle_idx < 0 else cycle_idx
 	if not enable_cycle_difficulty_scaling:

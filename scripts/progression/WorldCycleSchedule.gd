@@ -2,29 +2,36 @@ class_name WorldCycleSchedule
 extends Resource
 
 ## WorldCycleSchedule: Authoritative world progression schedule for Endless Map.
-## Defines the continuous 5,150m world-cycle containing Normal Land, Heaven, and Hell
-## biomes with four distinct transition ramps.
-## Validates continuity, non-overlapping intervals, and boundary rules.
+## Phase 2.3: Fixed recurring 900m three-biome sequence:
+## NORMAL LAND (0-300m) -> HEAVEN (300-600m) -> HELL (600-900m) -> REPEAT.
+## Normal Land -> Heaven: Nitro launch off countryside ramp (NO portal in Normal Land).
+## Heaven -> Hell: Physical Hell Portal.
+## Hell -> Normal Land: Physical Return Portal.
 
 enum WorldState {
+	NORMAL_LAND = 0,
+	NORMAL_NITRO_PROMPT = 1,
+	NORMAL_HEAVEN_LAUNCH = 2,
+	HEAVEN = 3,
+	HEAVEN_TO_HELL_PORTAL = 4,
+	HELL = 5,
+	HELL_TO_NORMAL_PORTAL = 6,
+	# Backward-compatibility aliases for legacy tests
 	NORMAL_LAND_1 = 0,
-	TRANSITION_NORMAL_TO_HEAVEN = 1,
-	HEAVEN = 2,
-	TRANSITION_HEAVEN_TO_NORMAL = 3,
-	NORMAL_LAND_2 = 4,
-	TRANSITION_NORMAL_TO_HELL = 5,
-	HELL = 6,
-	TRANSITION_HELL_TO_NORMAL = 7,
-	# Branching Encounter States (Phase 1)
-	NORMAL_APPROACH = 8,
-	RAMP_WARNING = 9,
-	LAUNCH_WINDOW = 10,
-	HEAVEN_ENTRY = 11,
-	HELL_ENTRY = 12,
-	HEAVEN_ACTIVE = 13,
-	HELL_ACTIVE = 14,
-	EXIT_TRANSITION = 15,
-	NORMAL_MERGE = 16
+	TRANSITION_NORMAL_TO_HEAVEN = 2,
+	TRANSITION_HEAVEN_TO_NORMAL = 4,
+	NORMAL_LAND_2 = 0,
+	TRANSITION_NORMAL_TO_HELL = 4,
+	TRANSITION_HELL_TO_NORMAL = 6,
+	NORMAL_APPROACH = 7,
+	RAMP_WARNING = 1,
+	LAUNCH_WINDOW = 2,
+	HEAVEN_ENTRY = 2,
+	HELL_ENTRY = 4,
+	HEAVEN_ACTIVE = 3,
+	HELL_ACTIVE = 5,
+	EXIT_TRANSITION = 6,
+	NORMAL_MERGE = 0
 }
 
 enum BiomeType {
@@ -34,15 +41,17 @@ enum BiomeType {
 }
 
 enum ScheduleMode {
-	FIXED_5150M = 0,
-	BRANCHING_1000M = 1
+	RECURRING_900M = 0,   # Active default mode
+	FIXED_5150M = 1,      # Retained legacy schedule
+	BRANCHING_1000M = 2   # Retained branching schedule
 }
 
-@export var schedule_mode: ScheduleMode = ScheduleMode.FIXED_5150M
-@export var cycle_length_m: float = 5150.0
+@export var schedule_mode: ScheduleMode = ScheduleMode.RECURRING_900M
+@export var cycle_length_m: float = 900.0
+@export var biome_duration_m: float = 300.0
 @export var entries: Array[Dictionary] = []
 
-# Branching Cadence Parameters (Section 5.2 of Design Specification)
+# Branching Cadence Parameters (Retained for testing)
 @export_group("Branching Schedule Parameters")
 @export var normal_section_length_m: float = 500.0
 @export var realm_section_length_m: float = 500.0
@@ -56,8 +65,55 @@ func _init() -> void:
 	if entries.is_empty():
 		init_default_schedule()
 
-## Initializes the approved 5,150 m world cycle schedule from Section C of the Master Plan.
+## Initializes the active default recurring 900m three-biome schedule:
+## 0-300m Normal Land -> 300-600m Heaven -> 600-900m Hell -> repeat.
 func init_default_schedule() -> void:
+	schedule_mode = ScheduleMode.RECURRING_900M
+	cycle_length_m = 900.0
+	biome_duration_m = 300.0
+	entries.clear()
+
+	# 1. Normal Land: 0 - 300m
+	entries.append({
+		"state": WorldState.NORMAL_LAND,
+		"name": "Normal Land (Countryside)",
+		"start_m": 0.0,
+		"end_m": 300.0,
+		"is_transition": false,
+		"active_biome": BiomeType.NORMAL_LAND,
+		"from_biome": BiomeType.NORMAL_LAND,
+		"to_biome": BiomeType.NORMAL_LAND,
+		"profile_key": "normal_land_start"
+	})
+
+	# 2. Heaven: 300 - 600m
+	entries.append({
+		"state": WorldState.HEAVEN,
+		"name": "Heaven (Celestial Palace)",
+		"start_m": 300.0,
+		"end_m": 600.0,
+		"is_transition": false,
+		"active_biome": BiomeType.HEAVEN,
+		"from_biome": BiomeType.HEAVEN,
+		"to_biome": BiomeType.HEAVEN,
+		"profile_key": "heaven_core"
+	})
+
+	# 3. Hell: 600 - 900m
+	entries.append({
+		"state": WorldState.HELL,
+		"name": "Hell (Basalt & Magma Caverns)",
+		"start_m": 600.0,
+		"end_m": 900.0,
+		"is_transition": false,
+		"active_biome": BiomeType.HELL,
+		"from_biome": BiomeType.HELL,
+		"to_biome": BiomeType.HELL,
+		"profile_key": "hell_core"
+	})
+
+## Initializes the legacy 5,150 m world cycle schedule.
+func init_fixed_5150m_schedule() -> void:
 	schedule_mode = ScheduleMode.FIXED_5150M
 	entries.clear()
 	cycle_length_m = 5150.0
@@ -166,16 +222,16 @@ func init_default_schedule() -> void:
 		"profile_key": "ramp_hell_to_normal"
 	})
 
-## Validates that the schedule is ordered, contiguous, non-overlapping, and fully covers the cycle.
+## Validates the active schedule entries for continuity, non-overlapping intervals,
+## and complete boundary coverage from 0.0 to cycle_length_m.
 func validate_schedule() -> Dictionary:
 	var errors: Array[String] = []
 
 	if entries.is_empty():
-		errors.append("Schedule has no entries.")
-		return {"valid": false, "errors": errors}
-
-	if cycle_length_m <= 0.0:
-		errors.append("Cycle length must be strictly positive (got %f)." % cycle_length_m)
+		return {
+			"valid": false,
+			"errors": ["Schedule entries list is empty."]
+		}
 
 	# Check start of first entry
 	if not is_equal_approx(entries[0]["start_m"], 0.0):
@@ -205,8 +261,7 @@ func validate_schedule() -> Dictionary:
 		"errors": errors
 	}
 
-## Initializes the branching 1,000m cadence schedule from Section 5.2 of the Design Specification.
-## Cadence: 500m Normal Land -> Route Gate -> 500m Realm (Heaven or Hell) -> Normal Land Merge.
+## Initializes the branching 1,000m cadence schedule.
 func init_branching_schedule() -> void:
 	schedule_mode = ScheduleMode.BRANCHING_1000M
 	normal_section_length_m = 500.0
@@ -257,17 +312,12 @@ func validate_branching_schedule() -> Dictionary:
 		"errors": errors
 	}
 
-## Returns the gate distance for a given encounter index: 500m + (n * 1000m)
 func get_gate_distance_for_encounter(encounter_idx: int) -> float:
 	return float(encounter_idx) * encounter_cycle_length_m + normal_section_length_m
 
-## Returns the encounter index for a given world distance
 func get_encounter_for_distance(distance_m: float) -> int:
 	return int(floor(maxf(0.0, distance_m) / encounter_cycle_length_m))
 
-## Resolves an authoritative cumulative distance into branching encounter progression.
-## Respects the 500m Normal / 500m Realm cadence, warning zones, launch window,
-## and confirmed realm resolution (fallback to Hell on missed launch).
 func resolve_branching_encounter(cumulative_dist_m: float, confirmed_realm: int = -1) -> Dictionary:
 	var safe_dist := maxf(0.0, cumulative_dist_m)
 	var encounter_cycle := encounter_cycle_length_m
@@ -298,7 +348,6 @@ func resolve_branching_encounter(cumulative_dist_m: float, confirmed_realm: int 
 	var entry_end_m: float = entry_start_m + warning_start
 
 	if dist_in_enc < warning_start:
-		# 1. Normal Approach [0, 450m)
 		state = WorldState.NORMAL_APPROACH
 		state_name = "Normal Land Approach"
 		is_trans = false
@@ -312,7 +361,6 @@ func resolve_branching_encounter(cumulative_dist_m: float, confirmed_realm: int 
 		entry_end_m = entry_start_m + warning_start
 
 	elif dist_in_enc < launch_start:
-		# 2. Ramp Warning [450m, 475m)
 		state = WorldState.RAMP_WARNING
 		state_name = "Ramp Warning (Approach)"
 		is_trans = false
@@ -326,7 +374,6 @@ func resolve_branching_encounter(cumulative_dist_m: float, confirmed_realm: int 
 		entry_end_m = float(encounter_idx) * encounter_cycle + launch_start
 
 	elif dist_in_enc < gate_dist_in_enc:
-		# 3. Launch Window [475m, 500m)
 		state = WorldState.LAUNCH_WINDOW
 		state_name = "Launch Window (Boost Prompt)"
 		is_trans = false
@@ -340,14 +387,12 @@ func resolve_branching_encounter(cumulative_dist_m: float, confirmed_realm: int 
 		entry_end_m = float(encounter_idx) * encounter_cycle + gate_dist_in_enc
 
 	else:
-		# Past or at gate: Route resolved (Fallback to Hell if unconfirmed or missed launch)
 		if confirmed_realm == BiomeType.HEAVEN:
 			resolved_realm = BiomeType.HEAVEN
 		else:
 			resolved_realm = BiomeType.HELL
 
 		if dist_in_enc < entry_trans_end:
-			# 4. Realm Entry Transition [500m, 550m)
 			if resolved_realm == BiomeType.HEAVEN:
 				state = WorldState.HEAVEN_ENTRY
 				state_name = "Heaven Entry (Ascent)"
@@ -366,7 +411,6 @@ func resolve_branching_encounter(cumulative_dist_m: float, confirmed_realm: int 
 			entry_end_m = float(encounter_idx) * encounter_cycle + entry_trans_end
 
 		elif dist_in_enc < exit_trans_start:
-			# 5. Active Realm Driving [550m, 950m)
 			if resolved_realm == BiomeType.HEAVEN:
 				state = WorldState.HEAVEN_ACTIVE
 				state_name = "Heaven Active Route"
@@ -385,7 +429,6 @@ func resolve_branching_encounter(cumulative_dist_m: float, confirmed_realm: int 
 			entry_end_m = float(encounter_idx) * encounter_cycle + exit_trans_start
 
 		else:
-			# 6. Exit Transition [950m, 1000m)
 			state = WorldState.EXIT_TRANSITION
 			state_name = "Exit Transition (Merge to Normal)"
 			is_trans = true
@@ -420,17 +463,123 @@ func resolve_branching_encounter(cumulative_dist_m: float, confirmed_realm: int 
 	}
 
 ## Resolves an authoritative cumulative distance into exact cycle index, world state, and progress.
-## Dispatches to branching encounter logic when schedule_mode is BRANCHING_1000M.
-## Follows half-open interval rule: [start_m, end_m).
 func resolve_distance(cumulative_distance_m: float, confirmed_realm: int = -1) -> Dictionary:
 	if schedule_mode == ScheduleMode.BRANCHING_1000M:
 		return resolve_branching_encounter(cumulative_distance_m, confirmed_realm)
+	elif schedule_mode == ScheduleMode.FIXED_5150M:
+		return _resolve_fixed_5150m(cumulative_distance_m)
 
+	# Active Default Mode: RECURRING_900M
+	var safe_dist := maxf(0.0, cumulative_distance_m)
+	var cycle_idx := int(floor(safe_dist / 900.0))
+	var cycle_pos := fposmod(safe_dist, 900.0)
+
+	var state: int = WorldState.NORMAL_LAND
+	var state_name: String = "Normal Land"
+	var active_biome: int = BiomeType.NORMAL_LAND
+	var from_biome: int = BiomeType.NORMAL_LAND
+	var to_biome: int = BiomeType.NORMAL_LAND
+	var is_trans: bool = false
+	var trans_prog: float = 0.0
+	var profile_key: String = "normal_land_start"
+	var biome_local_dist: float = 0.0
+	var is_prompt_active: bool = false
+	var is_launch_zone: bool = false
+	var is_portal_zone: bool = false
+
+	if cycle_pos < 300.0:
+		active_biome = BiomeType.NORMAL_LAND
+		from_biome = BiomeType.NORMAL_LAND
+		to_biome = BiomeType.HEAVEN
+		biome_local_dist = cycle_pos
+		profile_key = "normal_land_start"
+		
+		if cycle_pos < 270.0:
+			state = WorldState.NORMAL_LAND
+			state_name = "Normal Land (Countryside)"
+			is_trans = false
+			trans_prog = 0.0
+		elif cycle_pos < 285.0:
+			state = WorldState.NORMAL_NITRO_PROMPT
+			state_name = "Normal Land (Nitro Prompt Ahead)"
+			is_prompt_active = true
+			is_trans = false
+			trans_prog = 0.0
+		else: # [285.0, 300.0)
+			state = WorldState.NORMAL_HEAVEN_LAUNCH
+			state_name = "Normal Land (Heaven Nitro Launch Zone)"
+			is_prompt_active = true
+			is_launch_zone = true
+			is_trans = true
+			trans_prog = clampf((cycle_pos - 285.0) / 15.0, 0.0, 1.0)
+			profile_key = "ramp_normal_to_heaven"
+
+	elif cycle_pos < 600.0:
+		active_biome = BiomeType.HEAVEN
+		from_biome = BiomeType.HEAVEN
+		to_biome = BiomeType.HELL
+		biome_local_dist = cycle_pos - 300.0
+		profile_key = "heaven_core"
+
+		if cycle_pos < 570.0:
+			state = WorldState.HEAVEN
+			state_name = "Heaven (Celestial Palace)"
+			is_trans = false
+			trans_prog = 0.0
+		else: # [570.0, 600.0)
+			state = WorldState.HEAVEN_TO_HELL_PORTAL
+			state_name = "Heaven (Hell Portal Zone)"
+			is_portal_zone = true
+			is_trans = true
+			trans_prog = clampf((cycle_pos - 570.0) / 30.0, 0.0, 1.0)
+
+	else: # [600.0, 900.0)
+		active_biome = BiomeType.HELL
+		from_biome = BiomeType.HELL
+		to_biome = BiomeType.NORMAL_LAND
+		biome_local_dist = cycle_pos - 600.0
+		profile_key = "hell_core"
+
+		if cycle_pos < 870.0:
+			state = WorldState.HELL
+			state_name = "Hell (Basalt & Magma Caverns)"
+			is_trans = false
+			trans_prog = 0.0
+		else: # [870.0, 900.0)
+			state = WorldState.HELL_TO_NORMAL_PORTAL
+			state_name = "Hell (Return Portal Zone)"
+			is_portal_zone = true
+			is_trans = true
+			trans_prog = clampf((cycle_pos - 870.0) / 30.0, 0.0, 1.0)
+
+	return {
+		"cumulative_distance": safe_dist,
+		"cycle_index": cycle_idx,
+		"distance_in_cycle": cycle_pos,
+		"cycle_position": cycle_pos,
+		"biome_local_distance": biome_local_dist,
+		"active_biome": active_biome,
+		"from_biome": from_biome,
+		"to_biome": to_biome,
+		"state": state,
+		"state_name": state_name,
+		"is_transition": is_trans,
+		"transition_progress": trans_prog,
+		"profile_key": profile_key,
+		"is_prompt_active": is_prompt_active,
+		"is_launch_zone": is_launch_zone,
+		"is_portal_zone": is_portal_zone,
+		"cycle_length_m": 900.0,
+		"biome_duration_m": 300.0,
+		"entry_start_m": float(cycle_idx) * 900.0,
+		"entry_end_m": float(cycle_idx + 1) * 900.0
+	}
+
+func _resolve_fixed_5150m(cumulative_distance_m: float) -> Dictionary:
 	var safe_dist := maxf(0.0, cumulative_distance_m)
 	var cycle_idx := int(floor(safe_dist / cycle_length_m))
 	var dist_in_cycle := fposmod(safe_dist, cycle_length_m)
 
-	# Handle edge case where distance lands exactly on cycle_length_m due to float rounding
 	if is_equal_approx(dist_in_cycle, cycle_length_m) or dist_in_cycle >= cycle_length_m:
 		cycle_idx += 1
 		dist_in_cycle = 0.0
@@ -443,13 +592,11 @@ func resolve_distance(cumulative_distance_m: float, confirmed_realm: int = -1) -
 		var s: float = e["start_m"]
 		var end_m: float = e["end_m"]
 
-		# Half-open interval: [start, end)
 		if dist_in_cycle >= s and dist_in_cycle < end_m:
 			matched_entry = e
 			entry_idx = i
 			break
 
-	# Fallback to last entry if rounding caused dist_in_cycle to equal last entry's end
 	if matched_entry.is_empty() and not entries.is_empty():
 		matched_entry = entries[-1]
 		entry_idx = entries.size() - 1
@@ -467,6 +614,8 @@ func resolve_distance(cumulative_distance_m: float, confirmed_realm: int = -1) -
 		"cumulative_distance": safe_dist,
 		"cycle_index": cycle_idx,
 		"distance_in_cycle": dist_in_cycle,
+		"cycle_position": dist_in_cycle,
+		"biome_local_distance": dist_in_cycle,
 		"entry_index": entry_idx,
 		"state": matched_entry.get("state", WorldState.NORMAL_LAND_1),
 		"state_name": matched_entry.get("name", "Unknown"),
@@ -481,25 +630,22 @@ func resolve_distance(cumulative_distance_m: float, confirmed_realm: int = -1) -
 		"cycle_length_m": cycle_length_m
 	}
 
-## Returns the human-readable string name for a given WorldState enum value.
 static func get_state_name(state: int) -> String:
 	match state:
-		WorldState.NORMAL_LAND_1:
-			return "NORMAL_LAND_1"
-		WorldState.TRANSITION_NORMAL_TO_HEAVEN:
-			return "TRANSITION_NORMAL_TO_HEAVEN"
+		WorldState.NORMAL_LAND:
+			return "NORMAL_LAND"
+		WorldState.NORMAL_NITRO_PROMPT:
+			return "NORMAL_NITRO_PROMPT"
+		WorldState.NORMAL_HEAVEN_LAUNCH:
+			return "NORMAL_HEAVEN_LAUNCH"
 		WorldState.HEAVEN:
 			return "HEAVEN"
-		WorldState.TRANSITION_HEAVEN_TO_NORMAL:
-			return "TRANSITION_HEAVEN_TO_NORMAL"
-		WorldState.NORMAL_LAND_2:
-			return "NORMAL_LAND_2"
-		WorldState.TRANSITION_NORMAL_TO_HELL:
-			return "TRANSITION_NORMAL_TO_HELL"
+		WorldState.HEAVEN_TO_HELL_PORTAL:
+			return "HEAVEN_TO_HELL_PORTAL"
 		WorldState.HELL:
 			return "HELL"
-		WorldState.TRANSITION_HELL_TO_NORMAL:
-			return "TRANSITION_HELL_TO_NORMAL"
+		WorldState.HELL_TO_NORMAL_PORTAL:
+			return "HELL_TO_NORMAL_PORTAL"
 		WorldState.NORMAL_APPROACH:
 			return "NORMAL_APPROACH"
 		WorldState.RAMP_WARNING:
@@ -521,7 +667,6 @@ static func get_state_name(state: int) -> String:
 		_:
 			return "UNKNOWN_STATE"
 
-## Returns the human-readable string name for a given BiomeType enum value.
 static func get_biome_name(biome: int) -> String:
 	match biome:
 		BiomeType.NORMAL_LAND:

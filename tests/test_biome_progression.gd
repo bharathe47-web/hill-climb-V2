@@ -34,6 +34,7 @@ func _init() -> void:
 func _test_schedule_validation() -> bool:
 	print("\n-> [1/7] Testing WorldCycleSchedule validation...")
 	var schedule := WorldCycleSchedule.new()
+	schedule.init_fixed_5150m_schedule()
 	var val: Dictionary = schedule.validate_schedule()
 	if not val["valid"]:
 		printerr("  ✗ Default schedule failed validation: ", val["errors"])
@@ -53,6 +54,7 @@ func _test_schedule_validation() -> bool:
 func _test_boundary_resolution() -> bool:
 	print("\n-> [2/7] Testing exact boundary resolution (just before, exactly at, and inside)...")
 	var schedule := WorldCycleSchedule.new()
+	schedule.init_fixed_5150m_schedule()
 
 	var test_points := [
 		# [distance_m, expected_state, expected_is_transition, expected_approx_prog]
@@ -109,6 +111,7 @@ func _test_boundary_resolution() -> bool:
 func _test_multi_cycle_progression() -> bool:
 	print("\n-> [3/7] Testing multi-cycle repetition (beyond 5,150m, 10,300m, and 15,450m)...")
 	var schedule := WorldCycleSchedule.new()
+	schedule.init_fixed_5150m_schedule()
 
 	# Exactly at 5,150.0m -> cycle 1, distance_in_cycle = 0.0 -> NORMAL_LAND_1
 	var r1 := schedule.resolve_distance(5150.0)
@@ -146,6 +149,8 @@ func _test_multi_cycle_progression() -> bool:
 func _test_controller_signal_determinism() -> bool:
 	print("\n-> [4/7] Testing BiomeProgressionController signal determinism and deduplication...")
 	var controller := BiomeProgressionController.new()
+	controller.schedule.init_fixed_5150m_schedule()
+	controller.reset_progression()
 
 	var state_changes: Array[Dictionary] = []
 	var cycle_completions: Array[Vector2i] = []
@@ -205,6 +210,8 @@ func _test_controller_signal_determinism() -> bool:
 func _test_large_distance_jump() -> bool:
 	print("\n-> [5/7] Testing large multi-boundary distance jump...")
 	var controller := BiomeProgressionController.new()
+	controller.schedule.init_fixed_5150m_schedule()
+	controller.reset_progression()
 
 	var state_events: Array[int] = []
 	controller.state_changed.connect(func(_old_st: int, new_st: int, _info: Dictionary):
@@ -236,6 +243,8 @@ func _test_large_distance_jump() -> bool:
 func _test_pause_and_reset_semantics() -> bool:
 	print("\n-> [6/7] Testing pause/resume and run restart semantics...")
 	var controller := BiomeProgressionController.new()
+	controller.schedule.init_fixed_5150m_schedule()
+	controller.reset_progression()
 
 	controller.update_distance(1500.0) # In Heaven
 	if controller.current_state != WorldCycleSchedule.WorldState.HEAVEN:
@@ -283,6 +292,8 @@ func _test_pause_and_reset_semantics() -> bool:
 func _test_difficulty_scaling_decision() -> bool:
 	print("\n-> [7/7] Verifying cycle difficulty scaling analysis...")
 	var controller := BiomeProgressionController.new()
+	controller.schedule.init_fixed_5150m_schedule()
+	controller.reset_progression()
 
 	# By default, cycle difficulty scaling must be disabled to respect TerrainGenerator's clamp
 	if controller.enable_cycle_difficulty_scaling != false:

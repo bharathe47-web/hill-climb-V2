@@ -643,6 +643,12 @@ func bind_progression_controller(pc: BiomeProgressionController) -> void:
 		pc.branch_confirmed.connect(_on_branch_confirmed)
 	if not pc.route_merge_completed.is_connected(_on_route_merge_completed):
 		pc.route_merge_completed.connect(_on_route_merge_completed)
+	if not pc.nitro_prompt_triggered.is_connected(_on_nitro_prompt_triggered):
+		pc.nitro_prompt_triggered.connect(_on_nitro_prompt_triggered)
+	if not pc.launch_zone_entered.is_connected(_on_launch_zone_entered_900m):
+		pc.launch_zone_entered.connect(_on_launch_zone_entered_900m)
+	if not pc.biome_changed.is_connected(_on_biome_changed_900m):
+		pc.biome_changed.connect(_on_biome_changed_900m)
 	if not pc.progression_reset.is_connected(_on_progression_reset):
 		pc.progression_reset.connect(_on_progression_reset)
 
@@ -708,6 +714,40 @@ func _on_branch_confirmed(realm: int, _enc_idx: int) -> void:
 
 func _on_route_merge_completed(_enc_idx: int) -> void:
 	show_toast("NORMAL LAND", "Endless Journey Continues", Color(0.35, 0.95, 0.45))
+
+func _on_nitro_prompt_triggered(_target_dist_m: float, _cycle_idx: int) -> void:
+	var title := "⚡ NITRO TO REACH HEAVEN! ⚡"
+	var subtitle := "Activate Nitro at the Ramp to Launch"
+	_show_ramp_prompt(title, subtitle, Color(0.25, 0.9, 1.0, 0.95), Color(0.4, 0.95, 1.0))
+
+func _on_launch_zone_entered_900m(_target_dist_m: float, _cycle_idx: int) -> void:
+	var has_nitro: bool = false
+	if is_instance_valid(_vehicle_ref) and _vehicle_ref.get("current_nitro") != null:
+		has_nitro = float(_vehicle_ref.get("current_nitro")) > 2.0
+	elif _target_nitro > 2.0:
+		has_nitro = true
+
+	if has_nitro:
+		var title := "⚡ NITRO TO REACH HEAVEN! ⚡"
+		var subtitle := "PRESS NITRO / SHIFT NOW!"
+		_is_launch_window_active = true
+		_show_ramp_prompt(title, subtitle, Color(1.0, 0.9, 0.25, 1.0), Color(1.0, 0.95, 0.3))
+	else:
+		var title := "⚠ NITRO EMPTY — RECOVERY BOOST"
+		var subtitle := "Launch Assist Active!"
+		_is_launch_window_active = false
+		_show_ramp_prompt(title, subtitle, Color(0.95, 0.6, 0.2, 1.0), Color(1.0, 0.7, 0.3))
+
+func _on_biome_changed_900m(_old_biome: int, new_biome: int, _cycle_idx: int) -> void:
+	_hide_ramp_prompt()
+	_is_launch_window_active = false
+	match new_biome:
+		WorldCycleSchedule.BiomeType.NORMAL_LAND:
+			show_toast("✦ NORMAL LAND ✦", "Endless Journey Continues", Color(0.35, 0.95, 0.45))
+		WorldCycleSchedule.BiomeType.HEAVEN:
+			show_toast("✦ HEAVEN ✦", "Celestial Palace", Color(1.0, 0.9, 0.25))
+		WorldCycleSchedule.BiomeType.HELL:
+			show_toast("▼ HELL ▼", "Underworld Caverns", Color(1.0, 0.4, 0.15))
 
 func _on_progression_reset() -> void:
 	_hide_ramp_prompt()

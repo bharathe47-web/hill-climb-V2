@@ -50,6 +50,18 @@ signal segment_despawned(segment: TerrainSegment)
 	set(val):
 		active_terrain_profile = val
 
+@export_group("Biome Profiles & Portals (Phase 2.3)")
+@export var normal_terrain_profile: Resource = preload("res://assets/terrain/profiles/normal_land_profile.tres")
+@export var heaven_terrain_profile: Resource = preload("res://assets/terrain/profiles/heaven_terrain_profile.tres")
+@export var hell_terrain_profile: Resource = preload("res://assets/terrain/profiles/hell_terrain_profile.tres")
+@export var hell_portal_scene: PackedScene = preload("res://scenes/environment/portals/HellPortal.tscn")
+@export var return_portal_scene: PackedScene = preload("res://scenes/environment/portals/ReturnPortal.tscn")
+
+var active_portals: Array[Node2D] = []
+var _spawned_launch_ramp_cycles: Dictionary = {}
+var _spawned_hell_portal_cycles: Dictionary = {}
+var _spawned_return_portal_cycles: Dictionary = {}
+
 const BranchingEncounterClass = preload("res://scripts/terrain/BranchingEncounter.gd")
 
 @export_group("Branching Encounter Mode")
@@ -181,8 +193,119 @@ func _update_generation(target_x: float) -> void:
 				current_slope = 0.0
 				continue
 
+		if _is_recurring_900m_mode():
+			_update_recurring_900m_generation()
+			continue
+
 		var seg := _generate_next_procedural_segment()
 		_attach_segment(seg, enable_pickups)
+
+func _is_recurring_900m_mode() -> bool:
+	if _is_branching_mode_enabled():
+		return false
+	if is_instance_valid(progression_controller) and progression_controller.schedule:
+		return progression_controller.schedule.schedule_mode == WorldCycleSchedule.ScheduleMode.RECURRING_900M
+	return true
+
+func get_profile_for_world_x(world_x: float) -> Resource:
+	var safe_x := maxf(0.0, world_x)
+	var cycle_pos_m := fposmod(safe_x / 100.0, 900.0)
+	if cycle_pos_m < 300.0:
+		return normal_terrain_profile
+	elif cycle_pos_m < 600.0:
+		return heaven_terrain_profile
+	else:
+		return hell_terrain_profile
+
+func _update_recurring_900m_generation() -> void:
+	var safe_x: float = maxf(0.0, next_attach_point.x)
+	var cycle_idx: int = int(floor(safe_x / 90000.0))
+	var cycle_base_x: float = float(cycle_idx) * 90000.0
+
+	# 1. Spawn Return Portal if previous cycle reached 900m boundary
+	var prev_cycle := cycle_idx - 1
+	if prev_cycle >= 0 and not _spawned_return_portal_cycles.has(prev_cycle):
+		_spawned_return_portal_cycles[prev_cycle] = true
+		if return_portal_scene:
+			var ret_portal: ReturnPortal = return_portal_scene.instantiate() as ReturnPortal
+			ret_portal.cycle_index = prev_cycle
+			ret_portal.portal_distance_m = float(prev_cycle) * 900.0 + 900.0
+			ret_portal.global_position = Vector2(cycle_base_x, next_attach_point.y)
+			ret_portal.traversed.connect(func(_p, c_idx): _on_portal_traversed(_p, c_idx, "return"))
+			add_child(ret_portal)
+			active_portals.append(ret_portal)
+
+	var launch_start_x: float = cycle_base_x + 28500.0 # 285m
+	var heaven_start_x: float = cycle_base_x + 30000.0 # 300m
+	var hell_start_x: float = cycle_base_x + 60000.0   # 600m
+	var return_start_x: float = cycle_base_x + 90000.0 # 900m
+
+	# 2. Normal Land Approach [0m, 285m)
+	if safe_x < launch_start_x:
+		var dist_to_launch: float = launch_start_x - safe_x
+		if dist_to_launch < default_segment_length * 1.35:
+			var seg := _generate_next_procedural_segment(dist_to_launch, normal_terrain_profile)
+			_attach_segment(seg, enable_pickups)
+		else:
+			var seg := _generate_next_procedural_segment(-1.0, normal_terrain_profile)
+			_attach_segment(seg, enable_pickups)
+		return
+
+	# 3. Countryside Launch Ramp [285m, 300m) - NO portal!
+	if safe_x < heaven_start_x:
+		if not _spawned_launch_ramp_cycles.has(cycle_idx):
+			_spawned_launch_ramp_cycles[cycle_idx] = true
+			var ramp_len: float = heaven_start_x - next_attach_point.x
+			spawn_transition_ramp(
+				TerrainSegment.SegmentType.JUMP_RAMP,
+				ramp_len,
+				-90.0,
+				45.0,
+				0.20,
+				normal_terrain_profile
+			)
+		return
+
+	# 4. Hell Portal Spawning at 600m boundary
+	if safe_x >= hell_start_x and not _spawned_hell_portal_cycles.has(cycle_idx):
+		_spawned_hell_portal_cycles[cycle_idx] = true
+		if hell_portal_scene:
+			var hell_portal: HellPortal = hell_portal_scene.instantiate() as HellPortal
+			hell_portal.cycle_index = cycle_idx
+			hell_portal.portal_distance_m = float(cycle_idx) * 900.0 + 600.0
+			hell_portal.global_position = Vector2(hell_start_x, next_attach_point.y)
+			hell_portal.traversed.connect(func(_p, c_idx): _on_portal_traversed(_p, c_idx, "hell"))
+			add_child(hell_portal)
+			active_portals.append(hell_portal)
+
+	# 5. Heaven Section [300m, 600m)
+	if safe_x < hell_start_x:
+		var dist_to_hell: float = hell_start_x - safe_x
+		if dist_to_hell < default_segment_length * 1.35:
+			var seg := _generate_next_procedural_segment(dist_to_hell, heaven_terrain_profile)
+			_attach_segment(seg, enable_pickups)
+		else:
+			var seg := _generate_next_procedural_segment(-1.0, heaven_terrain_profile)
+			_attach_segment(seg, enable_pickups)
+		return
+
+	# 6. Hell Section [600m, 900m)
+	if safe_x < return_start_x:
+		var dist_to_return: float = return_start_x - safe_x
+		if dist_to_return < default_segment_length * 1.35:
+			var seg := _generate_next_procedural_segment(dist_to_return, hell_terrain_profile)
+			_attach_segment(seg, enable_pickups)
+		else:
+			var seg := _generate_next_procedural_segment(-1.0, hell_terrain_profile)
+			_attach_segment(seg, enable_pickups)
+		return
+
+func _on_portal_traversed(_portal: Node2D, cycle_idx: int, portal_type: String) -> void:
+	if is_instance_valid(progression_controller):
+		if portal_type == "hell":
+			progression_controller.update_distance(float(cycle_idx) * 900.0 + 600.0)
+		elif portal_type == "return":
+			progression_controller.update_distance(float(cycle_idx) * 900.0 + 900.0)
 
 func _update_culling(target_x: float) -> void:
 	var cull_threshold := target_x - despawn_behind_distance
@@ -226,6 +349,17 @@ func _update_culling(target_x: float) -> void:
 			remaining_enc.append(enc)
 	active_encounters = remaining_enc
 
+	# Cull portals behind despawn threshold
+	var remaining_portals: Array[Node2D] = []
+	for portal in active_portals:
+		if not is_instance_valid(portal):
+			continue
+		if portal.global_position.x < cull_threshold:
+			portal.queue_free()
+		else:
+			remaining_portals.append(portal)
+	active_portals = remaining_portals
+
 func _cull_pickups_for_segment(seg: TerrainSegment) -> void:
 	var remaining: Array[Node2D] = []
 	for p in _spawned_pickups:
@@ -236,7 +370,7 @@ func _cull_pickups_for_segment(seg: TerrainSegment) -> void:
 				remaining.append(p)
 	_spawned_pickups = remaining
 
-func _generate_next_procedural_segment() -> TerrainSegment:
+func _generate_next_procedural_segment(custom_length: float = -1.0, profile_override: Resource = null) -> TerrainSegment:
 	segment_counter += 1
 	var progress_m := maxf(0.0, (next_attach_point.x - initial_spawn_point.x) / 100.0)
 	current_difficulty = 1.0 + (progress_m / 250.0) * difficulty_growth
@@ -244,6 +378,14 @@ func _generate_next_procedural_segment() -> TerrainSegment:
 	
 	var seg_type := _select_segment_type(current_difficulty)
 	var seg_length := default_segment_length * rng.randf_range(0.9, 1.25)
+	if custom_length > 0.0:
+		seg_length = custom_length
+
+	if profile_override != null:
+		active_terrain_profile = profile_override
+	else:
+		active_terrain_profile = get_profile_for_world_x(next_attach_point.x)
+
 	var amp: float = 0.0
 	var height_change: float = 0.0
 	var start_slope: float = current_slope
@@ -251,7 +393,7 @@ func _generate_next_procedural_segment() -> TerrainSegment:
 
 	if seg_type == TerrainSegment.SegmentType.FLAT:
 		# Relatively flat section to gain speed and momentum
-		seg_length = rng.randf_range(600.0, 800.0)
+		seg_length = rng.randf_range(600.0, 800.0) if custom_length <= 0.0 else custom_length
 		amp = 0.0
 		height_change = 0.0
 		target_slope = 0.0
@@ -372,6 +514,18 @@ func _attach_segment(seg: TerrainSegment, allow_pickups: bool = true) -> void:
 	distance_since_last_fuel += seg.segment_length
 
 func _populate_segment_pickups(seg: TerrainSegment) -> void:
+	# 0. Pre-launch nitro boost guarantee: spawn fuel at ~272m (27200px mod 90000px)
+	var seg_start_x: float = seg.global_position.x
+	var seg_end_x: float = seg_start_x + seg.segment_length
+	var safe_start := maxf(0.0, seg_start_x)
+	var c_base: float = floor(safe_start / 90000.0) * 90000.0
+	var nitro_boost_target: float = c_base + 27200.0
+	if seg_start_x <= nitro_boost_target and seg_end_x >= nitro_boost_target and fuel_scene:
+		var local_fx: float = clampf(nitro_boost_target - seg_start_x, 50.0, seg.segment_length - 50.0)
+		_spawn_fuel_on_segment(seg, local_fx)
+		distance_since_last_fuel = 0.0
+		return
+
 	# 1. Fuel canister placement
 	if distance_since_last_fuel >= fuel_interval_distance and fuel_scene:
 		distance_since_last_fuel = 0.0
@@ -531,6 +685,14 @@ func clear_terrain() -> void:
 			enc.queue_free()
 	active_encounters.clear()
 	_spawned_encounter_indices.clear()
+
+	for portal in active_portals:
+		if is_instance_valid(portal):
+			portal.queue_free()
+	active_portals.clear()
+	_spawned_launch_ramp_cycles.clear()
+	_spawned_hell_portal_cycles.clear()
+	_spawned_return_portal_cycles.clear()
 	
 	segment_counter = 0
 	current_difficulty = 1.0

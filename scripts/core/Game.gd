@@ -123,8 +123,11 @@ func _setup_ui() -> void:
 		if is_instance_valid(vehicle):
 			hud.bind_vehicle(vehicle)
 		var prog_ctrl: Node = get_node_or_null("BiomeProgressionController")
-		if is_instance_valid(prog_ctrl) and hud.has_method("bind_progression_controller"):
-			hud.bind_progression_controller(prog_ctrl)
+		if is_instance_valid(prog_ctrl):
+			if is_instance_valid(vehicle) and prog_ctrl.has_method("bind_vehicle"):
+				prog_ctrl.bind_vehicle(vehicle)
+			if hud.has_method("bind_progression_controller"):
+				hud.bind_progression_controller(prog_ctrl)
 			
 	if is_instance_valid(results_screen) and results_screen.has_method("bind_game_manager"):
 		results_screen.bind_game_manager(game_manager)
@@ -172,6 +175,10 @@ func _setup_environment_host() -> void:
 		var gen = terrain_slot.get_node_or_null("TerrainGenerator")
 		if is_instance_valid(gen):
 			host.set("terrain_generator", gen)
+			if gen.has_method("bind_progression_controller"):
+				gen.bind_progression_controller(prog_ctrl)
+		if is_instance_valid(vehicle) and prog_ctrl.has_method("bind_vehicle"):
+			prog_ctrl.bind_vehicle(vehicle)
 		var normal_env = get_node_or_null("ParallaxEnvironment")
 		if is_instance_valid(normal_env):
 			host.set("normal_environment", normal_env)

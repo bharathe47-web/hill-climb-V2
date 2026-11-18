@@ -108,6 +108,14 @@ func _bind_progression_controller(controller: BiomeProgressionController) -> voi
 		controller.progression_reset.connect(_on_progression_reset)
 	if not controller.cycle_completed.is_connected(_on_cycle_completed):
 		controller.cycle_completed.connect(_on_cycle_completed)
+	if not controller.nitro_launch_activated.is_connected(_on_nitro_launch_activated):
+		controller.nitro_launch_activated.connect(_on_nitro_launch_activated)
+	if not controller.hell_portal_entered.is_connected(_on_hell_portal_entered):
+		controller.hell_portal_entered.connect(_on_hell_portal_entered)
+	if not controller.return_portal_entered.is_connected(_on_return_portal_entered):
+		controller.return_portal_entered.connect(_on_return_portal_entered)
+	if not controller.biome_changed.is_connected(_on_biome_changed):
+		controller.biome_changed.connect(_on_biome_changed)
 
 ## Setup dual audio channels for clickless, non-leaking crossfading
 func _setup_audio_players() -> void:
@@ -425,8 +433,11 @@ func _should_spawn_sequential_ramps() -> bool:
 		return false
 	if terrain_generator.enable_branching_encounters:
 		return false
-	if progression_controller and progression_controller.schedule and progression_controller.schedule.schedule_mode == WorldCycleSchedule.ScheduleMode.BRANCHING_1000M:
-		return false
+	if progression_controller and progression_controller.schedule:
+		if progression_controller.schedule.schedule_mode == WorldCycleSchedule.ScheduleMode.BRANCHING_1000M:
+			return false
+		if progression_controller.schedule.schedule_mode == WorldCycleSchedule.ScheduleMode.RECURRING_900M:
+			return false
 	return true
 
 func _enter_transition_to_heaven() -> void:
@@ -753,3 +764,36 @@ func get_telemetry() -> Dictionary:
 		"heaven_active": heaven_environment.get("is_active") if heaven_environment and "is_active" in heaven_environment else false,
 		"hell_active": hell_environment.get("is_active") if hell_environment and "is_active" in hell_environment else false
 	}
+
+func play_stinger(strm: AudioStream, vol_db: float = -7.0) -> void:
+	if is_instance_valid(_stinger_player) and is_instance_valid(strm) and is_inside_tree():
+		_stinger_player.stream = strm
+		_stinger_player.volume_db = vol_db
+		_stinger_player.play()
+
+func _on_nitro_launch_activated(_cycle_idx: int) -> void:
+	if is_instance_valid(_heaven_golden_flash):
+		var tw := create_tween()
+		tw.tween_property(_heaven_golden_flash, "color:a", 0.45, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tw.tween_property(_heaven_golden_flash, "color:a", 0.0, 0.75).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	play_stinger(STREAM_HEAVEN_STINGER)
+
+func _on_hell_portal_entered(_portal_dist_m: float, _cycle_idx: int) -> void:
+	if is_instance_valid(_hell_darkness_vignette):
+		var tw := create_tween()
+		tw.tween_property(_hell_darkness_vignette, "color:a", 0.65, 0.15)
+		tw.tween_property(_hell_darkness_vignette, "color:a", 0.0, 0.65)
+	if is_instance_valid(_geyser_escape_flash):
+		var tw2 := create_tween()
+		tw2.tween_property(_geyser_escape_flash, "color:a", 0.35, 0.1)
+		tw2.tween_property(_geyser_escape_flash, "color:a", 0.0, 0.5)
+	play_stinger(STREAM_HELL_RUMBLE)
+
+func _on_return_portal_entered(_portal_dist_m: float, _cycle_idx: int) -> void:
+	if is_instance_valid(_cloud_tunnel_overlay):
+		var tw := create_tween()
+		tw.tween_property(_cloud_tunnel_overlay, "color:a", 0.4, 0.2)
+		tw.tween_property(_cloud_tunnel_overlay, "color:a", 0.0, 0.6)
+
+func _on_biome_changed(_old_biome: int, new_biome: int, _cycle_idx: int) -> void:
+	apply_biome_state(new_biome)
