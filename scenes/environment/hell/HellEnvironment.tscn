@@ -63,10 +63,10 @@ texture = ExtResource("2_qh3rn")
 stretch_mode = 1
 
 [node name="SubterraneanGlow" type="Sprite2D" parent="SkyLayer" unique_id=228965278]
-visible = false
-modulate = Color(1, 0.35, 0.05, 0.45)
-position = Vector2(640, 550)
-scale = Vector2(3, 1.2)
+visible = true
+modulate = Color(1, 0.45, 0.12, 0.65)
+position = Vector2(640, 560)
+scale = Vector2(3.5, 1.4)
 texture = ExtResource("3_60owi")
 
 [node name="DistantCragsLayer" type="ParallaxLayer" parent="." unique_id=366686892]
@@ -132,9 +132,11 @@ scale = Vector2(0.24, 0.24)
 texture = ExtResource("11_o3fse")
 
 [node name="CatacombSkullPile" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=755527228]
-visible = false
-position = Vector2(450, 460)
-scale = Vector2(0.4, 0.4)
+visible = true
+modulate = Color(0.75, 0.65, 0.65, 0.85)
+position = Vector2(450, 440)
+scale = Vector2(0.35, 0.35)
+texture = ExtResource("12_ohr00")
 
 [node name="ObsidianSpikesCluster" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=314967425]
 position = Vector2(250, 425)
@@ -152,10 +154,10 @@ scale = Vector2(0.20, 0.20)
 texture = ExtResource("16_a8vpo")
 
 [node name="BasaltPlatformTrim" type="Sprite2D" parent="MidBasaltArchitectureLayer" unique_id=2009579863]
-visible = false
-modulate = Color(0.6, 0.5, 0.5, 0.9)
-position = Vector2(1280, 580)
-scale = Vector2(1.35, 0.8)
+visible = true
+modulate = Color(0.75, 0.65, 0.65, 0.95)
+position = Vector2(1300, 340)
+scale = Vector2(0.9, 0.7)
 texture = ExtResource("17_61xuq")
 
 [node name="AmbientCharactersLayer" type="ParallaxLayer" parent="." unique_id=352356046]
@@ -163,23 +165,23 @@ motion_scale = Vector2(0.24, 0.1)
 motion_mirroring = Vector2(2560, 0)
 
 [node name="SkeletonKnight" type="AnimatedSprite2D" parent="AmbientCharactersLayer" unique_id=948682642]
-position = Vector2(1050, 300)
+position = Vector2(1040, 275)
 scale = Vector2(0.23, 0.23)
 sprite_frames = ExtResource("18_os1mi")
-animation = &"idle"
-autoplay = "idle"
+animation = &"walk"
+autoplay = "walk"
 
 [node name="DemonGoblin" type="AnimatedSprite2D" parent="AmbientCharactersLayer" unique_id=1350796230]
-position = Vector2(1620, 300)
+position = Vector2(1580, 290)
 scale = Vector2(0.23, 0.23)
 sprite_frames = ExtResource("19_5ew1i")
-animation = &"idle"
-autoplay = "idle"
+animation = &"walk"
+autoplay = "walk"
 
 [node name="HornedFiend" type="AnimatedSprite2D" parent="AmbientCharactersLayer" unique_id=1575353815]
-modulate = Color(0.7, 0.48, 0.42, 0.85)
-position = Vector2(1950, 160)
-scale = Vector2(0.18, 0.18)
+modulate = Color(0.8, 0.55, 0.48, 0.9)
+position = Vector2(1950, 315)
+scale = Vector2(0.20, 0.20)
 sprite_frames = ExtResource("20_leydc")
 animation = &"walk"
 autoplay = "walk"
@@ -222,16 +224,14 @@ offset_right = 850.0
 offset_bottom = 540.0
 
 [node name="TorchFlameLeft" type="AnimatedSprite2D" parent="LavaThermalLayer" unique_id=1394612055]
-visible = false
-position = Vector2(950, 330)
+position = Vector2(950, 310)
 scale = Vector2(0.35, 0.35)
 sprite_frames = ExtResource("25_mocvp")
 animation = &"burn"
 autoplay = "burn"
 
 [node name="TorchFlameRight" type="AnimatedSprite2D" parent="LavaThermalLayer" unique_id=1932186325]
-visible = false
-position = Vector2(1650, 330)
+position = Vector2(1650, 310)
 scale = Vector2(0.35, 0.35)
 sprite_frames = ExtResource("25_mocvp")
 animation = &"burn"

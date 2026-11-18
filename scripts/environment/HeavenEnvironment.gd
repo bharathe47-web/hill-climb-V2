@@ -100,15 +100,11 @@ func set_environment_active(active: bool) -> void:
 		var cpu_particles := node as CPUParticles2D
 		if cpu_particles:
 			cpu_particles.emitting = active
-			if not active:
-				cpu_particles.restart()
 			
 	for node in find_children("*", "GPUParticles2D", true, false):
 		var gpu_particles := node as GPUParticles2D
 		if gpu_particles:
 			gpu_particles.emitting = active
-			if not active:
-				gpu_particles.restart()
 
 	# Manage animated sprites playback
 	for node in find_children("*", "AnimatedSprite2D", true, false):

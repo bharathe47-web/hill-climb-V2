@@ -659,6 +659,8 @@ func bind_progression_controller(pc: BiomeProgressionController) -> void:
 		pc.progression_reset.connect(_on_progression_reset)
 
 func _on_progression_state_changed(_old_state: int, new_state: int, _state_info: Dictionary) -> void:
+	if _state_info.get("state_name", "").contains("Launch") or (new_state == WorldCycleSchedule.WorldState.LAUNCH_WINDOW and _is_launch_window_active):
+		return
 	match new_state:
 		WorldCycleSchedule.WorldState.NORMAL_APPROACH:
 			_hide_ramp_prompt()

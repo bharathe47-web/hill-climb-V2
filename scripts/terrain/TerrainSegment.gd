@@ -441,6 +441,9 @@ const TEX_HELL_ROCKS: Array = [
 	preload("res://assets/environments/hell/terrain/hell_volcanic_rock_b.png"),
 	preload("res://assets/environments/hell/terrain/hell_volcanic_rock_c.png")
 ]
+const TEX_HELL_BASALT_COLUMN: Texture2D = preload("res://assets/environments/hell/terrain/hell_basalt_column.png")
+const TEX_HELL_MAGMA_VENT: Texture2D = preload("res://assets/environments/hell/terrain/magma_vent_fissure_prop.png")
+const TEX_HELL_OBSIDIAN_SPIKES: Texture2D = preload("res://assets/environments/hell/terrain/volcanic_obsidian_spikes_cluster.png")
 const TEX_PROPS: Array = [
 	preload("res://assets/environment/countryside/fences/wooden_fence_01.png"),
 	preload("res://assets/environment/countryside/fences/wooden_fence_broken.png"),
@@ -793,19 +796,61 @@ func _build_decorations() -> void:
 				spr.rotation = clampf(slope_angle * 0.25, -0.2, 0.2)
 				decorations_root.add_child(spr)
 		elif is_hell:
-			# Hell volcanic rubble & obsidian spikes
-			var rock_tex: Texture2D = TEX_HELL_ROCKS[rng.randi() % TEX_HELL_ROCKS.size()]
-			var spr := Sprite2D.new()
-			spr.add_to_group(vis_group)
-			spr.texture = rock_tex
-			spr.modulate = Color(0.96, 0.91, 0.86, 1.0)
-			spr.z_index = 1 # Small foreground boulders sit on the crust, not behind it.
-			var sc := rng.randf_range(0.16, 0.22)
-			spr.scale = Vector2(sc, sc)
-			spr.offset = Vector2(0, -rock_tex.get_height() * 0.5 + 3)
-			spr.position = pt
-			spr.rotation = clampf(slope_angle * 0.25, -0.22, 0.22)
-			decorations_root.add_child(spr)
+			# Rich volcanic dressing: basalt pillars, magma fissures, obsidian spikes, and volcanic rubble
+			var hell_choice := rng.randf()
+			if slope_deg < 20.0 and hell_choice < 0.22:
+				# Towering hexagonal basalt column landmark behind the driving track
+				var spr := Sprite2D.new()
+				spr.add_to_group(vis_group)
+				spr.texture = TEX_HELL_BASALT_COLUMN
+				spr.z_index = -2 # Behind vehicle
+				spr.modulate = Color(0.72, 0.65, 0.65, 0.95)
+				var sc := rng.randf_range(0.22, 0.28)
+				spr.scale = Vector2(sc, sc)
+				spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 4)
+				spr.position = pt
+				spr.rotation = clampf(slope_angle * 0.20, -0.15, 0.15)
+				decorations_root.add_child(spr)
+			elif slope_deg < 18.0 and hell_choice < 0.45:
+				# Glowing subterranean magma fissure vent
+				var spr := Sprite2D.new()
+				spr.add_to_group(vis_group)
+				spr.texture = TEX_HELL_MAGMA_VENT
+				spr.z_index = -1
+				spr.modulate = Color(1.0, 0.9, 0.85, 0.98)
+				var sc := rng.randf_range(0.35, 0.45)
+				spr.scale = Vector2(sc, sc)
+				spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 2)
+				spr.position = pt
+				spr.rotation = clampf(slope_angle * 0.25, -0.2, 0.2)
+				decorations_root.add_child(spr)
+			elif hell_choice < 0.70:
+				# Jagged obsidian spikes cluster
+				var spr := Sprite2D.new()
+				spr.add_to_group(vis_group)
+				spr.texture = TEX_HELL_OBSIDIAN_SPIKES
+				spr.z_index = 1
+				spr.modulate = Color(0.88, 0.82, 0.82, 1.0)
+				var sc := rng.randf_range(0.14, 0.18)
+				spr.scale = Vector2(sc, sc)
+				spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 3)
+				spr.position = pt
+				spr.rotation = clampf(slope_angle * 0.25, -0.22, 0.22)
+				decorations_root.add_child(spr)
+			else:
+				# Volcanic basalt rock / rubble
+				var rock_tex: Texture2D = TEX_HELL_ROCKS[rng.randi() % TEX_HELL_ROCKS.size()]
+				var spr := Sprite2D.new()
+				spr.add_to_group(vis_group)
+				spr.texture = rock_tex
+				spr.modulate = Color(0.96, 0.91, 0.86, 1.0)
+				spr.z_index = 1 # Small foreground boulders sit on the crust, not behind it.
+				var sc := rng.randf_range(0.16, 0.22)
+				spr.scale = Vector2(sc, sc)
+				spr.offset = Vector2(0, -rock_tex.get_height() * 0.5 + 3)
+				spr.position = pt
+				spr.rotation = clampf(slope_angle * 0.25, -0.22, 0.22)
+				decorations_root.add_child(spr)
 		else:
 			# Normal Land Countryside: balanced blend of flora, props, and bushes
 			var choice := rng.randf()

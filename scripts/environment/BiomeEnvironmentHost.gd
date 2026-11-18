@@ -352,7 +352,21 @@ func _set_environment_opacity(env: Node, alpha: float) -> void:
 func _on_progression_state_changed(old_state: int, new_state: int, state_info: Dictionary) -> void:
 	current_world_state = new_state
 	is_in_transition = state_info.get("is_transition", false)
-	var target_biome: int = state_info.get("biome", 0)
+	var target_biome: int = state_info.get("active_biome", state_info.get("biome", 0))
+
+	# In Recurring 900m mode or Branching mode, resolve directly from active_biome
+	if progression_controller and progression_controller.schedule and (
+		progression_controller.schedule.schedule_mode == WorldCycleSchedule.ScheduleMode.BRANCHING_1000M or
+		progression_controller.schedule.schedule_mode == WorldCycleSchedule.ScheduleMode.RECURRING_900M
+	):
+		match target_biome:
+			WorldCycleSchedule.BiomeType.HEAVEN:
+				_enter_heaven_state()
+			WorldCycleSchedule.BiomeType.HELL:
+				_enter_hell_state()
+			WorldCycleSchedule.BiomeType.NORMAL_LAND:
+				_enter_normal_land_state()
+		return
 
 	match new_state:
 		WorldCycleSchedule.WorldState.NORMAL_LAND_1, WorldCycleSchedule.WorldState.NORMAL_LAND_2, \
@@ -360,19 +374,19 @@ func _on_progression_state_changed(old_state: int, new_state: int, state_info: D
 		WorldCycleSchedule.WorldState.LAUNCH_WINDOW, WorldCycleSchedule.WorldState.NORMAL_MERGE:
 			_enter_normal_land_state()
 
-		WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HEAVEN, WorldCycleSchedule.WorldState.HEAVEN_ENTRY:
+		WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HEAVEN:
 			_enter_transition_to_heaven()
 
-		WorldCycleSchedule.WorldState.HEAVEN, WorldCycleSchedule.WorldState.HEAVEN_ACTIVE:
+		WorldCycleSchedule.WorldState.HEAVEN_ENTRY, WorldCycleSchedule.WorldState.HEAVEN, WorldCycleSchedule.WorldState.HEAVEN_ACTIVE:
 			_enter_heaven_state()
 
 		WorldCycleSchedule.WorldState.TRANSITION_HEAVEN_TO_NORMAL:
 			_enter_transition_from_heaven()
 
-		WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HELL, WorldCycleSchedule.WorldState.HELL_ENTRY:
+		WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HELL:
 			_enter_transition_to_hell()
 
-		WorldCycleSchedule.WorldState.HELL, WorldCycleSchedule.WorldState.HELL_ACTIVE:
+		WorldCycleSchedule.WorldState.HELL_ENTRY, WorldCycleSchedule.WorldState.HELL, WorldCycleSchedule.WorldState.HELL_ACTIVE:
 			_enter_hell_state()
 
 		WorldCycleSchedule.WorldState.TRANSITION_HELL_TO_NORMAL:
@@ -433,6 +447,7 @@ func _should_spawn_sequential_ramps() -> bool:
 	return true
 
 func _enter_transition_to_heaven() -> void:
+	current_biome = WorldCycleSchedule.BiomeType.HEAVEN
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.HEAVEN, WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HEAVEN)
 	
 	# Spawn Transition Ramp 1: Normal Land -> Heaven (sequential mode only)
@@ -467,6 +482,7 @@ func _enter_heaven_state() -> void:
 	biome_transition_completed.emit(current_biome)
 
 func _enter_transition_from_heaven() -> void:
+	current_biome = WorldCycleSchedule.BiomeType.NORMAL_LAND
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.NORMAL_LAND, WorldCycleSchedule.WorldState.TRANSITION_HEAVEN_TO_NORMAL)
 
 	# Spawn Transition Ramp 2: Heaven -> Normal Land (sequential mode only)
@@ -485,6 +501,7 @@ func _enter_transition_from_heaven() -> void:
 		tw.tween_property(_cloud_tunnel_overlay, "color:a", 0.0, 1.2).set_trans(Tween.TRANS_SINE)
 
 func _enter_transition_to_hell() -> void:
+	current_biome = WorldCycleSchedule.BiomeType.HELL
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.HELL, WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HELL)
 
 	# Spawn Transition Ramp 3: Normal Land -> Hell (sequential mode only)
@@ -521,6 +538,7 @@ func _enter_hell_state() -> void:
 	biome_transition_completed.emit(current_biome)
 
 func _enter_transition_from_hell() -> void:
+	current_biome = WorldCycleSchedule.BiomeType.NORMAL_LAND
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.NORMAL_LAND, WorldCycleSchedule.WorldState.TRANSITION_HELL_TO_NORMAL)
 
 	# Spawn Transition Ramp 4: Hell -> Normal Land (sequential mode only)

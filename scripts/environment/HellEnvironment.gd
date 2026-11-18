@@ -59,12 +59,18 @@ func _process(delta: float) -> void:
 		if is_instance_valid(skeleton_knight):
 			skeleton_knight.position.x = _skeleton_base_x + offset
 			skeleton_knight.flip_h = (vel_dir < 0.0)
-			
+			if skeleton_knight.sprite_frames and skeleton_knight.sprite_frames.has_animation("walk"):
+				if skeleton_knight.animation != &"walk":
+					skeleton_knight.play("walk")
+
 		if is_instance_valid(demon_goblin):
 			# Offset goblin cycle phase so they don't patrol in unison
 			var gob_offset := sin(_patrol_time + PI) * patrol_range
 			demon_goblin.position.x = _goblin_base_x + gob_offset
 			demon_goblin.flip_h = (cos(_patrol_time + PI) < 0.0)
+			if demon_goblin.sprite_frames and demon_goblin.sprite_frames.has_animation("walk"):
+				if demon_goblin.animation != &"walk":
+					demon_goblin.play("walk")
 
 func _setup_visibility_culling() -> void:
 	for node in find_children("*", "AnimatedSprite2D", true, false):
@@ -113,15 +119,11 @@ func set_environment_active(active: bool) -> void:
 		var cpu_particles := node as CPUParticles2D
 		if cpu_particles:
 			cpu_particles.emitting = active
-			if not active:
-				cpu_particles.restart()
 			
 	for node in find_children("*", "GPUParticles2D", true, false):
 		var gpu_particles := node as GPUParticles2D
 		if gpu_particles:
 			gpu_particles.emitting = active
-			if not active:
-				gpu_particles.restart()
 
 	# Manage animated sprites playback
 	for node in find_children("*", "AnimatedSprite2D", true, false):

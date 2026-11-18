@@ -50,6 +50,7 @@ func _test_two_cycle_world_progression() -> bool:
 	print("-> [1/6] Testing full 2-cycle continuous progression (0m -> 10,300m)...")
 	var prog_script: GDScript = load("res://scripts/progression/BiomeProgressionController.gd")
 	var ctrl: Node = prog_script.new()
+	ctrl.schedule.init_fixed_5150m_schedule()
 	root.add_child(ctrl)
 	await process_frame
 
@@ -169,6 +170,8 @@ func _test_multi_vehicle_ramp_physics() -> bool:
 func _test_difficulty_cycle_scaling() -> bool:
 	print("-> [3/6] Verifying single difficulty scaling per cycle rule...")
 	var schedule: WorldCycleSchedule = WorldCycleScheduleScript.new()
+	schedule.schedule_mode = WorldCycleScheduleScript.ScheduleMode.FIXED_5150M
+	schedule.cycle_length_m = 5150.0
 	assert(schedule != null, "Default schedule must exist")
 
 	# Test progression difficulty formula:
@@ -239,6 +242,9 @@ func _test_pause_crash_and_restart_lifecycle() -> bool:
 	assert(host != null, "BiomeEnvironmentHost must be active")
 
 	# Drive into Hell (4,000m)
+	var prog_ctrl: BiomeProgressionController = game.find_child("BiomeProgressionController", true, false)
+	if is_instance_valid(prog_ctrl) and prog_ctrl.schedule:
+		prog_ctrl.schedule.init_fixed_5150m_schedule()
 	gm.update_distance(4000.0)
 	await process_frame
 	assert(host.current_biome == WorldCycleScheduleScript.BiomeType.HELL, "Must be in Hell at 4,000m")
