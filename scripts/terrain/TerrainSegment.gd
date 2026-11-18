@@ -688,6 +688,18 @@ func _build_decorations() -> void:
 		col.position = col_pt + Vector2(0, 10)
 		col.z_index = -3
 		decorations_root.add_child(col)
+
+		# Visible Return Portal Gateway Arch (Phase 2.1 P0)
+		var exit_arch_idx := int(generated_surface_points.size() * 0.5)
+		var exit_pt := generated_surface_points[exit_arch_idx]
+		var exit_arch := Sprite2D.new()
+		exit_arch.name = "ReturnGoldenGateway"
+		exit_arch.texture = load("res://assets/environments/heaven/architecture/heaven_golden_archway.png")
+		exit_arch.scale = Vector2(0.55, 0.55)
+		exit_arch.offset = Vector2(0, -exit_arch.texture.get_height() * 0.5)
+		exit_arch.position = exit_pt + Vector2(0, 10)
+		exit_arch.z_index = -3
+		decorations_root.add_child(exit_arch)
 		return
 
 	if segment_type == SegmentType.RAMP_HELL_TO_NORMAL:
