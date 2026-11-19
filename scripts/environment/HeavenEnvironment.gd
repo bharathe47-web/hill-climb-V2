@@ -36,6 +36,8 @@ func _ready() -> void:
 		
 	_setup_visibility_culling()
 	_start_animations()
+	if not is_active:
+		set_environment_active(false)
 
 func _process(delta: float) -> void:
 	if not is_active:

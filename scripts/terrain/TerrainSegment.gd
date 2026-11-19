@@ -270,41 +270,53 @@ func set_custom_points(points: PackedVector2Array) -> void:
 
 func _ensure_child_nodes() -> void:
 	if not collision_polygon:
-		collision_polygon = CollisionPolygon2D.new()
-		collision_polygon.name = "CollisionPolygon2D"
-		add_child(collision_polygon)
+		collision_polygon = get_node_or_null("CollisionPolygon2D")
+		if not collision_polygon:
+			collision_polygon = CollisionPolygon2D.new()
+			collision_polygon.name = "CollisionPolygon2D"
+			add_child(collision_polygon)
 
 	if not ground_polygon:
-		ground_polygon = Polygon2D.new()
-		ground_polygon.name = "GroundPolygon"
-		add_child(ground_polygon)
+		ground_polygon = get_node_or_null("GroundPolygon")
+		if not ground_polygon:
+			ground_polygon = Polygon2D.new()
+			ground_polygon.name = "GroundPolygon"
+			add_child(ground_polygon)
 
 	if not subsoil_polygon:
-		subsoil_polygon = Polygon2D.new()
-		subsoil_polygon.name = "SubsoilPolygon"
-		add_child(subsoil_polygon)
-		move_child(subsoil_polygon, 0) # Base under ground
+		subsoil_polygon = get_node_or_null("SubsoilPolygon")
+		if not subsoil_polygon:
+			subsoil_polygon = Polygon2D.new()
+			subsoil_polygon.name = "SubsoilPolygon"
+			add_child(subsoil_polygon)
+			move_child(subsoil_polygon, 0) # Base under ground
 
 	if not grass_line:
-		grass_line = Line2D.new()
-		grass_line.name = "GrassLine"
-		grass_line.visible = false
-		add_child(grass_line)
-	else:
-		grass_line.visible = false
+		grass_line = get_node_or_null("GrassLine")
+		if not grass_line:
+			grass_line = Line2D.new()
+			grass_line.name = "GrassLine"
+			grass_line.visible = false
+			add_child(grass_line)
+		else:
+			grass_line.visible = false
 
 	if not grass_highlight_line:
-		grass_highlight_line = Line2D.new()
-		grass_highlight_line.name = "GrassHighlightLine"
-		grass_highlight_line.visible = false
-		add_child(grass_highlight_line)
-	else:
-		grass_highlight_line.visible = false
+		grass_highlight_line = get_node_or_null("GrassHighlightLine")
+		if not grass_highlight_line:
+			grass_highlight_line = Line2D.new()
+			grass_highlight_line.name = "GrassHighlightLine"
+			grass_highlight_line.visible = false
+			add_child(grass_highlight_line)
+		else:
+			grass_highlight_line.visible = false
 
 	if not decorations_root:
-		decorations_root = Node2D.new()
-		decorations_root.name = "DecorationsRoot"
-		add_child(decorations_root)
+		decorations_root = get_node_or_null("DecorationsRoot")
+		if not decorations_root:
+			decorations_root = Node2D.new()
+			decorations_root.name = "DecorationsRoot"
+			add_child(decorations_root)
 
 func _generate_surface_points() -> void:
 	generated_surface_points.clear()
@@ -499,41 +511,46 @@ func _apply_geometry() -> void:
 	var active_grass_hl_width: float = 1.6
 
 	var prof_name: String = str(terrain_profile.get("profile_name")) if terrain_profile else ""
-	var is_heaven := prof_name.begins_with("Heaven")
-	var is_hell := prof_name.begins_with("Hell")
+	var is_heaven := (biome_type == 1) or prof_name.begins_with("Heaven")
+	var is_hell := (biome_type == 2) or prof_name.begins_with("Hell")
 
-	if terrain_profile:
-		if is_heaven:
-			# Pure polished ivory marble road with fine champagne gold edging
-			active_ground_col = Color(1.0, 1.0, 1.0, 1.0)
-			active_subsoil_col = Color(1.0, 1.0, 1.0, 1.0)
-			active_grass_col = Color(0.95, 0.85, 0.45, 0.90) # Fine celestial champagne gold rim
-			active_grass_hl = Color(1.0, 0.96, 0.70, 0.95)
-			active_grass_width = 2.4
-			active_grass_hl_width = 1.2
-			active_ground_tex_scale = Vector2(0.5, 0.75)
-			if "ground_texture" in terrain_profile and terrain_profile.ground_texture:
-				active_ground_tex = terrain_profile.ground_texture
-			if "subsoil_texture" in terrain_profile and terrain_profile.subsoil_texture:
-				active_subsoil_tex = terrain_profile.subsoil_texture
-		elif prof_name.begins_with("Hell"):
-			# Dark volcanic crust over layered ash-rock; the narrow orange edge reads as heat, not a thick outline.
-			active_ground_col = Color(0.84, 0.80, 0.77, 1.0)
-			active_subsoil_col = Color(0.22, 0.11, 0.09, 1.0)
-			active_grass_col = Color(0.90, 0.36, 0.10, 1.0) # Fine molten crust edge
-			active_grass_hl = Color(1.0, 0.62, 0.20, 0.88)
-			active_grass_width = 2.8
-			active_grass_hl_width = 1.4
-			active_ground_tex_scale = Vector2(0.5, 0.75)
-			if "ground_texture" in terrain_profile and terrain_profile.ground_texture:
-				active_ground_tex = terrain_profile.ground_texture
-			if "subsoil_texture" in terrain_profile and terrain_profile.subsoil_texture:
-				active_subsoil_tex = terrain_profile.subsoil_texture
+	if is_heaven:
+		# Pure polished ivory marble road with fine champagne gold edging
+		is_floating_platform = true
+		platform_thickness = 120.0
+		active_ground_col = Color(1.0, 1.0, 1.0, 1.0)
+		active_subsoil_col = Color(1.0, 1.0, 1.0, 1.0)
+		active_grass_col = Color(0.95, 0.85, 0.45, 0.90) # Fine celestial champagne gold rim
+		active_grass_hl = Color(1.0, 0.96, 0.70, 0.95)
+		active_grass_width = 2.4
+		active_grass_hl_width = 1.2
+		active_ground_tex_scale = Vector2(0.5, 0.75)
+		if terrain_profile and "ground_texture" in terrain_profile and terrain_profile.ground_texture:
+			active_ground_tex = terrain_profile.ground_texture
 		else:
-			if "ground_texture" in terrain_profile and terrain_profile.ground_texture:
-				active_ground_tex = terrain_profile.ground_texture
-			if "subsoil_texture" in terrain_profile and terrain_profile.subsoil_texture:
-				active_subsoil_tex = terrain_profile.subsoil_texture
+			active_ground_tex = preload("res://assets/environments/heaven/architecture/heaven_marble_floor.png")
+		if terrain_profile and "subsoil_texture" in terrain_profile and terrain_profile.subsoil_texture:
+			active_subsoil_tex = terrain_profile.subsoil_texture
+		else:
+			active_subsoil_tex = preload("res://assets/environments/heaven/architecture/heaven_cloud_underside.png")
+	elif is_hell:
+		# Dark volcanic crust over layered ash-rock; the narrow orange edge reads as heat, not a thick outline.
+		active_ground_col = Color(0.84, 0.80, 0.77, 1.0)
+		active_subsoil_col = Color(0.22, 0.11, 0.09, 1.0)
+		active_grass_col = Color(0.90, 0.36, 0.10, 1.0) # Fine molten crust edge
+		active_grass_hl = Color(1.0, 0.62, 0.20, 0.88)
+		active_grass_width = 2.8
+		active_grass_hl_width = 1.4
+		active_ground_tex_scale = Vector2(0.5, 0.75)
+		if terrain_profile and "ground_texture" in terrain_profile and terrain_profile.ground_texture:
+			active_ground_tex = terrain_profile.ground_texture
+		if terrain_profile and "subsoil_texture" in terrain_profile and terrain_profile.subsoil_texture:
+			active_subsoil_tex = terrain_profile.subsoil_texture
+	elif terrain_profile:
+		if "ground_texture" in terrain_profile and terrain_profile.ground_texture:
+			active_ground_tex = terrain_profile.ground_texture
+		if "subsoil_texture" in terrain_profile and terrain_profile.subsoil_texture:
+			active_subsoil_tex = terrain_profile.subsoil_texture
 			if "ground_color" in terrain_profile and terrain_profile.ground_color != Color.WHITE:
 				active_ground_col = terrain_profile.ground_color
 			if "subsoil_color" in terrain_profile and terrain_profile.subsoil_color != Color(0.9, 0.9, 0.9, 1.0):
@@ -628,7 +645,7 @@ func _apply_geometry() -> void:
 	if facade:
 		for c in facade.get_children():
 			c.queue_free()
-		if is_heaven and not is_floating_platform and generated_surface_points.size() >= 2:
+		if is_heaven and generated_surface_points.size() >= 2:
 			facade.visible = true
 			var arch_w: float = 320.0
 			var total_len: float = last_pt.x - first_pt.x

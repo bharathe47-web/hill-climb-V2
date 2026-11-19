@@ -505,7 +505,16 @@ func _create_segment(
 	seg.start_distance_m = seg.start_world_x / 100.0
 	seg.end_distance_m = seg.end_world_x / 100.0
 	seg.biome_type = get_biome_type_for_world_x(seg.start_world_x)
-	seg.terrain_profile = get_profile_for_world_x(seg.start_world_x) if active_terrain_profile == null else active_terrain_profile
+	var expected_profile := get_profile_for_world_x(seg.start_world_x)
+	if active_terrain_profile != null and get_biome_type_for_world_x(seg.start_world_x) == get_biome_type_for_world_x(next_attach_point.x):
+		seg.terrain_profile = active_terrain_profile
+	else:
+		seg.terrain_profile = expected_profile
+	if seg.biome_type == 1:
+		seg.is_floating_platform = true
+		seg.platform_thickness = 120.0
+	else:
+		seg.is_floating_platform = false
 	seg.segment_type = type
 	seg.segment_length = length_val
 	seg.start_height = start_h

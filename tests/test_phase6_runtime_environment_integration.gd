@@ -64,6 +64,8 @@ func _test_environment_host_initialization() -> void:
 func _test_distance_progression_and_transitions() -> void:
 	print("-> [2/9] Testing exact distance boundary transitions & ramp spawning...")
 	var prog: BiomeProgressionController = BiomeProgressionControllerScript.new()
+	if is_instance_valid(prog.schedule):
+		prog.schedule.init_fixed_5150m_schedule()
 	var host: BiomeEnvironmentHost = BiomeEnvironmentHostScript.new()
 	var gen: TerrainGenerator = TerrainGenerator.new()
 	var dummy_cam := Node2D.new()
@@ -169,6 +171,8 @@ func _test_distance_progression_and_transitions() -> void:
 func _test_large_distance_jumps() -> void:
 	print("-> [3/9] Testing large multi-boundary distance jumps...")
 	var prog: BiomeProgressionController = BiomeProgressionControllerScript.new()
+	if is_instance_valid(prog.schedule):
+		prog.schedule.init_fixed_5150m_schedule()
 	var host: BiomeEnvironmentHost = BiomeEnvironmentHostScript.new()
 	host.progression_controller = prog
 	root.add_child(prog)
@@ -320,6 +324,8 @@ func _test_pause_resume_behavior() -> void:
 func _test_restart_behavior() -> void:
 	print("-> [7/9] Testing restart from Heaven, Hell & Transitions...")
 	var prog: BiomeProgressionController = BiomeProgressionControllerScript.new()
+	if is_instance_valid(prog.schedule):
+		prog.schedule.init_fixed_5150m_schedule()
 	var host: BiomeEnvironmentHost = BiomeEnvironmentHostScript.new()
 	host.progression_controller = prog
 	root.add_child(prog)
@@ -378,6 +384,9 @@ func _test_continuous_driving_simulation() -> void:
 	await process_frame
 
 	assert(is_instance_valid(game.biome_environment_host), "BiomeEnvironmentHost must be wired into GameScene")
+	var prog_ctrl: BiomeProgressionController = game.find_child("BiomeProgressionController", true, false)
+	if is_instance_valid(prog_ctrl) and is_instance_valid(prog_ctrl.schedule):
+		prog_ctrl.schedule.init_fixed_5150m_schedule()
 	var initial_game_instance_id := game.get_instance_id()
 	var vehicle_instance_id := game.vehicle.get_instance_id()
 

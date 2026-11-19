@@ -4,6 +4,7 @@ build_seamless_heaven_corridor.py
 Generates the master 3200x720 seamless architectural corridor texture
 for the Heaven Environment in Endless Hill Climb.
 Integrates authentic Zoeluci assets into 5 distinct architectural bays.
+Eliminates all flat unshaded geometry boxes and crude PIL arcs.
 """
 
 import os, math
@@ -13,6 +14,7 @@ BASE_DIR = "/home/danny/DUMB-SPOT/Endless-Hillclimb-Repaired/Endless-Hillclimb-F
 TARGET_DIR = os.path.join(BASE_DIR, "assets/environments/heaven/architecture")
 DECOR_DIR = os.path.join(BASE_DIR, "assets/environments/heaven/decorations")
 ZOELUCI_DIR = "/home/danny/DUMB-SPOT/full_assets/Heaven/Architecture_01/extracted/golden_palace_interior"
+ANGEL_SRC = "/home/danny/DUMB-SPOT/full_assets/Heaven/Remaining_Batch/Angels/angel_cutout_ivory_gold.png"
 
 # Load source assets
 col_master = Image.open(os.path.join(ZOELUCI_DIR, "Column.png")).convert("RGBA")
@@ -24,18 +26,20 @@ wall_master = Image.open(os.path.join(ZOELUCI_DIR, "Wall.png")).convert("RGBA")
 rose_module = Image.open(os.path.join(TARGET_DIR, "heaven_palace_module_rose_window.png")).convert("RGBA")
 door_master = Image.open(os.path.join(TARGET_DIR, "heaven_palace_grand_door.png")).convert("RGBA")
 fountain_master = Image.open(os.path.join(TARGET_DIR, "heaven_palace_fountain.png")).convert("RGBA")
-angel_master = Image.open(os.path.join(DECOR_DIR, "heaven_angel_statue.png")).convert("RGBA")
+angel_master = Image.open(ANGEL_SRC).convert("RGBA")
 urn_master = Image.open(os.path.join(DECOR_DIR, "celestial_planter_urn.png")).convert("RGBA")
 bed_master = Image.open(os.path.join(DECOR_DIR, "celestial_garden_bed.png")).convert("RGBA")
-arch_master = Image.open(os.path.join(TARGET_DIR, "heaven_golden_archway.png")).convert("RGBA")
+arch_master = Image.open(os.path.join(TARGET_DIR, "heaven_palace_arch_gateway.png")).convert("RGBA")
+pedestal_master = Image.open(os.path.join(DECOR_DIR, "heaven_angel_monument_pedestal.png")).convert("RGBA")
 
 total_w = 3200
 total_h = 720
 corridor = Image.new("RGBA", (total_w, total_h), (0, 0, 0, 0))
 
 # 1. Base Wall across 3200px (from Y = 25 to Y = 560)
-wall_cropped = wall_master.crop((0, 100, 1920, 640)).resize((total_w, 540), Image.Resampling.LANCZOS)
-corridor.paste(wall_cropped, (0, 25))
+wall_cropped = wall_master.crop((0, 80, 1920, 620)).resize((1920, 535), Image.Resampling.LANCZOS)
+for wx in range(0, total_w, 1920):
+    corridor.paste(wall_cropped, (wx, 25))
 
 # 2. Continuous Ceiling Beam across 3200px (Y = 0 to 45)
 for cx in range(0, total_w, 1920):
@@ -48,12 +52,11 @@ draw.line([(0, 42), (total_w, 42)], fill=(255, 245, 175, 255), width=2)
 # 3. Continuous Floor Stylobate / Plinth across 3200px (Y = 530 to 720)
 for fx in range(0, total_w, 1920):
     corridor.paste(floor_master, (fx, 530), floor_master)
+# Tiled marble base tone with gold rim
 draw.rectangle([0, 560, total_w, 720], fill=(235, 229, 218, 255))
 draw.line([(0, 560), (total_w, 560)], fill=(225, 190, 85, 255), width=3)
 draw.line([(0, 564), (total_w, 564)], fill=(185, 175, 158, 255), width=2)
 
-# Bay width = 640
-bay_w = 640
 target_col_h = 525
 target_col_w = int(col_master.width * (target_col_h / float(col_master.height))) # ~118 px
 col_scaled = col_master.resize((target_col_w, target_col_h), Image.Resampling.LANCZOS)
@@ -66,9 +69,11 @@ win_w = int(win_master.width * (win_h / float(win_master.height))) # ~172 px
 win_scaled = win_master.resize((win_w, win_h), Image.Resampling.LANCZOS)
 corridor.paste(win_scaled, (320 - win_w // 2, 160), win_scaled)
 
-draw.arc([320 - 160, 80, 320 + 160, 400], start=180, end=360, fill=(225, 190, 85, 255), width=12)
-draw.arc([320 - 150, 90, 320 + 150, 390], start=180, end=360, fill=(255, 245, 175, 255), width=4)
-draw.polygon([(320 - 240, 42), (320, 10), (320 + 240, 42)], fill=(245, 240, 230, 255), outline=(225, 190, 85, 255), width=2)
+# Scaled real arch framing window
+arch_b0_w = 400
+arch_b0_h = int(arch_master.height * (arch_b0_w / float(arch_master.width)))
+arch_b0_scaled = arch_master.resize((arch_b0_w, arch_b0_h), Image.Resampling.LANCZOS)
+corridor.paste(arch_b0_scaled, (320 - arch_b0_w // 2, 45), arch_b0_scaled)
 
 corridor.paste(col_scaled, (130 - target_col_w // 2, 28), col_scaled)
 corridor.paste(col_scaled, (510 - target_col_w // 2, 28), col_scaled)
@@ -100,8 +105,11 @@ side_win_scaled = win_master.resize((side_win_w, side_win_h), Image.Resampling.L
 corridor.paste(side_win_scaled, (1420 - side_win_w // 2, 190), side_win_scaled)
 corridor.paste(side_win_scaled, (1780 - side_win_w // 2, 190), side_win_scaled)
 
-draw.arc([1600 - 220, 60, 1600 + 220, 500], start=180, end=360, fill=(225, 190, 85, 255), width=14)
-draw.arc([1600 - 208, 72, 1600 + 208, 488], start=180, end=360, fill=(255, 245, 175, 255), width=4)
+# Grand archway framing fountain
+arch_b2_w = 460
+arch_b2_h = int(arch_master.height * (arch_b2_w / float(arch_master.width)))
+arch_b2_scaled = arch_master.resize((arch_b2_w, arch_b2_h), Image.Resampling.LANCZOS)
+corridor.paste(arch_b2_scaled, (1600 - arch_b2_w // 2, 45), arch_b2_scaled)
 
 fount_h = 290
 fount_w = int(fountain_master.width * (fount_h / float(fountain_master.height)))
@@ -114,40 +122,62 @@ corridor.paste(urn_scaled, (1370 - 25, 500), urn_scaled)
 corridor.paste(urn_scaled, (1830 - 25, 500), urn_scaled)
 
 # -------------------------------------------------------------
-# Bay 3: Section D — Dominant Landmark: Grand Entrance Door (X = 1920 to 2560)
+# Bay 3: Section D — Grand Entrance Portal (X = 1920 to 2560)
+# NO FLAT WHITE RECTANGLE. Authentic archway and grand portal door.
 # -------------------------------------------------------------
-draw.rectangle([2240 - 240, 38, 2240 + 240, 550], fill=(245, 242, 234, 255), outline=(225, 190, 85, 255), width=4)
-draw.polygon([(2240 - 250, 42), (2240, 6), (2240 + 250, 42)], fill=(248, 245, 238, 255), outline=(225, 190, 85, 255), width=3)
-
-door_h = 440
+door_h = 420
 door_w = int(door_master.width * (door_h / float(door_master.height)))
 door_scaled = door_master.resize((door_w, door_h), Image.Resampling.LANCZOS)
-corridor.paste(door_scaled, (2240 - door_w // 2, 115), door_scaled)
 
-corridor.paste(col_scaled, (2240 - door_w // 2 - target_col_w + 10, 28), col_scaled)
-corridor.paste(col_scaled, (2240 + door_w // 2 - 10, 28), col_scaled)
-corridor.paste(urn_scaled, (2240 - door_w // 2 - 18, 500), urn_scaled)
-corridor.paste(urn_scaled, (2240 + door_w // 2 + 18, 500), urn_scaled)
+# Frame the grand portal with the high-res golden arch
+arch_b3_w = 480
+arch_b3_h = int(arch_master.height * (arch_b3_w / float(arch_master.width)))
+arch_b3_scaled = arch_master.resize((arch_b3_w, arch_b3_h), Image.Resampling.LANCZOS)
+corridor.paste(arch_b3_scaled, (2240 - arch_b3_w // 2, 42), arch_b3_scaled)
+corridor.paste(door_scaled, (2240 - door_w // 2, 135), door_scaled)
+
+corridor.paste(col_scaled, (2000 - target_col_w // 2, 28), col_scaled)
+corridor.paste(col_scaled, (2480 - target_col_w // 2, 28), col_scaled)
+corridor.paste(urn_scaled, (2000 - 25, 500), urn_scaled)
+corridor.paste(urn_scaled, (2480 - 25, 500), urn_scaled)
 
 # -------------------------------------------------------------
 # Bay 4: Section E — Angel Monument Terrace (X = 2560 to 3200)
+# Deep architectural niche with rich contrast, authentic ivory-gold angel, zero doves.
 # -------------------------------------------------------------
-draw.arc([2880 - 180, 80, 2880 + 180, 440], start=180, end=360, fill=(225, 190, 85, 255), width=12)
-draw.arc([2880 - 170, 90, 2880 + 170, 430], start=180, end=360, fill=(255, 245, 175, 255), width=4)
+arch_b4_w = 440
+arch_b4_h = int(arch_master.height * (arch_b4_w / float(arch_master.width)))
+arch_b4_scaled = arch_master.resize((arch_b4_w, arch_b4_h), Image.Resampling.LANCZOS)
 
-angel_h = 320
+# Soft shadow inside the alcove behind the angel to provide rich contrast
+niche_shadow = Image.new("RGBA", (280, 420), (0, 0, 0, 0))
+niche_draw = ImageDraw.Draw(niche_shadow)
+niche_draw.rounded_rectangle([0, 0, 280, 420], radius=140, fill=(30, 25, 20, 60))
+niche_shadow = niche_shadow.filter(ImageFilter.GaussianBlur(16))
+corridor.paste(niche_shadow, (2880 - 140, 80), niche_shadow)
+
+corridor.paste(arch_b4_scaled, (2880 - arch_b4_w // 2, 45), arch_b4_scaled)
+
+# Classical Pedestal for the Angel Monument
+ped_w = 160
+ped_h = int(pedestal_master.height * (ped_w / float(pedestal_master.width)))
+ped_scaled = pedestal_master.resize((ped_w, ped_h), Image.Resampling.LANCZOS)
+corridor.paste(ped_scaled, (2880 - ped_w // 2, 460), ped_scaled)
+
+# Ivory and Gold Angel Statue standing proudly on pedestal
+angel_h = 280
 angel_w = int(angel_master.width * (angel_h / float(angel_master.height)))
 angel_scaled = angel_master.resize((angel_w, angel_h), Image.Resampling.LANCZOS)
-corridor.paste(angel_scaled, (2880 - angel_w // 2, 235), angel_scaled)
+corridor.paste(angel_scaled, (2880 - angel_w // 2, 460 - angel_h + 10), angel_scaled)
 
-corridor.paste(col_scaled, (2680 - target_col_w // 2, 28), col_scaled)
-corridor.paste(col_scaled, (3080 - target_col_w // 2, 28), col_scaled)
+corridor.paste(col_scaled, (2660 - target_col_w // 2, 28), col_scaled)
+corridor.paste(col_scaled, (3100 - target_col_w // 2, 28), col_scaled)
 corridor.paste(bed_scaled, (2880 - 70, 520), bed_scaled)
 
-# Boundary columns at 0, 640, 1280, 1920, 2560, 3200
-for bx in [0, 640, 1280, 1920, 2560, 3200]:
+# Boundary columns at 0 and 3200 for seamless looping
+for bx in [0, 3200]:
     corridor.paste(col_scaled, (bx - target_col_w // 2, 28), col_scaled)
 
 out_master = os.path.join(TARGET_DIR, "heaven_palace_corridor_seamless.png")
 corridor.save(out_master)
-print("✓ Created master seamless corridor:", out_master)
+print("✓ Successfully generated master seamless corridor:", out_master)

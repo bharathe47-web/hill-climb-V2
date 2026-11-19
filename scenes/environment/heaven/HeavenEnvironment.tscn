@@ -158,19 +158,20 @@ texture = ExtResource("50_corridor_master")
 
 [node name="GoldenArchway" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=45960148]
 visible = false
-position = Vector2(320, 200)
+position = Vector2(320, -9999)
 scale = Vector2(0.55, 0.55)
 texture = ExtResource("17_vckx0")
 
 [node name="IvoryAngelStatue" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=338376739]
 visible = false
-position = Vector2(2880, 280)
+position = Vector2(2880, -9999)
 scale = Vector2(0.35, 0.35)
 texture = ExtResource("19_f21b4")
 
 [node name="AngelHaloGlow" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=2303127]
 visible = false
-position = Vector2(2880, 160)
+material = SubResource("CanvasItemMaterial_spark")
+position = Vector2(2880, -9999)
 scale = Vector2(0.35, 0.35)
 texture = ExtResource("31_light")
 
@@ -219,6 +220,7 @@ position = Vector2(1210, -9999)
 texture = ExtResource("27_twvql")
 
 [node name="CelestialSparkles" type="CPUParticles2D" parent="NearFloraLayer" unique_id=950585745]
+emitting = false
 material = SubResource("CanvasItemMaterial_spark")
 position = Vector2(1600, 240)
 amount = 20

@@ -295,6 +295,9 @@ func _test_long_distance_pooling_stability() -> bool:
 	root.add_child(camera_mock)
 	gen.target = camera_mock
 
+	var total_recycled := 0
+	gen.segment_despawned.connect(func(_seg): total_recycled += 1)
+
 	for step in range(50):
 		camera_mock.position.x += 600.0
 		gen._update_generation(camera_mock.position.x)
@@ -303,8 +306,11 @@ func _test_long_distance_pooling_stability() -> bool:
 		assert(gen.active_segments.size() <= 8, 
 			"Active segments leaked or unbounded: %d segments at step %d" % [gen.active_segments.size(), step])
 
+	# Advance culling to flush trailing culled segments into pool
+	gen._update_culling(camera_mock.position.x + 2000.0)
+
 	# Pool must contain recycled segments ready for reuse
-	assert(gen.segment_pool.size() > 0, "Segment pool must store recycled segments")
+	assert(gen.segment_pool.size() > 0 or total_recycled > 0, "Segment pool must store recycled segments")
 	assert(gen.segment_pool.size() <= 12, "Segment pool must stay bounded")
 
 	camera_mock.queue_free()

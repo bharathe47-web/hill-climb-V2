@@ -326,8 +326,6 @@ func _recursive_walk_active(node: Node, active: bool) -> void:
 
 		if child is CPUParticles2D or child is GPUParticles2D:
 			child.emitting = active
-			if not active:
-				child.restart()
 
 		if child is AnimatedSprite2D:
 			if active:
@@ -371,10 +369,10 @@ func _on_progression_state_changed(old_state: int, new_state: int, state_info: D
 	match new_state:
 		WorldCycleSchedule.WorldState.NORMAL_LAND_1, WorldCycleSchedule.WorldState.NORMAL_LAND_2, \
 		WorldCycleSchedule.WorldState.NORMAL_APPROACH, WorldCycleSchedule.WorldState.RAMP_WARNING, \
-		WorldCycleSchedule.WorldState.LAUNCH_WINDOW, WorldCycleSchedule.WorldState.NORMAL_MERGE:
+		WorldCycleSchedule.WorldState.NORMAL_MERGE:
 			_enter_normal_land_state()
 
-		WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HEAVEN:
+		WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HEAVEN, WorldCycleSchedule.WorldState.NORMAL_TO_HEAVEN_PORTAL:
 			_enter_transition_to_heaven()
 
 		WorldCycleSchedule.WorldState.HEAVEN_ENTRY, WorldCycleSchedule.WorldState.HEAVEN, WorldCycleSchedule.WorldState.HEAVEN_ACTIVE:
@@ -383,13 +381,13 @@ func _on_progression_state_changed(old_state: int, new_state: int, state_info: D
 		WorldCycleSchedule.WorldState.TRANSITION_HEAVEN_TO_NORMAL:
 			_enter_transition_from_heaven()
 
-		WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HELL:
+		WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HELL, WorldCycleSchedule.WorldState.HEAVEN_TO_HELL_PORTAL:
 			_enter_transition_to_hell()
 
 		WorldCycleSchedule.WorldState.HELL_ENTRY, WorldCycleSchedule.WorldState.HELL, WorldCycleSchedule.WorldState.HELL_ACTIVE:
 			_enter_hell_state()
 
-		WorldCycleSchedule.WorldState.TRANSITION_HELL_TO_NORMAL:
+		WorldCycleSchedule.WorldState.TRANSITION_HELL_TO_NORMAL, WorldCycleSchedule.WorldState.HELL_TO_NORMAL_PORTAL:
 			_enter_transition_from_hell()
 
 		WorldCycleSchedule.WorldState.EXIT_TRANSITION:
@@ -448,6 +446,8 @@ func _should_spawn_sequential_ramps() -> bool:
 
 func _enter_transition_to_heaven() -> void:
 	current_biome = WorldCycleSchedule.BiomeType.HEAVEN
+	if terrain_generator and is_instance_valid(terrain_generator):
+		terrain_generator.active_terrain_profile = _get_safe_profile(heaven_terrain_profile)
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.HEAVEN, WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HEAVEN)
 	
 	# Spawn Transition Ramp 1: Normal Land -> Heaven (sequential mode only)
@@ -483,6 +483,8 @@ func _enter_heaven_state() -> void:
 
 func _enter_transition_from_heaven() -> void:
 	current_biome = WorldCycleSchedule.BiomeType.NORMAL_LAND
+	if terrain_generator and is_instance_valid(terrain_generator):
+		terrain_generator.active_terrain_profile = _get_safe_profile(normal_terrain_profile)
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.NORMAL_LAND, WorldCycleSchedule.WorldState.TRANSITION_HEAVEN_TO_NORMAL)
 
 	# Spawn Transition Ramp 2: Heaven -> Normal Land (sequential mode only)
@@ -502,6 +504,8 @@ func _enter_transition_from_heaven() -> void:
 
 func _enter_transition_to_hell() -> void:
 	current_biome = WorldCycleSchedule.BiomeType.HELL
+	if terrain_generator and is_instance_valid(terrain_generator):
+		terrain_generator.active_terrain_profile = _get_safe_profile(hell_terrain_profile)
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.HELL, WorldCycleSchedule.WorldState.TRANSITION_NORMAL_TO_HELL)
 
 	# Spawn Transition Ramp 3: Normal Land -> Hell (sequential mode only)
@@ -539,6 +543,8 @@ func _enter_hell_state() -> void:
 
 func _enter_transition_from_hell() -> void:
 	current_biome = WorldCycleSchedule.BiomeType.NORMAL_LAND
+	if terrain_generator and is_instance_valid(terrain_generator):
+		terrain_generator.active_terrain_profile = _get_safe_profile(normal_terrain_profile)
 	biome_transition_started.emit(current_biome, WorldCycleSchedule.BiomeType.NORMAL_LAND, WorldCycleSchedule.WorldState.TRANSITION_HELL_TO_NORMAL)
 
 	# Spawn Transition Ramp 4: Hell -> Normal Land (sequential mode only)
