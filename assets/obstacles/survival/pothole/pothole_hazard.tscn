@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://pothole_hazard_001"]
+
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/hard_mode/pothole_crater_road_decal.png" id="1_decal"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/hard_mode/pothole_edge_crack_detail.png" id="2_cracks"]
+
+[node name="PotholeHazard" type="Area2D"]
+collision_layer = 16
+collision_mask = 2
+
+[node name="DecalSprite" type="Sprite2D" parent="."]
+position = Vector2(0, 14)
+texture = ExtResource("1_decal")
+
+[node name="CracksOverlay" type="Sprite2D" parent="."]
+position = Vector2(0, 14)
+texture = ExtResource("2_cracks")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(-110, 0, -80, 14, -40, 28, 0, 32, 40, 28, 80, 14, 110, 0)

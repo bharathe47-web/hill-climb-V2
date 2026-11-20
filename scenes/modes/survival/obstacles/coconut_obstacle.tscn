@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/components/survival_obstacles/food_obstacle.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/obstacles/survival/foods/coconut/coconut.png" id="2_coconut_tex"]
-[ext_resource type="Texture2D" path="res://assets/obstacles/survival/support/impact_effects/obstacle_shadow.png" id="3_shadow_tex"]
+[ext_resource type="PackedScene" uid="uid://ground_shadow_001" path="res://scenes/modes/survival/shadows/ground_shadow.tscn" id="3_shadow_scene"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_coconut"]
 radius = 28.0
@@ -27,7 +27,5 @@ collision_mask = 2
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
 shape = SubResource("CircleShape2D_coconut")
 
-[node name="Shadow" type="Sprite2D" parent="."]
-top_level = true
-scale = Vector2(0.5, 0.2)
-texture = ExtResource("3_shadow_tex")
+[node name="GroundShadow" parent="." instance=ExtResource("3_shadow_scene")]
+base_scale = Vector2(0.42, 0.38)

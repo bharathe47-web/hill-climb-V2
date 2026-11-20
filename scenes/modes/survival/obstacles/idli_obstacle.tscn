@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/components/survival_obstacles/food_obstacle.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/obstacles/survival/foods/idli/idli.png" id="2_idli_tex"]
-[ext_resource type="Texture2D" path="res://assets/obstacles/survival/support/impact_effects/obstacle_shadow.png" id="3_shadow_tex"]
+[ext_resource type="PackedScene" uid="uid://ground_shadow_001" path="res://scenes/modes/survival/shadows/ground_shadow.tscn" id="3_shadow_scene"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_idli"]
 radius = 28.0
@@ -14,7 +14,7 @@ movement_type = 0
 fall_speed = 420.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.24, 0.24)
+scale = Vector2(0.07, 0.07)
 texture = ExtResource("2_idli_tex")
 
 [node name="Hitbox" type="Area2D" parent="."]
@@ -24,7 +24,5 @@ collision_mask = 2
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
 shape = SubResource("CircleShape2D_idli")
 
-[node name="Shadow" type="Sprite2D" parent="."]
-top_level = true
-scale = Vector2(0.5, 0.2)
-texture = ExtResource("3_shadow_tex")
+[node name="GroundShadow" parent="." instance=ExtResource("3_shadow_scene")]
+base_scale = Vector2(0.42, 0.38)

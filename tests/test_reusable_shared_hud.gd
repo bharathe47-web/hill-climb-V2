@@ -191,7 +191,7 @@ func _test_mode_switching_and_displays(root: Window) -> void:
 	hud.set_hud_mode(GameHUD.HUDMode.SURVIVAL)
 	assert(hud.survival_panel.visible == true, "Survival mode must show SurvivalPanel")
 	assert(hud.indian_roads_panel.visible == false, "Survival mode must hide IndianRoadsPanel")
-	assert(hud.top_stats_panel.visible == false, "Survival mode must hide fuel TopStatsPanel")
+	assert(hud.fuel_section.is_visible_in_tree() and not hud.get_node("%DistanceLabel").is_visible_in_tree(), "Survival mode keeps only the compact fuel gauge")
 	
 	hud.set_survival_lives(2, 3)
 	assert(hud.heart_container != null, "Heart container must exist")

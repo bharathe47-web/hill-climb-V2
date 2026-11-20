@@ -1,0 +1,41 @@
+{
+  "hazard_type": "road_pothole",
+  "collision_shape": "CollisionPolygon2D",
+  "polygon_points": [
+    [
+      -110,
+      0
+    ],
+    [
+      -80,
+      14
+    ],
+    [
+      -40,
+      28
+    ],
+    [
+      0,
+      32
+    ],
+    [
+      40,
+      28
+    ],
+    [
+      80,
+      14
+    ],
+    [
+      110,
+      0
+    ]
+  ],
+  "depth_pixels": 32,
+  "width_pixels": 220,
+  "vehicle_speed_penalty": 0.45,
+  "physics_bounce_impulse": -180.0,
+  "damage_to_chassis": 1,
+  "camera_shake_trauma": 0.35,
+  "description": "Depressed roadway polygon created upon burning asteroid impact. Wheels sink into depression, causing chassis suspension compression, pitch oscillation, and speed reduction."
+}

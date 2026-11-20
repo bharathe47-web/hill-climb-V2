@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/components/survival_obstacles/food_obstacle.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/obstacles/survival/foods/pani_puri/pani_puri_cluster.png" id="2_pani_puri_tex"]
 [ext_resource type="Texture2D" path="res://assets/obstacles/survival/foods/pani_puri/pani_puri.png" id="3_single_tex"]
-[ext_resource type="Texture2D" path="res://assets/obstacles/survival/support/impact_effects/obstacle_shadow.png" id="4_shadow_tex"]
+[ext_resource type="PackedScene" uid="uid://ground_shadow_001" path="res://scenes/modes/survival/shadows/ground_shadow.tscn" id="4_shadow_scene"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pani_puri"]
 radius = 36.0
@@ -16,17 +16,17 @@ fall_speed = 390.0
 rotation_speed = 2.5
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.24, 0.24)
+scale = Vector2(0.085, 0.085)
 texture = ExtResource("2_pani_puri_tex")
 
 [node name="Piece2" type="Sprite2D" parent="."]
-position = Vector2(18, -14)
-scale = Vector2(0.12, 0.12)
+position = Vector2(24, -18)
+scale = Vector2(0.038, 0.038)
 texture = ExtResource("3_single_tex")
 
 [node name="Piece3" type="Sprite2D" parent="."]
-position = Vector2(-20, 12)
-scale = Vector2(0.11, 0.11)
+position = Vector2(-24, 16)
+scale = Vector2(0.035, 0.035)
 texture = ExtResource("3_single_tex")
 
 [node name="Hitbox" type="Area2D" parent="."]
@@ -36,7 +36,5 @@ collision_mask = 2
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
 shape = SubResource("CircleShape2D_pani_puri")
 
-[node name="Shadow" type="Sprite2D" parent="."]
-top_level = true
-scale = Vector2(0.75, 0.28)
-texture = ExtResource("4_shadow_tex")
+[node name="GroundShadow" parent="." instance=ExtResource("4_shadow_scene")]
+base_scale = Vector2(0.60, 0.42)

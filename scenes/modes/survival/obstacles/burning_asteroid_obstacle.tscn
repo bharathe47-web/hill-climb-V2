@@ -1,0 +1,95 @@
+[gd_scene load_steps=16 format=3 uid="uid://burning_asteroid_obs_001"]
+
+[ext_resource type="Script" path="res://scripts/components/survival_obstacles/burning_asteroid.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/flaming_asteroid_512.png" id="2_flaming_asteroid"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/04_warm_glow/warm_asteroid_glow_256.png" id="3_glow"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/01_animated_flame_trail/flame_trail_frame_01.png" id="4_ft01"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/01_animated_flame_trail/flame_trail_frame_02.png" id="5_ft02"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/01_animated_flame_trail/flame_trail_frame_03.png" id="6_ft03"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/01_animated_flame_trail/flame_trail_frame_04.png" id="7_ft04"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/01_animated_flame_trail/flame_trail_frame_05.png" id="8_ft05"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/01_animated_flame_trail/flame_trail_frame_06.png" id="9_ft06"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/01_animated_flame_trail/flame_trail_frame_07.png" id="10_ft07"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/01_animated_flame_trail/flame_trail_frame_08.png" id="11_ft08"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/02_fire_sparks_particles/spark_ember_star.png" id="12_spark"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_flame_trail"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_ft01")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_ft02")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_ft03")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_ft04")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_ft05")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_ft06")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_ft07")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_ft08")
+}],
+"loop": true,
+"name": &"default",
+"speed": 14.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_asteroid"]
+radius = 35.0
+
+[node name="BurningAsteroid" type="Node2D"]
+script = ExtResource("1_script")
+obstacle_id = "burning_asteroid"
+fall_speed = 330.0
+fall_acceleration = 160.0
+
+[node name="AsteroidGlow" type="Sprite2D" parent="."]
+modulate = Color(1, 0.72, 0.25, 0.45)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("3_glow")
+
+[node name="AnimatedFlameTrail" type="AnimatedSprite2D" parent="."]
+position = Vector2(24, -18)
+scale = Vector2(0.55, 0.55)
+sprite_frames = SubResource("SpriteFrames_flame_trail")
+autoplay = "default"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(7.5, 3.8)
+scale = Vector2(0.32, 0.32)
+texture = ExtResource("2_flaming_asteroid")
+
+[node name="SparksEmitter" type="CPUParticles2D" parent="."]
+position = Vector2(10, -5)
+amount = 14
+texture = ExtResource("12_spark")
+lifetime = 0.65
+randomness = 0.3
+emission_shape = 3
+emission_rect_extents = Vector2(16, 16)
+direction = Vector2(0.707, -0.707)
+spread = 25.0
+gravity = Vector2(0, 45)
+initial_velocity_min = 110.0
+initial_velocity_max = 210.0
+scale_amount_min = 0.1
+scale_amount_max = 0.22
+color = Color(1, 0.82, 0.35, 0.9)
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource("CircleShape2D_asteroid")

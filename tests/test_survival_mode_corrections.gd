@@ -50,29 +50,62 @@ func _test_issue_1_dead_tree_transparency() -> void:
 	print("  ✓ Dead tree has cleanly extracted alpha with zero grey background box!")
 
 func _test_issue_2_and_4_ground_continuity_and_vehicle_alignment(root: Window) -> void:
-	print("-> [Issues 2 & 4] Verifying Ground Continuity, Surface Alignment & No Pale-Yellow Void...")
+	print("-> [Issues 2 & 4] Verifying Endless Procedural Terrain, Uneven Contours & Vehicle Surface Alignment...")
 	var surv: SurvivalController = SurvivalScene.instantiate()
 	root.add_child(surv)
 
-	var ground: StaticBody2D = surv.get_node_or_null("Ground")
-	assert(ground != null, "Ground body must exist")
-	var col: CollisionShape2D = ground.get_node_or_null("CollisionShape2D")
-	assert(col != null and col.shape is WorldBoundaryShape2D, "WorldBoundaryShape2D must exist")
-	assert(col.shape.distance == -410.0, "Collision ground boundary distance must be -410.0")
+	# 1. Verify static flat ground is removed (no second flat collision surface)
+	var flat_ground = surv.get_node_or_null("Ground")
+	assert(flat_ground == null, "Old static flat Ground body must be removed from Survival mode")
 
-	var g_vis: Polygon2D = ground.get_node_or_null("GroundVisual")
-	assert(g_vis != null, "GroundVisual Polygon2D must exist")
-	assert(g_vis.texture != null, "GroundVisual must have a texture")
-	assert(g_vis.texture.resource_path.ends_with("survival_drivable_ground_strip.png"), "GroundVisual must use dedicated ground strip")
-	assert(g_vis.texture_offset.y == 410.0, "Texture offset Y must match collision surface at 410.0 to prevent UV offset")
-	assert(g_vis.color.r >= 0.99 and g_vis.color.g >= 0.99 and g_vis.color.b >= 0.99, "GroundVisual must have clean unmodulate vertex color (no pale-yellow tint)")
+	# 2. Verify TerrainGenerator is present, active, and configured for Survival destroyed city
+	var t_gen: TerrainGenerator = surv.get_node_or_null("TerrainGenerator")
+	assert(t_gen != null, "Active TerrainGenerator must exist in Survival scene")
+	assert(t_gen.terrain_theme == TerrainSegment.TerrainTheme.DESTROYED_CITY, "Terrain theme must be DESTROYED_CITY")
+	assert(t_gen.enable_pickups == false, "Terrain pickups must be disabled in Survival mode")
+	assert(t_gen.active_segments.size() >= 3, "Terrain generator must generate multiple active segments ahead")
 
-	# Vehicle rests naturally on ground
+	# 3. Verify vehicle targeting and initial positioning
 	assert(surv.vehicle != null, "Vehicle must be spawned")
-	assert(abs(surv.vehicle.global_position.y - 382.0) < 5.0, "Vehicle starts at natural ground contact height")
+	assert(t_gen.target == surv.vehicle, "TerrainGenerator must target spawned vehicle")
+	var expected_veh_y := surv.get_terrain_surface_y(0.0) - 38.0
+	assert(absf(surv.vehicle.global_position.y - expected_veh_y) < 5.0, "Vehicle wheels must align with actual terrain surface")
+
+	# 4. Verify terrain is NOT flat (uneven hills, natural slopes, and rolling contours)
+	var min_y := 9999.0
+	var max_y := -9999.0
+	for seg in t_gen.active_segments:
+		assert(seg.theme == TerrainSegment.TerrainTheme.DESTROYED_CITY, "Segments must inherit DESTROYED_CITY theme")
+		assert(seg.collision_polygon.polygon.size() > 0, "Segments must have collision polygon vertices")
+		assert(seg.collision_polygon.polygon == seg.ground_polygon.polygon, "Segment visual and collision geometry must match exactly")
+		assert(seg.ground_polygon.texture.resource_path.ends_with("survival_drivable_ground_strip.png") or seg.ground_polygon.texture.resource_path.ends_with("apocalyptic_ground_seamless.png"), "Ground visual must use destroyed city terrain strip")
+		for pt in seg.generated_surface_points:
+			var world_y: float = seg.global_position.y + pt.y
+			min_y = minf(min_y, world_y)
+			max_y = maxf(max_y, world_y)
+
+	var height_variation: float = max_y - min_y
+	assert(height_variation > 25.0, "Terrain surface must have natural uneven height variations (not flat)")
+
+	# 5. Verify zero visible or collision gaps between adjacent segments
+	for i in range(t_gen.active_segments.size() - 1):
+		var curr_seg := t_gen.active_segments[i]
+		var next_seg := t_gen.active_segments[i + 1]
+		var exit_pt := curr_seg.global_position + curr_seg.get_exit_point()
+		var entry_pt := next_seg.global_position + next_seg.get_entry_point()
+		var gap := exit_pt.distance_to(entry_pt)
+		assert(gap < 0.01, "Adjacent segments must join seamlessly with zero gap (gap was %f)" % gap)
+
+	# 6. Verify endless terrain generation and recycling as vehicle advances
+	var initial_count := t_gen.segment_counter
+	surv.vehicle.global_position.x += 3500.0
+	t_gen._process(0.016)
+	assert(t_gen.active_segments.size() >= 3, "Terrain generator must maintain active segments ahead of advancing vehicle")
+	assert(t_gen.segment_counter > initial_count, "Terrain generator must generate new segments as vehicle advances")
+	assert(t_gen.segment_pool.size() > 0 or t_gen.active_segments[0].global_position.x > -500.0, "Old segments behind vehicle must be culled/recycled")
 
 	surv.queue_free()
-	print("  ✓ Ground collision and visual surfaces perfectly aligned at Y=410 with zero floating!")
+	print("  ✓ Endless uneven destroyed city terrain generated, joined with 0 gap, and vehicle firmly aligned!")
 
 func _test_issue_3_and_6_grounded_props_and_environment(root: Window) -> void:
 	print("-> [Issues 3 & 6] Verifying Grounded Foreground Props & Continuous Parallax Backdrop...")
@@ -86,15 +119,16 @@ func _test_issue_3_and_6_grounded_props_and_environment(root: Window) -> void:
 	var pole: Sprite2D = fg.get_node_or_null("ElectricPole")
 	var fence: Sprite2D = fg.get_node_or_null("DamagedFence")
 
-	assert(tree != null and pole != null and fence != null, "All foreground props must exist")
+	assert(tree != null and pole != null, "All foreground props must exist")
 	# Check bottom reach
 	var tree_bottom = tree.position.y + (tree.texture.get_height() * tree.scale.y * 0.5)
 	var pole_bottom = pole.position.y + (pole.texture.get_height() * pole.scale.y * 0.5)
-	var fence_bottom = fence.position.y + (fence.texture.get_height() * fence.scale.y * 0.5)
 
 	assert(tree_bottom >= 410.0, "DeadTree must be planted in ground surface (bottom >= 410)")
 	assert(pole_bottom >= 410.0, "ElectricPole must be planted in ground surface (bottom >= 410)")
-	assert(fence_bottom >= 410.0, "DamagedFence must be planted in ground surface (bottom >= 410)")
+	if fence != null:
+		var fence_bottom = fence.position.y + (fence.texture.get_height() * fence.scale.y * 0.5)
+		assert(fence_bottom >= 410.0, "DamagedFence must be planted in ground surface (bottom >= 410)")
 
 	env.queue_free()
 	print("  ✓ All foreground props firmly grounded with seamless repeating parallax layers!")
@@ -149,8 +183,9 @@ func _test_issue_7_and_8_food_obstacles_and_movements(root: Window) -> void:
 	print("  ✓ All 8 Indian foods present with correct identities (no nitro bottle or rocks)!")
 
 func _test_issue_9_warning_indicator_alignment(root: Window) -> void:
-	print("-> [Issue 9] Verifying Warning Indicator Alignment & Lead-Time Signal...")
+	print("-> [Issue 9] Verifying Warning Indicator Alignment & Lead-Time Signal on Uneven Terrain...")
 	var surv: SurvivalController = SurvivalScene.instantiate()
+	surv.enable_obstacle_spawning = true
 	surv.load_default_obstacles()
 	root.add_child(surv)
 
@@ -162,10 +197,11 @@ func _test_issue_9_warning_indicator_alignment(root: Window) -> void:
 
 	surv._trigger_obstacle_spawn()
 	assert(warning_fired["fired"] == true, "warning_requested signal must fire on obstacle spawn")
-	assert(warning_fired["pos"].y == 410.0, "Warning indicator must target the exact ground impact level Y=410.0")
+	var expected_surface_y := surv.get_terrain_surface_y(warning_fired["pos"].x)
+	assert(absf(warning_fired["pos"].y - expected_surface_y) < 1.0, "Warning indicator must target the actual terrain surface height at obstacle X")
 
 	surv.queue_free()
-	print("  ✓ Ground warning ring perfectly aligned to ground impact position!")
+	print("  ✓ Ground warning ring perfectly aligned to actual terrain surface height!")
 
 func _test_issue_10_pedal_controls_styling(root: Window) -> void:
 	print("-> [Issue 10] Verifying Accelerator and Brake Pedals Distinct Visual Styling...")

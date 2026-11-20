@@ -88,6 +88,7 @@ var _toast_tween: Tween
 var _milestones_reached: Array[int] = []
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_init_fuel_styles()
 	_init_toast_panel()
 	
@@ -251,14 +252,25 @@ func _apply_mode_layout() -> void:
 				survival_panel.visible = false
 				
 		HUDMode.SURVIVAL:
+			# Compact collectibles HUD: keep only the fuel gauge of the top-left panel and
+			# show the coin counter (moved below the MENU button) for Survival collectibles.
 			if is_instance_valid(top_stats_panel):
-				top_stats_panel.visible = false
+				top_stats_panel.visible = true
+				for row in top_stats_panel.get_node("Margin/VBox").get_children():
+					row.visible = (row == fuel_section)
+				top_stats_panel.offset_bottom = top_stats_panel.offset_top
 			if is_instance_valid(coins_panel):
-				coins_panel.visible = false
+				coins_panel.visible = true
+				coins_panel.offset_top = 66.0
+				coins_panel.offset_bottom = 118.0
 			if is_instance_valid(indian_roads_panel):
 				indian_roads_panel.visible = false
 			if is_instance_valid(survival_panel):
 				survival_panel.visible = true
+			if is_instance_valid(nitro_button):
+				nitro_button.visible = false
+			if is_instance_valid(nitro_section):
+				nitro_section.visible = false
 
 # =========================================================================
 # MODE-SPECIFIC PUBLIC APIS
@@ -277,18 +289,62 @@ func set_indian_roads_progress(current_checkpoint: int, total_checkpoints: int, 
 	if is_instance_valid(destination_label) and destination_name != "":
 		destination_label.text = "DESTINATION: %s" % destination_name.to_upper()
 
-## Survival: Update remaining lives (heart indicators)
+var _previous_survival_lives: int = 3
+
+## Survival: Update remaining lives (heart indicators) with heart-break animation
 func set_survival_lives(current_l: int, max_l: int = 3) -> void:
 	if not is_instance_valid(heart_container):
 		return
 	var hearts := heart_container.get_children()
+	var is_life_loss: bool = current_l < _previous_survival_lives and _previous_survival_lives <= max_l
+	
 	for i in range(hearts.size()):
 		var heart_rect = hearts[i] as TextureRect
-		if is_instance_valid(heart_rect):
-			if i < current_l:
-				heart_rect.texture = HEART_FULL_TEX
+		if not is_instance_valid(heart_rect):
+			continue
+		
+		heart_rect.pivot_offset = heart_rect.size * 0.5
+		
+		if i < current_l:
+			# Fully active heart
+			heart_rect.texture = HEART_FULL_TEX
+			heart_rect.scale = Vector2.ONE
+			heart_rect.rotation = 0.0
+			heart_rect.modulate = Color.WHITE
+		else:
+			# Depleted heart
+			if is_life_loss and i >= current_l and i < _previous_survival_lives:
+				_animate_heart_break(heart_rect)
 			else:
 				heart_rect.texture = HEART_EMPTY_TEX
+				heart_rect.scale = Vector2.ONE
+				heart_rect.rotation = 0.0
+				heart_rect.modulate = Color.WHITE
+
+	_previous_survival_lives = current_l
+
+func _animate_heart_break(heart_rect: TextureRect) -> void:
+	heart_rect.texture = HEART_EMPTY_TEX
+	heart_rect.pivot_offset = heart_rect.size * 0.5
+	if not heart_rect.is_inside_tree():
+		return
+	var tw := heart_rect.create_tween()
+	if not tw:
+		return
+	
+	tw.set_parallel(false)
+	# 1. Brief shake, scale up, and flash
+	tw.tween_property(heart_rect, "scale", Vector2(1.35, 1.35), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(heart_rect, "rotation", 0.15, 0.04)
+	tw.parallel().tween_property(heart_rect, "modulate", Color(1.8, 0.4, 0.4, 1.0), 0.06)
+	
+	# 2. Counter-shake
+	tw.tween_property(heart_rect, "rotation", -0.15, 0.06)
+	
+	# 3. Flash fade & settle back to normal scale
+	tw.tween_property(heart_rect, "rotation", 0.0, 0.06)
+	tw.parallel().tween_property(heart_rect, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(heart_rect, "modulate", Color.WHITE, 0.12)
 
 ## Survival: Update run metrics (time & distance)
 func set_survival_stats(time_val: float, distance_val: float) -> void:
@@ -324,6 +380,12 @@ func _on_nitro_button_up() -> void:
 		_vehicle_ref.set_nitro_active(false)
 
 func _on_pause_button_pressed() -> void:
+	if is_instance_valid(_survival_controller_ref) and _survival_controller_ref.has_method("toggle_pause"):
+		_survival_controller_ref.toggle_pause()
+		return
+	if is_instance_valid(game_manager_ref) and game_manager_ref.has_method("toggle_pause"):
+		game_manager_ref.toggle_pause()
+		return
 	var ev := InputEventAction.new()
 	ev.action = "pause"
 	ev.pressed = true
@@ -446,6 +508,8 @@ func bind_survival_controller(controller: Node) -> void:
 		controller.run_started.connect(_on_survival_run_started)
 	if controller.has_signal("run_finished") and not controller.run_finished.is_connected(_on_survival_run_finished):
 		controller.run_finished.connect(_on_survival_run_finished)
+	if controller.has_signal("run_paused") and not controller.run_paused.is_connected(_on_run_paused):
+		controller.run_paused.connect(_on_run_paused)
 		
 	if "current_lives" in controller and "max_lives" in controller:
 		set_survival_lives(controller.current_lives, controller.max_lives)
@@ -461,6 +525,8 @@ func unbind_survival_controller() -> void:
 			_survival_controller_ref.run_started.disconnect(_on_survival_run_started)
 		if _survival_controller_ref.has_signal("run_finished") and _survival_controller_ref.run_finished.is_connected(_on_survival_run_finished):
 			_survival_controller_ref.run_finished.disconnect(_on_survival_run_finished)
+		if _survival_controller_ref.has_signal("run_paused") and _survival_controller_ref.run_paused.is_connected(_on_run_paused):
+			_survival_controller_ref.run_paused.disconnect(_on_run_paused)
 	_survival_controller_ref = null
 
 ## Binds to Joel's RouteController (Indian Roads)
@@ -578,6 +644,10 @@ func _on_pothole_assist_hint(should_hint: bool) -> void:
 		nitro_button.modulate = Color.WHITE
 		nitro_button.scale = Vector2.ONE
 
+## Survival: update the coin counter shown for collected coins.
+func set_survival_coins(count: int) -> void:
+	_on_coins_updated(count)
+
 func _on_coins_updated(count: int) -> void:
 	if coins_label:
 		coins_label.text = str(count)
@@ -615,7 +685,16 @@ func _on_run_started() -> void:
 		coins_label.text = str(game_manager_ref.coins_collected)
 		_last_coins_count = game_manager_ref.coins_collected
 
+func hide_message_banner() -> void:
+	if message_banner:
+		message_banner.visible = false
+	if pause_banner:
+		pause_banner.visible = false
+
 func _on_vehicle_crashed() -> void:
+	# In Survival mode, SurvivalController owns lives, crash handling, and game over presentation
+	if current_mode == HUDMode.SURVIVAL:
+		return
 	if is_instance_valid(_toast_panel):
 		_toast_panel.visible = false
 	if message_banner:
@@ -658,6 +737,8 @@ func _on_survival_lives_changed(curr_l: int, max_l: int) -> void:
 	set_survival_lives(curr_l, max_l)
 
 func _on_survival_run_started() -> void:
+	_previous_survival_lives = 3
+	hide_message_banner()
 	set_survival_lives(3, 3)
 	set_survival_stats(0.0, 0.0)
 

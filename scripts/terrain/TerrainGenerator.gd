@@ -14,6 +14,7 @@ signal segment_despawned(segment: TerrainSegment)
 @export var fuel_scene: PackedScene = preload("res://scenes/pickups/FuelPickup.tscn")
 @export var target: Node2D
 @export var auto_find_target: bool = true
+@export var terrain_theme: TerrainSegment.TerrainTheme = TerrainSegment.TerrainTheme.COUNTRYSIDE
 
 @export_group("Generation Limits")
 ## How far ahead of the target terrain should be generated (in pixels)
@@ -32,6 +33,8 @@ signal segment_despawned(segment: TerrainSegment)
 @export var max_height_delta: float = 130.0
 ## Difficulty increase rate per 100 meters
 @export var difficulty_growth: float = 0.15
+## Frequency of flat transition segments (Hill climb style maintains naturally uneven continuous terrain)
+@export var flat_segment_chance: float = 0.04
 
 @export_group("Pickups Distribution")
 @export var enable_pickups: bool = true
@@ -123,17 +126,17 @@ func _generate_initial_track() -> void:
 	distance_since_last_fuel = fuel_interval_distance * 0.4 # Pre-charge fuel countdown
 	
 	# Segment 0: Flat runway at spawn extending through vehicle starting position
-	var runway_length: float = maxf(450.0, 150.0 - initial_spawn_point.x)
+	var runway_length: float = maxf(220.0, 70.0 - initial_spawn_point.x)
 	var flat_seg := _create_segment(TerrainSegment.SegmentType.FLAT, runway_length, 0.0, 0.0, 0.0, 0.0, 0.0)
 	_attach_segment(flat_seg, false)
 	
 	# Segment 1: Gentle introductory hill with starter coins
-	var intro_seg := _create_segment(TerrainSegment.SegmentType.GENTLE_HILLS, 800.0, 0.0, -35.0, 85.0, 0.0, -0.05)
-	_attach_segment(intro_seg, true)
+	var intro_seg := _create_segment(TerrainSegment.SegmentType.GENTLE_HILLS, 700.0, 0.0, -35.0, 85.0, 0.0, -0.05)
+	_attach_segment(intro_seg, enable_pickups)
 	
 	# Segment 2: Rolling starter wave with first fuel pickup
-	var wave_seg := _create_segment(TerrainSegment.SegmentType.ROLLING_WAVES, 850.0, 0.0, 35.0, 95.0, -0.05, 0.0)
-	_attach_segment(wave_seg, true)
+	var wave_seg := _create_segment(TerrainSegment.SegmentType.ROLLING_WAVES, 750.0, 0.0, 35.0, 95.0, -0.05, 0.0)
+	_attach_segment(wave_seg, enable_pickups)
 
 func _update_generation(target_x: float) -> void:
 	# Keep generating until the end of the track is far enough ahead of the target
@@ -183,8 +186,8 @@ func _generate_next_procedural_segment() -> TerrainSegment:
 	var target_slope: float = 0.0
 
 	if seg_type == TerrainSegment.SegmentType.FLAT:
-		# Relatively flat section to gain speed and momentum
-		seg_length = rng.randf_range(600.0, 800.0)
+		# Relatively short flat section for momentum transition
+		seg_length = rng.randf_range(300.0, 480.0)
 		amp = 0.0
 		height_change = 0.0
 		target_slope = 0.0
@@ -211,30 +214,34 @@ func _generate_next_procedural_segment() -> TerrainSegment:
 
 func _select_segment_type(_diff: float) -> TerrainSegment.SegmentType:
 	var roll := rng.randf()
-	if roll < 0.60:
-		# 60% Gentle rolling terrain (smooth waves, pleasant hills, undulating contours)
-		if rng.randf() < 0.55:
+	if roll < flat_segment_chance:
+		return TerrainSegment.SegmentType.FLAT
+
+	var remaining_roll := (roll - flat_segment_chance) / maxf(0.001, 1.0 - flat_segment_chance)
+	if remaining_roll < 0.55:
+		# 55% Continuous rolling terrain (smooth waves and gentle undulating hills)
+		if rng.randf() < 0.50:
 			return TerrainSegment.SegmentType.GENTLE_HILLS
 		else:
 			return TerrainSegment.SegmentType.ROLLING_WAVES
-	elif roll < 0.80:
-		# 20% Relatively flat sections (moments to gain speed and momentum)
-		return TerrainSegment.SegmentType.FLAT
-	elif roll < 0.95:
-		# 15% Moderate hills and valleys (rewarding climbs, thrilling descents)
+	elif remaining_roll < 0.80:
+		# 25% Moderate hills and natural valleys
 		if rng.randf() < 0.50:
 			return TerrainSegment.SegmentType.VALLEY_DIP
 		else:
 			return TerrainSegment.SegmentType.STEEP_CLIMB
-	else:
-		# 5% Challenging sections (steep climbs, crest jumps, technical dips)
-		var c_roll := rng.randf()
-		if c_roll < 0.50:
-			return TerrainSegment.SegmentType.JUMP_RAMP
-		elif c_roll < 0.80:
-			return TerrainSegment.SegmentType.DOUBLE_CREST
-		else:
+	elif remaining_roll < 0.92:
+		# 12% Bumpy washboard and double crests
+		if rng.randf() < 0.50:
 			return TerrainSegment.SegmentType.BUMPY_WASHBOARD
+		else:
+			return TerrainSegment.SegmentType.DOUBLE_CREST
+	else:
+		# 8% Dynamic crest jumps and plateau drops
+		if rng.randf() < 0.60:
+			return TerrainSegment.SegmentType.JUMP_RAMP
+		else:
+			return TerrainSegment.SegmentType.PLATEAU_DROP
 
 func _create_segment(
 	type: TerrainSegment.SegmentType,
@@ -256,6 +263,7 @@ func _create_segment(
 	else:
 		seg = TerrainSegment.new()
 	
+	seg.theme = terrain_theme
 	seg.segment_type = type
 	seg.segment_length = length_val
 	seg.start_height = start_h
@@ -272,6 +280,8 @@ func _attach_segment(seg: TerrainSegment, allow_pickups: bool = true) -> void:
 		add_child(seg)
 	
 	seg.global_position = next_attach_point - seg.get_entry_point()
+	if seg.has_method("align_bottom_to_global_depth"):
+		seg.align_bottom_to_global_depth(3500.0)
 	active_segments.append(seg)
 	segment_spawned.emit(seg)
 	current_slope = seg.get_exit_slope()
@@ -391,30 +401,53 @@ func _spawn_coins_on_segment(seg: TerrainSegment) -> void:
 
 ## Returns the surface Y in world coordinates at the given world_x
 func get_surface_y_at_world_x(world_x: float) -> float:
+	# Ensure procedural terrain exists at world_x if asking ahead
+	if next_attach_point.x < world_x + 200.0:
+		_update_generation(world_x)
+
 	for seg in active_segments:
 		if not is_instance_valid(seg):
 			continue
 		var seg_start_x := seg.global_position.x
 		var seg_end_x := seg_start_x + seg.segment_length
-		if world_x >= seg_start_x and world_x <= seg_end_x:
-			var local_x := world_x - seg_start_x
+		if world_x >= (seg_start_x - 0.1) and world_x <= (seg_end_x + 0.1):
+			var local_x := clampf(world_x - seg_start_x, 0.0, seg.segment_length)
 			return seg.global_position.y + seg.get_surface_y_at(local_x)
+
+	if not active_segments.is_empty():
+		var first_seg = active_segments[0]
+		if is_instance_valid(first_seg) and world_x < first_seg.global_position.x:
+			return first_seg.global_position.y + first_seg.get_surface_y_at(0.0)
+		var last_seg = active_segments.back()
+		if is_instance_valid(last_seg) and world_x > (last_seg.global_position.x + last_seg.segment_length):
+			return last_seg.global_position.y + last_seg.get_surface_y_at(last_seg.segment_length)
+
 	return initial_spawn_point.y
 
 ## Clears all active segments and resets generation state
 func clear_terrain() -> void:
 	for p in _spawned_pickups:
 		if is_instance_valid(p):
+			if p.get_parent():
+				p.get_parent().remove_child(p)
 			p.queue_free()
 	_spawned_pickups.clear()
 	
 	for seg in active_segments:
 		if is_instance_valid(seg):
+			if "collision_polygon" in seg and is_instance_valid(seg.collision_polygon):
+				seg.collision_polygon.set_deferred("disabled", true)
+			if seg.get_parent():
+				seg.get_parent().remove_child(seg)
 			seg.queue_free()
 	active_segments.clear()
 	
 	for seg in segment_pool:
 		if is_instance_valid(seg):
+			if "collision_polygon" in seg and is_instance_valid(seg.collision_polygon):
+				seg.collision_polygon.set_deferred("disabled", true)
+			if seg.get_parent():
+				seg.get_parent().remove_child(seg)
 			seg.queue_free()
 	segment_pool.clear()
 	

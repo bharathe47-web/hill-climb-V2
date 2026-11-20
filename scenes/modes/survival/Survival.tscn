@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://survival_mode_scene_001"]
+[gd_scene load_steps=12 format=3 uid="uid://survival_mode_scene_001"]
 
 [ext_resource type="Script" path="res://scripts/modes/survival/SurvivalController.gd" id="1_controller"]
 [ext_resource type="PackedScene" uid="uid://destroyed_city_env_001" path="res://scenes/environment/survival/destroyed_city_environment.tscn" id="2_destroyed_city_env"]
@@ -6,10 +6,9 @@
 [ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future.ttf" id="4_font_future"]
 [ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future_Narrow.ttf" id="5_font_narrow"]
 [ext_resource type="PackedScene" uid="uid://game_hud_scene_001" path="res://scenes/ui/hud/game_hud.tscn" id="6_shared_hud"]
-[ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/terrain/dusty_ground/survival_drivable_ground_strip.png" id="7_ground_tex"]
-
-[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_ground"]
-distance = -410.0
+[ext_resource type="Script" path="res://scripts/terrain/TerrainGenerator.gd" id="7_terrain_gen"]
+[ext_resource type="AudioStream" uid="uid://ddj6lv6rw3v0s" path="res://assets/audio/survival/music/survival_main_theme_loop.ogg" id="8_bgm"]
+[ext_resource type="PackedScene" uid="uid://pause_menu_001" path="res://scenes/ui/PauseMenu.tscn" id="9_pause_menu"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
 bg_color = Color(0.08, 0.12, 0.18, 0.95)
@@ -27,20 +26,21 @@ shadow_size = 10
 
 [node name="Survival" type="Node2D"]
 script = ExtResource("1_controller")
+enable_obstacle_spawning = false
+
+[node name="SurvivalMusicPlayer" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("8_bgm")
+volume_db = -6.0
+bus = &"Music"
 
 [node name="DestroyedCityEnvironment" parent="." instance=ExtResource("2_destroyed_city_env")]
 
-[node name="Ground" type="StaticBody2D" parent="."]
-collision_mask = 2
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-shape = SubResource("WorldBoundaryShape2D_ground")
-
-[node name="GroundVisual" type="Polygon2D" parent="Ground"]
-texture_repeat = 2
-texture = ExtResource("7_ground_tex")
-texture_offset = Vector2(0, 410)
-polygon = PackedVector2Array(-10000, 410, 50000, 410, 50000, 1200, -10000, 1200)
+[node name="TerrainGenerator" type="Node2D" parent="." node_paths=PackedStringArray("target")]
+script = ExtResource("7_terrain_gen")
+target = NodePath("../VehicleSlot")
+terrain_theme = 1
+enable_pickups = false
 
 [node name="VehicleSlot" type="Node2D" parent="."]
 
@@ -67,6 +67,10 @@ grow_horizontal = 0
 theme_override_fonts/font = ExtResource("5_font_narrow")
 theme_override_font_sizes/font_size = 14
 text = "MENU"
+
+[node name="PauseMenu" parent="UILayer" instance=ExtResource("9_pause_menu")]
+unique_name_in_owner = true
+visible = false
 
 [node name="AdOfferPanel" type="PanelContainer" parent="UILayer"]
 unique_name_in_owner = true

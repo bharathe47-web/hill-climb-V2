@@ -32,7 +32,7 @@ func _run_tests() -> void:
 	quit(0)
 
 func _test_survival_scene_and_environment(root: Window) -> void:
-	print("-> [1/8] Verifying Survival Scene & Destroyed City Environment...")
+	print("-> [1/8] Verifying Survival Scene, Destroyed City Environment & Endless Terrain...")
 	var surv: SurvivalController = SurvivalScene.instantiate()
 	root.add_child(surv)
 
@@ -47,19 +47,45 @@ func _test_survival_scene_and_environment(root: Window) -> void:
 	assert(env.get_node_or_null("ForegroundPropsLayer") != null, "ForegroundPropsLayer must exist")
 	assert(env.get_node_or_null("AtmosphereOverlayLayer") != null, "AtmosphereOverlayLayer must exist")
 
-	# Ground collision verification (physics separate from visuals)
-	var ground = surv.get_node_or_null("Ground")
-	assert(ground != null and ground is StaticBody2D, "Drivable Ground must be StaticBody2D")
-	var col = ground.get_node_or_null("CollisionShape2D")
-	assert(col != null and col.shape is WorldBoundaryShape2D, "Ground must have WorldBoundaryShape2D")
-	assert(col.shape.distance == -410.0, "Ground boundary distance must be -410.0")
+	# Flat ground removed check (no second flat collision surface)
+	assert(surv.get_node_or_null("Ground") == null, "Old static flat Ground body must not exist")
 
-	# Vehicle and camera
+	# TerrainGenerator verification
+	var t_gen: TerrainGenerator = surv.get_node_or_null("TerrainGenerator")
+	assert(t_gen != null, "Survival Mode must contain an active TerrainGenerator")
+	assert(t_gen.terrain_theme == TerrainSegment.TerrainTheme.DESTROYED_CITY, "TerrainGenerator must use DESTROYED_CITY theme")
+	assert(t_gen.enable_pickups == false, "Pickups must be disabled in Survival mode")
+	assert(t_gen.active_segments.size() >= 3, "Multiple terrain segments must be generated")
+	assert(t_gen.target == surv.vehicle, "TerrainGenerator must target spawned vehicle")
+
+	# Height variation and seamless joins
+	var min_y := 9999.0
+	var max_y := -9999.0
+	for seg in t_gen.active_segments:
+		assert(seg.theme == TerrainSegment.TerrainTheme.DESTROYED_CITY, "Segment theme must be DESTROYED_CITY")
+		assert(seg.collision_polygon.polygon.size() > 0, "Segment must have collision geometry")
+		assert(seg.collision_polygon.polygon == seg.ground_polygon.polygon, "Collision geometry must match visual geometry")
+		for pt in seg.generated_surface_points:
+			var wy := seg.global_position.y + pt.y
+			min_y = minf(min_y, wy)
+			max_y = maxf(max_y, wy)
+	assert((max_y - min_y) > 25.0, "Terrain surface must have natural uneven height variations (not flat)")
+
+	for i in range(t_gen.active_segments.size() - 1):
+		var s1 := t_gen.active_segments[i]
+		var s2 := t_gen.active_segments[i + 1]
+		var exit_pt := s1.global_position + s1.get_exit_point()
+		var entry_pt := s2.global_position + s2.get_entry_point()
+		assert(exit_pt.distance_to(entry_pt) < 0.01, "Adjacent segments must join with 0 gap")
+
+	# Vehicle starting height and camera target
 	assert(surv.vehicle != null, "Vehicle must be spawned")
+	var expected_veh_y := surv.get_terrain_surface_y(0.0) - 38.0
+	assert(absf(surv.vehicle.global_position.y - expected_veh_y) < 5.0, "Vehicle starts at correct terrain surface height")
 	assert(surv.follow_camera != null and surv.follow_camera.target == surv.vehicle, "Camera must target vehicle")
 
 	surv.queue_free()
-	print("  ✓ Destroyed City environment layers, ground collision separation, and vehicle target verified!")
+	print("  ✓ Destroyed City environment, endless uneven procedural terrain, and vehicle target verified!")
 
 func _test_all_eight_food_obstacles(root: Window) -> void:
 	print("-> [2/8] Verifying All 8 Indian Food Obstacle Scenes & Movement Types...")
@@ -225,7 +251,8 @@ func _test_shared_hud_integration(root: Window) -> void:
 	assert(hud != null, "SurvivalHUD must be an instance of GameHUD")
 	assert(hud.current_mode == GameHUD.HUDMode.SURVIVAL, "HUD must be in SURVIVAL mode")
 	assert(hud.survival_panel != null and hud.survival_panel.visible == true, "SurvivalPanel must be visible")
-	assert(hud.top_stats_panel.visible == false, "TopStatsPanel (fuel/distance) must be hidden in Survival")
+	assert(hud.fuel_section.is_visible_in_tree() and not hud.get_node("%DistanceLabel").is_visible_in_tree(), "Survival shows only the compact fuel gauge (distance row hidden)")
+	assert(hud.coins_panel.visible == true, "Survival shows the coin counter for collectibles")
 
 	# Heart indicators sync
 	hud.set_survival_lives(3, 3)

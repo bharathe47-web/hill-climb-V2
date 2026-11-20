@@ -22,6 +22,12 @@ func snap_to_target() -> void:
 	if is_instance_valid(target):
 		global_position = target.global_position + follow_offset
 
+## Resets camera trauma, shake, and snaps immediately to target
+func reset_camera() -> void:
+	trauma = 0.0
+	_trauma_time = 0.0
+	snap_to_target()
+
 ## Adds subtle screen trauma shake (clamped to 1.0)
 func add_trauma(amount: float) -> void:
 	trauma = clampf(trauma + amount, 0.0, 1.0)

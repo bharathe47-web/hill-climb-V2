@@ -32,8 +32,8 @@ func _init() -> void:
 	
 	# 2. Start Game from Main Menu
 	print("-> [Step 2] Triggering Game Start from Main Menu...")
-	var start_btn: Button = current_menu.get_node("%StartButton")
-	assert(is_instance_valid(start_btn), "StartButton must exist")
+	var start_btn: TextureButton = current_menu.get_node("%EndlessSign")
+	assert(is_instance_valid(start_btn), "Endless signboard must exist")
 	start_btn.emit_signal("pressed")
 	
 	for i in range(10):
