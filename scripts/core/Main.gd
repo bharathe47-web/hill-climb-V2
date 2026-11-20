@@ -52,7 +52,7 @@ func load_game() -> void:
 		if current_scene_node.has_signal("return_to_main_menu_requested") and not current_scene_node.return_to_main_menu_requested.is_connected(load_menu):
 			current_scene_node.return_to_main_menu_requested.connect(load_menu)
 
-func load_survival() -> void:
+func load_survival(difficulty: int = -1) -> void:
 	if not is_instance_valid(scene_container):
 		scene_container = get_node_or_null("SceneContainer")
 	if not is_instance_valid(scene_container):
@@ -65,6 +65,13 @@ func load_survival() -> void:
 	
 	if default_survival_scene:
 		var surv_inst = default_survival_scene.instantiate()
+		var target_diff: int = difficulty
+		if target_diff < 0:
+			target_diff = SaveManager.get_survival_difficulty()
+		surv_inst.set("selected_difficulty", target_diff)
+		# Explicitly enable obstacle spawning and default food hazards for active Survival gameplay
+		surv_inst.set("enable_obstacle_spawning", true)
+		surv_inst.set("use_default_food_obstacles", true)
 		if surv_inst.has_method("load_default_obstacles"):
 			surv_inst.load_default_obstacles()
 		scene_container.add_child(surv_inst)

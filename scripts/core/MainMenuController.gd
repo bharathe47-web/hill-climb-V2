@@ -1,295 +1,130 @@
 class_name MainMenuController
 extends Control
 
-## MainMenuController: Oversees the startup menu, displaying high scores, bank balance,
-## mode selection cards (Endless, Indian Roads, Survival, Garage), vehicle selection interface,
-## and directing transitions into the Game run loops.
+## MainMenuController: Home screen. A countryside environment with the player's selected
+## Garage vehicle in the centre, four wooden signboards (Indian Roads, Survival, My Cars,
+## Endless), and a Quit button in the sky with a Yes/No confirmation dialog.
+## Scene switching stays in Main.gd via the signals below.
 
 const SaveManager = preload("res://scripts/core/SaveManager.gd")
-const VehicleRegistry = preload("res://scripts/vehicle/VehicleRegistry.gd")
 
 signal start_game_requested
-signal start_survival_requested
+signal start_survival_requested(difficulty: int)
 signal start_garage_requested
 signal quit_requested
 
-@onready var best_distance_label: Label = %BestDistanceLabel
-@onready var total_coins_label: Label = %TotalCoinsLabel
-@onready var runs_played_label: Label = %RunsPlayedLabel
-@onready var start_button: Button = %StartButton
-@onready var change_vehicle_button: Button = get_node_or_null("%ChangeVehicleButton")
-@onready var reset_save_button: Button = %ResetSaveButton
-@onready var quit_button: Button = %QuitButton
+## Design resolution of the home-screen art; the Stage node is scaled to fit the viewport width.
+const DESIGN_SIZE := Vector2(1920.0, 1080.0)
+## Quit button placement in design space (matches the asset composite's sky position).
+const QUIT_SIZE := 100.0
+const QUIT_MARGIN_RIGHT := 86.0
+const QUIT_MARGIN_TOP := 56.0
 
-# Mode Selection Card buttons
-@onready var endless_mode_button: Button = get_node_or_null("%EndlessModeButton")
-@onready var survival_mode_button: Button = get_node_or_null("%SurvivalModeButton")
-@onready var garage_mode_button: Button = get_node_or_null("%GarageModeButton")
-@onready var indian_roads_mode_button: Button = get_node_or_null("%IndianRoadsModeButton")
-
-@onready var content_vbox: Control = get_node_or_null("%ContentVBox")
-@onready var vehicle_select_panel: Control = get_node_or_null("%VehicleSelectPanel")
-@onready var vehicle_cards_container: Container = get_node_or_null("%VehicleCardsContainer")
-@onready var vehicle_select_back_button: Button = get_node_or_null("%VehicleSelectBackButton")
-@onready var prev_vehicle_button: Button = get_node_or_null("%PrevVehicleButton")
-@onready var next_vehicle_button: Button = get_node_or_null("%NextVehicleButton")
-@onready var scroll_container: ScrollContainer = get_node_or_null("%ScrollContainer")
+@onready var stage: Control = %Stage
+@onready var vehicle_showcase: HomeVehicleShowcase = %VehicleShowcase
+@onready var indian_roads_sign: HomeSignboard = %IndianRoadsSign
+@onready var survival_sign: HomeSignboard = %SurvivalSign
+@onready var garage_sign: HomeSignboard = %GarageSign
+@onready var endless_sign: HomeSignboard = %EndlessSign
+@onready var quit_button: TextureButton = %QuitButton
+@onready var quit_dialog: Control = %QuitDialog
+@onready var quit_yes_button: Button = %QuitYesButton
+@onready var quit_no_button: Button = %QuitNoButton
+@onready var difficulty_layer: Control = %DifficultyLayer
+@onready var difficulty_menu: Control = %SurvivalDifficultyMenu
 
 func _ready() -> void:
-	refresh_stats()
 	_connect_signals()
-	if is_instance_valid(start_button):
-		start_button.grab_focus()
+	resized.connect(_layout)
+	_layout()
+	refresh_vehicle()
 
-func refresh_stats() -> void:
-	var data := SaveManager.load_save()
-	if is_instance_valid(best_distance_label):
-		best_distance_label.text = "%d m" % int(data.get("best_distance", 0.0))
-	if is_instance_valid(total_coins_label):
-		total_coins_label.text = "%d" % int(data.get("total_coins", 0))
-	if is_instance_valid(runs_played_label):
-		runs_played_label.text = "%d" % int(data.get("runs_played", 0))
+## Shows the vehicle currently selected in the Garage (single source: SaveManager).
+func refresh_vehicle() -> void:
+	vehicle_showcase.show_vehicle(SaveManager.get_selected_vehicle_id())
 
 func _connect_signals() -> void:
-	# Primary standard action buttons
-	if is_instance_valid(start_button) and not start_button.pressed.is_connected(_on_start_pressed):
-		start_button.pressed.connect(_on_start_pressed)
-	if is_instance_valid(change_vehicle_button) and not change_vehicle_button.pressed.is_connected(_on_garage_pressed):
-		change_vehicle_button.pressed.connect(_on_garage_pressed)
-	if is_instance_valid(reset_save_button) and not reset_save_button.pressed.is_connected(_on_reset_pressed):
-		reset_save_button.pressed.connect(_on_reset_pressed)
-	if is_instance_valid(quit_button) and not quit_button.pressed.is_connected(_on_quit_pressed):
-		quit_button.pressed.connect(_on_quit_pressed)
+	endless_sign.pressed.connect(_on_endless_pressed)
+	survival_sign.pressed.connect(_on_survival_pressed)
+	garage_sign.pressed.connect(_on_garage_pressed)
+	indian_roads_sign.pressed.connect(_on_indian_roads_pressed)
+	quit_button.pressed.connect(_on_quit_pressed)
+	quit_yes_button.pressed.connect(_on_quit_confirmed)
+	quit_no_button.pressed.connect(_close_quit_dialog)
+	if not difficulty_menu.start_survival_pressed.is_connected(_on_difficulty_start_survival_pressed):
+		difficulty_menu.start_survival_pressed.connect(_on_difficulty_start_survival_pressed)
+	if not difficulty_menu.back_pressed.is_connected(_close_difficulty_selection):
+		difficulty_menu.back_pressed.connect(_close_difficulty_selection)
 
-	# Mode selection card buttons
-	if is_instance_valid(endless_mode_button) and not endless_mode_button.pressed.is_connected(_on_start_pressed):
-		endless_mode_button.pressed.connect(_on_start_pressed)
-	if is_instance_valid(survival_mode_button) and not survival_mode_button.pressed.is_connected(_on_survival_pressed):
-		survival_mode_button.pressed.connect(_on_survival_pressed)
-	if is_instance_valid(garage_mode_button) and not garage_mode_button.pressed.is_connected(_on_garage_pressed):
-		garage_mode_button.pressed.connect(_on_garage_pressed)
-	if is_instance_valid(indian_roads_mode_button) and not indian_roads_mode_button.pressed.is_connected(_on_indian_roads_pressed):
-		indian_roads_mode_button.pressed.connect(_on_indian_roads_pressed)
+## Scales the 1920x1080 stage to the viewport width, anchored to the bottom so the ground and
+## signboards always stay visible; the quit button is pinned to the top-right of the screen.
+func _layout() -> void:
+	if not is_instance_valid(stage):
+		return
+	var s := size.x / DESIGN_SIZE.x
+	stage.scale = Vector2(s, s)
+	stage.position = Vector2(0.0, size.y - DESIGN_SIZE.y * s)
+	var q := QUIT_SIZE * s
+	quit_button.size = Vector2(q, q)
+	quit_button.position = Vector2(size.x - QUIT_MARGIN_RIGHT * s - q, maxf(QUIT_MARGIN_TOP * s, 8.0))
+	quit_button.pivot_offset = quit_button.size * 0.5
 
-	# Vehicle selection carousel buttons
-	if is_instance_valid(vehicle_select_back_button) and not vehicle_select_back_button.pressed.is_connected(_on_vehicle_select_back_pressed):
-		vehicle_select_back_button.pressed.connect(_on_vehicle_select_back_pressed)
-	if is_instance_valid(prev_vehicle_button) and not prev_vehicle_button.pressed.is_connected(_on_prev_vehicle_pressed):
-		prev_vehicle_button.pressed.connect(_on_prev_vehicle_pressed)
-	if is_instance_valid(next_vehicle_button) and not next_vehicle_button.pressed.is_connected(_on_next_vehicle_pressed):
-		next_vehicle_button.pressed.connect(_on_next_vehicle_pressed)
-
-func _on_start_pressed() -> void:
+func _on_endless_pressed() -> void:
 	start_game_requested.emit()
 
-func _on_survival_pressed() -> void:
-	start_survival_requested.emit()
-
 func _on_garage_pressed() -> void:
-	_open_vehicle_selection()
 	start_garage_requested.emit()
 
+func _on_survival_pressed() -> void:
+	_open_difficulty_selection()
+
 func _on_indian_roads_pressed() -> void:
-	# Joel's module is currently in development
-	pass
+	# Indian Roads is not implemented yet: no fake transition, just feedback.
+	indian_roads_sign.shake()
 
-func _on_change_vehicle_pressed() -> void:
-	_on_garage_pressed()
+func _open_difficulty_selection() -> void:
+	difficulty_layer.visible = true
+	var saved_diff := SaveManager.get_survival_difficulty()
+	if difficulty_menu.has_method("select_difficulty"):
+		difficulty_menu.select_difficulty(saved_diff)
 
-func _on_vehicle_select_back_pressed() -> void:
-	_close_vehicle_selection()
+func _close_difficulty_selection() -> void:
+	difficulty_layer.visible = false
+	survival_sign.grab_focus()
 
-func _on_prev_vehicle_pressed() -> void:
-	if is_instance_valid(scroll_container):
-		var target: int = maxi(0, scroll_container.scroll_horizontal - 190)
-		var tw := create_tween()
-		tw.tween_property(scroll_container, "scroll_horizontal", target, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-
-func _on_next_vehicle_pressed() -> void:
-	if is_instance_valid(scroll_container):
-		var target: int = scroll_container.scroll_horizontal + 190
-		var tw := create_tween()
-		tw.tween_property(scroll_container, "scroll_horizontal", target, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-
-func _open_vehicle_selection() -> void:
-	if is_instance_valid(content_vbox):
-		content_vbox.visible = false
-	if is_instance_valid(vehicle_select_panel):
-		vehicle_select_panel.visible = true
-	_populate_vehicle_cards()
-	call_deferred("_scroll_to_selected_vehicle")
-
-func _scroll_to_selected_vehicle() -> void:
-	if not is_instance_valid(scroll_container):
-		return
-	var current_id := SaveManager.get_selected_vehicle_id()
-	var all_ids := VehicleRegistry.get_vehicle_ids()
-	var idx := all_ids.find(current_id)
-	if idx >= 0:
-		scroll_container.scroll_horizontal = maxi(0, (idx - 1) * 190)
-
-func _close_vehicle_selection() -> void:
-	if is_instance_valid(vehicle_select_panel):
-		vehicle_select_panel.visible = false
-	if is_instance_valid(content_vbox):
-		content_vbox.visible = true
-	if is_instance_valid(change_vehicle_button):
-		change_vehicle_button.grab_focus()
-
-func _populate_vehicle_cards() -> void:
-	if not is_instance_valid(vehicle_cards_container):
-		return
-	
-	# Clear existing card children
-	for child in vehicle_cards_container.get_children():
-		child.queue_free()
-	
-	var current_selected: String = SaveManager.get_selected_vehicle_id()
-	var all_vehicles: Array[Dictionary] = VehicleRegistry.get_all_vehicles()
-	
-	var font_future = load("res://assets/fonts/Kenney_Future.ttf")
-	var font_bold = load("res://assets/fonts/Boxy-Bold.ttf")
-	var font_narrow = load("res://assets/fonts/Kenney_Future_Narrow.ttf")
-	
-	for v_data in all_vehicles:
-		var v_id: String = v_data.get("id", "")
-		var v_name: String = v_data.get("display_name", "")
-		var v_preview_path: String = v_data.get("preview_path", "")
-		var is_selected: bool = (v_id == current_selected)
-		
-		# Card Panel
-		var card := PanelContainer.new()
-		card.custom_minimum_size = Vector2(165, 290)
-		var card_style := StyleBoxFlat.new()
-		card_style.bg_color = Color(0.10, 0.14, 0.22, 0.95)
-		card_style.corner_radius_top_left = 10
-		card_style.corner_radius_top_right = 10
-		card_style.corner_radius_bottom_right = 10
-		card_style.corner_radius_bottom_left = 10
-		if is_selected:
-			card_style.border_width_left = 2
-			card_style.border_width_top = 2
-			card_style.border_width_right = 2
-			card_style.border_width_bottom = 2
-			card_style.border_color = Color(0.3, 0.9, 0.5, 1.0) # Golden green glow
-			card_style.shadow_color = Color(0.15, 0.85, 0.45, 0.3)
-			card_style.shadow_size = 8
-		else:
-			card_style.border_width_left = 1
-			card_style.border_width_top = 1
-			card_style.border_width_right = 1
-			card_style.border_width_bottom = 1
-			card_style.border_color = Color(0.25, 0.35, 0.50, 0.8)
-		card.add_theme_stylebox_override("panel", card_style)
-		
-		var margin := MarginContainer.new()
-		margin.add_theme_constant_override("margin_left", 10)
-		margin.add_theme_constant_override("margin_right", 10)
-		margin.add_theme_constant_override("margin_top", 12)
-		margin.add_theme_constant_override("margin_bottom", 12)
-		card.add_child(margin)
-		
-		var vbox := VBoxContainer.new()
-		vbox.add_theme_constant_override("separation", 8)
-		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		margin.add_child(vbox)
-		
-		# Vehicle Preview Texture
-		var preview_rect := TextureRect.new()
-		preview_rect.custom_minimum_size = Vector2(140, 95)
-		preview_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		preview_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		if not v_preview_path.is_empty() and ResourceLoader.exists(v_preview_path):
-			preview_rect.texture = load(v_preview_path)
-		vbox.add_child(preview_rect)
-		
-		# Vehicle Name
-		var name_lbl := Label.new()
-		name_lbl.text = v_name
-		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_lbl.add_theme_font_override("font", font_narrow)
-		name_lbl.add_theme_font_size_override("font_size", 12)
-		name_lbl.add_theme_color_override("font_color", Color(1, 1, 1, 1) if is_selected else Color(0.85, 0.9, 0.95, 0.9))
-		vbox.add_child(name_lbl)
-		
-		# Selection Status Label
-		var status_lbl := Label.new()
-		status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		status_lbl.add_theme_font_override("font", font_bold)
-		status_lbl.add_theme_font_size_override("font_size", 11)
-		if is_selected:
-			status_lbl.text = "★ SELECTED"
-			status_lbl.add_theme_color_override("font_color", Color(0.3, 0.95, 0.5, 1.0))
-		else:
-			status_lbl.text = "READY"
-			status_lbl.add_theme_color_override("font_color", Color(0.55, 0.65, 0.78, 0.8))
-		vbox.add_child(status_lbl)
-		
-		# Select / Active Button
-		var sel_btn := Button.new()
-		sel_btn.custom_minimum_size = Vector2(0, 36)
-		sel_btn.add_theme_font_override("font", font_future)
-		sel_btn.add_theme_font_size_override("font_size", 12)
-		
-		var btn_style := StyleBoxFlat.new()
-		btn_style.corner_radius_top_left = 6
-		btn_style.corner_radius_top_right = 6
-		btn_style.corner_radius_bottom_right = 6
-		btn_style.corner_radius_bottom_left = 6
-		
-		if is_selected:
-			sel_btn.text = "ACTIVE"
-			sel_btn.disabled = true
-			btn_style.bg_color = Color(0.18, 0.38, 0.25, 0.9)
-			btn_style.border_color = Color(0.3, 0.85, 0.5, 1.0)
-			btn_style.border_width_left = 1
-			btn_style.border_width_top = 1
-			btn_style.border_width_right = 1
-			btn_style.border_width_bottom = 1
-			sel_btn.add_theme_stylebox_override("disabled", btn_style)
-		else:
-			sel_btn.text = "SELECT"
-			sel_btn.disabled = false
-			btn_style.bg_color = Color(0.18, 0.28, 0.44, 1.0)
-			btn_style.border_color = Color(0.4, 0.65, 0.9, 1.0)
-			btn_style.border_width_left = 1
-			btn_style.border_width_top = 1
-			btn_style.border_width_right = 1
-			btn_style.border_width_bottom = 1
-			sel_btn.add_theme_stylebox_override("normal", btn_style)
-			var hover_style := btn_style.duplicate() as StyleBoxFlat
-			hover_style.bg_color = Color(0.24, 0.38, 0.60, 1.0)
-			sel_btn.add_theme_stylebox_override("hover", hover_style)
-			
-			var target_id := v_id
-			sel_btn.pressed.connect(func(): _on_vehicle_selected(target_id))
-			
-		vbox.add_child(sel_btn)
-		vehicle_cards_container.add_child(card)
-
-func _on_vehicle_selected(vehicle_id: String) -> void:
-	SaveManager.set_selected_vehicle_id(vehicle_id)
-	_populate_vehicle_cards()
-
-func _on_reset_pressed() -> void:
-	SaveManager.reset_save()
-	refresh_stats()
-	if is_instance_valid(vehicle_select_panel) and vehicle_select_panel.visible:
-		_populate_vehicle_cards()
+func _on_difficulty_start_survival_pressed(difficulty: int) -> void:
+	SaveManager.set_survival_difficulty(difficulty)
+	start_survival_requested.emit(difficulty)
 
 func _on_quit_pressed() -> void:
+	quit_dialog.visible = true
+	quit_no_button.grab_focus()
+
+func _close_quit_dialog() -> void:
+	quit_dialog.visible = false
+	quit_button.grab_focus()
+
+func _on_quit_confirmed() -> void:
 	quit_requested.emit()
 	get_tree().quit()
+
+func _notification(what: int) -> void:
+	# Android back button: ask before leaving the game instead of closing immediately.
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and is_inside_tree():
+		if quit_dialog.visible:
+			_close_quit_dialog()
+		elif difficulty_layer.visible:
+			_close_difficulty_selection()
+		else:
+			_on_quit_pressed()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
-	if is_instance_valid(vehicle_select_panel) and vehicle_select_panel.visible:
-		if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
+	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
+		if quit_dialog.visible:
 			get_viewport().set_input_as_handled()
-			_close_vehicle_selection()
-		return
-	if event.is_action_pressed("ui_accept"):
-		get_viewport().set_input_as_handled()
-		_on_start_pressed()
+			_close_quit_dialog()
+		elif difficulty_layer.visible:
+			get_viewport().set_input_as_handled()
+			_close_difficulty_selection()

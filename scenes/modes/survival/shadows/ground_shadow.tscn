@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://ground_shadow_001"]
+
+[ext_resource type="Script" path="res://scripts/components/survival_obstacles/ground_shadow.gd" id="1_shadow_script"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/support/impact_effects/obstacle_shadow.png" id="2_shadow_tex"]
+
+[node name="GroundShadow" type="Node2D"]
+top_level = true
+script = ExtResource("1_shadow_script")
+
+[node name="ShadowSprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_shadow_tex")

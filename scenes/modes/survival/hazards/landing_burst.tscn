@@ -1,0 +1,73 @@
+[gd_scene load_steps=12 format=3 uid="uid://asteroid_landing_burst_001"]
+
+[ext_resource type="Script" path="res://scripts/components/survival_obstacles/landing_burst.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/03_landing_burst/landing_burst_frame_01.png" id="2_f01"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/03_landing_burst/landing_burst_frame_02.png" id="3_f02"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/03_landing_burst/landing_burst_frame_03.png" id="4_f03"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/03_landing_burst/landing_burst_frame_04.png" id="5_f04"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/03_landing_burst/landing_burst_frame_05.png" id="6_f05"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/03_landing_burst/landing_burst_frame_06.png" id="7_f06"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/03_landing_burst/landing_burst_frame_07.png" id="8_f07"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/03_landing_burst/landing_burst_frame_08.png" id="9_f08"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/survival/burning_asteroid/02_fire_sparks_particles/spark_diamond_glow.png" id="10_spark"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_burst"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_f01")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_f02")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_f03")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_f04")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_f05")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_f06")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_f07")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_f08")
+}],
+"loop": false,
+"name": &"default",
+"speed": 16.0
+}]
+
+[node name="LandingBurst" type="Node2D"]
+z_index = 5
+script = ExtResource("1_script")
+
+[node name="BurstSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -50)
+scale = Vector2(0.65, 0.65)
+sprite_frames = SubResource("SpriteFrames_burst")
+autoplay = "default"
+
+[node name="SparkParticles" type="CPUParticles2D" parent="."]
+position = Vector2(0, -10)
+emitting = false
+amount = 14
+texture = ExtResource("10_spark")
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.85
+emission_shape = 1
+emission_sphere_radius = 16.0
+direction = Vector2(0, -1)
+spread = 65.0
+gravity = Vector2(0, 160)
+initial_velocity_min = 120.0
+initial_velocity_max = 240.0
+scale_amount_min = 0.1
+scale_amount_max = 0.22
+color = Color(1, 0.75, 0.25, 0.95)

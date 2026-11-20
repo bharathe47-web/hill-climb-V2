@@ -2,11 +2,11 @@
 
 [ext_resource type="Script" path="res://scripts/components/survival_obstacles/food_obstacle.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/obstacles/survival/foods/dosa/dosa.png" id="2_dosa_tex"]
-[ext_resource type="Texture2D" path="res://assets/obstacles/survival/support/impact_effects/obstacle_shadow.png" id="3_shadow_tex"]
+[ext_resource type="PackedScene" uid="uid://ground_shadow_001" path="res://scenes/modes/survival/shadows/ground_shadow.tscn" id="3_shadow_scene"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_dosa"]
-radius = 22.0
-height = 68.0
+radius = 16.0
+height = 88.0
 
 [node name="DosaObstacle" type="Node2D"]
 script = ExtResource("1_script")
@@ -16,7 +16,7 @@ fall_speed = 360.0
 rotation_speed = 2.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.25, 0.25)
+scale = Vector2(0.084, 0.084)
 texture = ExtResource("2_dosa_tex")
 
 [node name="Hitbox" type="Area2D" parent="."]
@@ -27,7 +27,5 @@ collision_mask = 2
 rotation = 1.5708
 shape = SubResource("CapsuleShape2D_dosa")
 
-[node name="Shadow" type="Sprite2D" parent="."]
-top_level = true
-scale = Vector2(0.6, 0.22)
-texture = ExtResource("3_shadow_tex")
+[node name="GroundShadow" parent="." instance=ExtResource("3_shadow_scene")]
+base_scale = Vector2(0.55, 0.38)

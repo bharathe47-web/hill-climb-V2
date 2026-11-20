@@ -54,22 +54,16 @@ func _init() -> void:
 	for i in range(5):
 		await process_frame
 	
-	var best_lbl: Label = menu_instance.get_node("%BestDistanceLabel")
-	var coins_lbl: Label = menu_instance.get_node("%TotalCoinsLabel")
-	var runs_lbl: Label = menu_instance.get_node("%RunsPlayedLabel")
-	
-	assert(best_lbl != null and best_lbl.text == "150 m", "Best distance UI label should display '150 m'")
-	assert(coins_lbl != null and coins_lbl.text == "20", "Total coins UI label should display '20'")
-	assert(runs_lbl != null and runs_lbl.text == "2", "Runs played UI label should display '2'")
-	print("  ✓ MainMenu UI displays live stats from SaveManager accurately")
+	assert(menu_instance.get_node_or_null("%StatsPanel") == null, "Home screen no longer shows the stats panel")
+	print("  ✓ MainMenu home screen loaded (stats stay in SaveManager)")
 	
 	var flags := { "start_fired": false }
 	menu_instance.start_game_requested.connect(func(): flags["start_fired"] = true)
-	var start_btn: Button = menu_instance.get_node("%StartButton")
-	assert(start_btn != null, "StartButton must exist in MainMenu")
+	var start_btn: TextureButton = menu_instance.get_node("%EndlessSign")
+	assert(start_btn != null, "Endless signboard must exist in MainMenu")
 	start_btn.pressed.emit()
-	assert(flags["start_fired"] == true, "Start button press must emit start_game_requested")
-	print("  ✓ StartButton emits start_game_requested signal")
+	assert(flags["start_fired"] == true, "Endless signboard press must emit start_game_requested")
+	print("  ✓ Endless signboard emits start_game_requested signal")
 	
 	menu_instance.queue_free()
 	for i in range(5):

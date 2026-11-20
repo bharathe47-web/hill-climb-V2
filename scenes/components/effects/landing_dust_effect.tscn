@@ -1,0 +1,41 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/components/effects/landing_dust_effect.gd" id="1_bq68f"]
+[ext_resource type="SpriteFrames" path="res://assets/effects/landing_dust/landing_dust_frames.tres" id="2_nw0q7"]
+[ext_resource type="Texture2D" path="res://assets/effects/landing_dust/particles/floating_dust_speck_01.png" id="3_c8ax7"]
+
+[node name="LandingDustEffect" type="Node2D" unique_id=481589280]
+z_index = 2
+script = ExtResource("1_bq68f")
+
+[node name="MainDust" type="AnimatedSprite2D" parent="." unique_id=459280195]
+z_index = 2
+sprite_frames = ExtResource("2_nw0q7")
+animation = &"mushroom_cloud"
+offset = Vector2(0, -192)
+
+[node name="SecondaryRing" type="AnimatedSprite2D" parent="." unique_id=1630120802]
+visible = false
+z_index = 1
+sprite_frames = ExtResource("2_nw0q7")
+animation = &"ground_ring"
+offset = Vector2(0, -196)
+
+[node name="DustParticles" type="CPUParticles2D" parent="." unique_id=1005901389]
+z_index = 3
+emitting = false
+amount = 6
+texture = ExtResource("3_c8ax7")
+lifetime = 0.55
+one_shot = true
+explosiveness = 0.8
+emission_shape = 1
+emission_sphere_radius = 20.0
+direction = Vector2(0, -1)
+spread = 55.0
+gravity = Vector2(0, 100)
+initial_velocity_min = 70.0
+initial_velocity_max = 150.0
+scale_amount_min = 0.12
+scale_amount_max = 0.22
+color = Color(1, 0.94, 0.82, 0.8)

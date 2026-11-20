@@ -19,6 +19,17 @@ enum SegmentType {
 	CUSTOM
 }
 
+enum TerrainTheme {
+	COUNTRYSIDE,
+	DESTROYED_CITY
+}
+
+@export var theme: TerrainTheme = TerrainTheme.COUNTRYSIDE:
+	set(val):
+		theme = val
+		if Engine.is_editor_hint():
+			rebuild_segment()
+
 @export var segment_type: SegmentType = SegmentType.GENTLE_HILLS:
 	set(val):
 		segment_type = val
@@ -312,6 +323,11 @@ const TEX_SOIL_SUBSURFACE: Texture2D = preload("res://assets/terrain/surfaces/br
 const TEX_DIRT_STRATA: Texture2D = preload("res://assets/terrain/transitions/dirt_pattern_01.png")
 const TEX_GRASS_EDGE: Texture2D = preload("res://assets/terrain/surfaces/grass_top_edge.png")
 
+# Preloaded Destroyed City terrain textures
+const TEX_SURVIVAL_GROUND: Texture2D = preload("res://assets/environment/survival/destroyed_city/terrain/dusty_ground/apocalyptic_ground_seamless.png")
+const TEX_SURVIVAL_SUBSOIL: Texture2D = preload("res://assets/environment/survival/destroyed_city/terrain/dusty_ground/apocalyptic_subsoil_seamless.png")
+const TEX_SURVIVAL_ROAD_RIBBON: Texture2D = preload("res://assets/environment/survival/destroyed_city/terrain/dusty_ground/apocalyptic_road_ribbon.png")
+
 # Preloaded countryside scenery textures
 const TEX_BUSHES: Array = [
 	preload("res://assets/environment/countryside/bushes/bush_round_green.png"),
@@ -340,6 +356,28 @@ const TEX_PROPS: Array = [
 	preload("res://assets/environment/countryside/signs/wooden_sign_arrow_right.png")
 ]
 
+# Preloaded Destroyed City decorations (Authentic apocalyptic rubble & props only)
+const TEX_CITY_RUBBLE: Array = [
+	preload("res://assets/environment/survival/destroyed_city/terrain/rubble/concrete_debris_chunk_01.png"),
+	preload("res://assets/environment/survival/destroyed_city/terrain/rubble/concrete_debris_chunk_02.png")
+]
+const TEX_CITY_ROCKS: Array = [
+	preload("res://assets/environment/survival/destroyed_city/terrain/rocks/small_stone_01.png"),
+	preload("res://assets/environment/survival/destroyed_city/terrain/rocks/small_stone_02.png"),
+	preload("res://assets/environment/survival/destroyed_city/terrain/rocks/small_stone_03.png")
+]
+const TEX_CITY_PROPS: Array = [
+	preload("res://assets/environment/survival/destroyed_city/props/fallen_branches/fallen_tree_branch_01.png"),
+	preload("res://assets/environment/survival/destroyed_city/props/fallen_branches/fallen_tree_branch_02.png"),
+	preload("res://assets/environment/survival/destroyed_city/props/dead_trees/dead_tree_01.png"),
+	preload("res://assets/environment/survival/destroyed_city/props/barriers_and_fences/concrete_road_barrier_single.png"),
+	preload("res://assets/environment/survival/destroyed_city/props/electric_poles/broken_electric_pole.png")
+]
+const TEX_CITY_ROADS: Array = [
+	preload("res://assets/environment/survival/destroyed_city/terrain/cracks/ground_crack_detail_01.png"),
+	preload("res://assets/environment/survival/destroyed_city/terrain/cracks/ground_crack_detail_02.png")
+]
+
 func _apply_geometry() -> void:
 	if generated_surface_points.size() < 2:
 		return
@@ -347,7 +385,7 @@ func _apply_geometry() -> void:
 	var first_pt := generated_surface_points[0]
 	var last_pt := generated_surface_points[generated_surface_points.size() - 1]
 	
-	const GLOBAL_DEEP_BOTTOM_Y: float = 2400.0
+	const GLOBAL_DEEP_BOTTOM_Y: float = 3500.0
 	var local_bottom_y: float = GLOBAL_DEEP_BOTTOM_Y - global_position.y
 	var max_surf_y: float = first_pt.y
 	for pt in generated_surface_points:
@@ -355,7 +393,7 @@ func _apply_geometry() -> void:
 			max_surf_y = pt.y
 	local_bottom_y = maxf(local_bottom_y, max_surf_y + ground_depth)
 	
-	# 1. Build ground polygon closed at constant global bottom to eliminate seams and gaps
+	# 1. Build ground polygon closed at deep bottom
 	var poly_pts := PackedVector2Array()
 	for pt in generated_surface_points:
 		poly_pts.append(pt)
@@ -369,36 +407,75 @@ func _apply_geometry() -> void:
 	
 	if ground_polygon:
 		ground_polygon.polygon = poly_pts
-		ground_polygon.color = Color(1, 1, 1, 1)
-		ground_polygon.texture = TEX_SOIL_SUBSURFACE
+		if theme == TerrainTheme.DESTROYED_CITY:
+			ground_polygon.color = Color(0.70, 0.58, 0.46, 1.0)
+			ground_polygon.texture = TEX_SURVIVAL_GROUND
+		else:
+			ground_polygon.color = Color(1, 1, 1, 1)
+			ground_polygon.texture = TEX_SOIL_SUBSURFACE
 		ground_polygon.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	
-	# 2. Build subsoil polygon with slight offset for rich underground layering
+	# 2. Build subsoil polygon starting directly at the surface (pt.y) for 100% solid, gap-free bedrock
 	if subsoil_polygon:
 		var subsoil_pts := PackedVector2Array()
 		for pt in generated_surface_points:
-			subsoil_pts.append(Vector2(pt.x, pt.y + 40.0))
+			subsoil_pts.append(pt)
 		subsoil_pts.append(Vector2(last_pt.x, local_bottom_y))
 		subsoil_pts.append(Vector2(first_pt.x, local_bottom_y))
 		subsoil_polygon.polygon = subsoil_pts
-		subsoil_polygon.color = Color(0.9, 0.9, 0.9, 1)
-		subsoil_polygon.texture = TEX_DIRT_STRATA
+		if theme == TerrainTheme.DESTROYED_CITY:
+			subsoil_polygon.color = Color(0.48, 0.38, 0.28, 1.0)
+			subsoil_polygon.texture = TEX_SURVIVAL_SUBSOIL
+		else:
+			subsoil_polygon.color = Color(0.9, 0.9, 0.9, 1)
+			subsoil_polygon.texture = TEX_DIRT_STRATA
 		subsoil_polygon.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	
-	# 3. Grass lines hidden to maintain pure brown soil/dirt terrain style
+	# 3. Surface Road Ribbon & Driving Boundary
+	# Remove secondary winding road ribbons and duplicate light-colored outlines.
+	# Keep strictly ONE main driving road rendered by ground_polygon and subsoil_polygon.
 	if grass_line:
 		grass_line.visible = false
+		grass_line.points = PackedVector2Array()
 	if grass_highlight_line:
 		grass_highlight_line.visible = false
+		grass_highlight_line.points = PackedVector2Array()
 	
 	# 4. Optional procedural surface details (rocks, boulders, fences, signs)
 	if decorations_root:
 		_build_decorations()
 
+## Re-aligns the bottom polygon points to an absolute global depth so all segments share the exact same bottom Y
+func align_bottom_to_global_depth(global_bottom: float = 3500.0) -> void:
+	if generated_surface_points.size() < 2:
+		return
+	var first_pt := generated_surface_points[0]
+	var last_pt := generated_surface_points[generated_surface_points.size() - 1]
+	var local_bottom_y: float = global_bottom - global_position.y
+	var max_surf_y: float = first_pt.y
+	for pt in generated_surface_points:
+		if pt.y > max_surf_y:
+			max_surf_y = pt.y
+	local_bottom_y = maxf(local_bottom_y, max_surf_y + ground_depth)
+	
+	var pts := PackedVector2Array()
+	for pt in generated_surface_points:
+		pts.append(pt)
+	pts.append(Vector2(last_pt.x, local_bottom_y))
+	pts.append(Vector2(first_pt.x, local_bottom_y))
+	
+	if collision_polygon:
+		collision_polygon.polygon = pts
+	if ground_polygon:
+		ground_polygon.polygon = pts
+	if subsoil_polygon:
+		subsoil_polygon.polygon = pts
+
 func _build_decorations() -> void:
 	if not decorations_root:
 		return
 	for c in decorations_root.get_children():
+		decorations_root.remove_child(c)
 		c.queue_free()
 	
 	if not add_decorations or generated_surface_points.size() < 4:
@@ -409,6 +486,12 @@ func _build_decorations() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_val
 	
+	if theme == TerrainTheme.DESTROYED_CITY:
+		_build_destroyed_city_decorations(rng)
+	else:
+		_build_countryside_decorations(rng)
+
+func _build_countryside_decorations(rng: RandomNumberGenerator) -> void:
 	# 1. Place 1 fence / signpost / prop
 	if rng.randf() < 0.65:
 		var prop_idx := rng.randi_range(2, generated_surface_points.size() - 3)
@@ -441,5 +524,76 @@ func _build_decorations() -> void:
 		rock_sprite.scale = Vector2(s_scale, s_scale)
 		rock_sprite.offset = Vector2(0, -rock_tex.get_height() * 0.5)
 		rock_sprite.position = s_pt + Vector2(0, 1)
+		rock_sprite.rotation = clampf(s_dir.angle() * 0.4, -0.35, 0.35)
+		decorations_root.add_child(rock_sprite)
+
+func _build_destroyed_city_decorations(rng: RandomNumberGenerator) -> void:
+	# 1. Ground cracks along the road surface (subtle, aligned, never a separate road)
+	if rng.randf() < 0.60 and not TEX_CITY_ROADS.is_empty():
+		var r_idx := rng.randi_range(2, generated_surface_points.size() - 3)
+		var r_pt := generated_surface_points[r_idx]
+		var r_next := generated_surface_points[r_idx + 1]
+		var r_dir := (r_next - r_pt).normalized()
+		var road_tex: Texture2D = TEX_CITY_ROADS[rng.randi() % TEX_CITY_ROADS.size()]
+		var road_sprite := Sprite2D.new()
+		road_sprite.texture = road_tex
+		road_sprite.z_index = -3
+		var r_scale := rng.randf_range(0.25, 0.35)
+		road_sprite.scale = Vector2(r_scale, r_scale)
+		road_sprite.offset = Vector2(0, -road_tex.get_height() * 0.5)
+		road_sprite.position = r_pt + Vector2(0, 8)
+		road_sprite.rotation = clampf(r_dir.angle() * 0.35, -0.3, 0.3)
+		decorations_root.add_child(road_sprite)
+
+	# 2. Concrete debris chunks (authentic small broken concrete pieces, never full scenes)
+	var num_rubble := rng.randi_range(2, 3)
+	for i in range(num_rubble):
+		var rub_idx := rng.randi_range(2, generated_surface_points.size() - 3)
+		var rub_pt := generated_surface_points[rub_idx]
+		var rub_next := generated_surface_points[rub_idx + 1]
+		var rub_dir := (rub_next - rub_pt).normalized()
+		var rub_tex: Texture2D = TEX_CITY_RUBBLE[rng.randi() % TEX_CITY_RUBBLE.size()]
+		var rub_sprite := Sprite2D.new()
+		rub_sprite.texture = rub_tex
+		rub_sprite.z_index = -2
+		var rub_scale := rng.randf_range(0.14, 0.20)
+		rub_sprite.scale = Vector2(rub_scale, rub_scale)
+		rub_sprite.offset = Vector2(0, -rub_tex.get_height() * 0.45)
+		rub_sprite.position = rub_pt + Vector2(0, 10)
+		rub_sprite.rotation = clampf(rub_dir.angle() * 0.35, -0.3, 0.3)
+		decorations_root.add_child(rub_sprite)
+
+	# 3. Destroyed city props (dead branches, broken poles, barriers)
+	if rng.randf() < 0.65 and not TEX_CITY_PROPS.is_empty():
+		var p_idx := rng.randi_range(2, generated_surface_points.size() - 3)
+		var p_pt := generated_surface_points[p_idx]
+		var p_next := generated_surface_points[p_idx + 1]
+		var p_dir := (p_next - p_pt).normalized()
+		var prop_tex: Texture2D = TEX_CITY_PROPS[rng.randi() % TEX_CITY_PROPS.size()]
+		var prop_sprite := Sprite2D.new()
+		prop_sprite.texture = prop_tex
+		prop_sprite.z_index = -2
+		var p_scale := rng.randf_range(0.25, 0.35)
+		prop_sprite.scale = Vector2(p_scale, p_scale)
+		prop_sprite.offset = Vector2(0, -prop_tex.get_height() * 0.5)
+		prop_sprite.position = p_pt + Vector2(0, 8)
+		prop_sprite.rotation = clampf(p_dir.angle() * 0.35, -0.3, 0.3)
+		decorations_root.add_child(prop_sprite)
+
+	# 4. Small rocks & stones scattered along surface edge (compact pebbles only)
+	var num_rocks := rng.randi_range(2, 4)
+	for s in range(num_rocks):
+		var s_idx := rng.randi_range(2, generated_surface_points.size() - 3)
+		var s_pt := generated_surface_points[s_idx]
+		var s_next := generated_surface_points[s_idx + 1]
+		var s_dir := (s_next - s_pt).normalized()
+		var rock_tex: Texture2D = TEX_CITY_ROCKS[rng.randi() % TEX_CITY_ROCKS.size()]
+		var rock_sprite := Sprite2D.new()
+		rock_sprite.texture = rock_tex
+		rock_sprite.z_index = -1
+		var s_scale := rng.randf_range(0.18, 0.28)
+		rock_sprite.scale = Vector2(s_scale, s_scale)
+		rock_sprite.offset = Vector2(0, -rock_tex.get_height() * 0.5)
+		rock_sprite.position = s_pt + Vector2(0, 4)
 		rock_sprite.rotation = clampf(s_dir.angle() * 0.4, -0.35, 0.35)
 		decorations_root.add_child(rock_sprite)

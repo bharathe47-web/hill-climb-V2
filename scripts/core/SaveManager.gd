@@ -14,6 +14,7 @@ const DEFAULT_SAVE_DATA: Dictionary = {
 	"sound_volume": 1.0,
 	"music_volume": 1.0,
 	"selected_vehicle_id": "blue_flame_truck",
+	"survival_difficulty": 0,
 	"upgrades": {
 		"engine": 1,
 		"tires": 1,
@@ -93,6 +94,33 @@ static func set_selected_vehicle_id(vehicle_id: String) -> bool:
 	var target_id := vehicle_id if vehicle_id in valid_ids else default_id
 	var data := load_save()
 	data["selected_vehicle_id"] = target_id
+	return save_game(data)
+
+static func get_music_volume() -> float:
+	var data := load_save()
+	return float(data.get("music_volume", 1.0))
+
+static func set_music_volume(vol: float) -> bool:
+	var data := load_save()
+	data["music_volume"] = clampf(vol, 0.0, 1.0)
+	return save_game(data)
+
+static func get_sound_volume() -> float:
+	var data := load_save()
+	return float(data.get("sound_volume", 1.0))
+
+static func set_sound_volume(vol: float) -> bool:
+	var data := load_save()
+	data["sound_volume"] = clampf(vol, 0.0, 1.0)
+	return save_game(data)
+
+static func get_survival_difficulty() -> int:
+	var data := load_save()
+	return clampi(int(data.get("survival_difficulty", 0)), 0, 2)
+
+static func set_survival_difficulty(diff: int) -> bool:
+	var data := load_save()
+	data["survival_difficulty"] = clampi(diff, 0, 2)
 	return save_game(data)
 
 static func record_run(distance: float, coins: int) -> Dictionary:

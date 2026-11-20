@@ -340,19 +340,41 @@ func _check_pothole_assist(delta: float) -> void:
 			pothole_assist_hint.emit(false)
 		_pothole_stuck_timer = maxf(0.0, _pothole_stuck_timer - delta * 2.0)
 
+func lock_vehicle() -> void:
+	is_active = false
+	is_nitro_requested = false
+	_deactivate_nitro()
+	_stop_effects()
+	air_time = 0.0
+	air_rotation_accum = 0.0
+	wheelie_time = 0.0
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+	set_deferred("freeze", true)
+	if is_instance_valid(rear_wheel):
+		rear_wheel.linear_velocity = Vector2.ZERO
+		rear_wheel.angular_velocity = 0.0
+		rear_wheel.set_deferred("freeze", true)
+	if is_instance_valid(front_wheel):
+		front_wheel.linear_velocity = Vector2.ZERO
+		front_wheel.angular_velocity = 0.0
+		front_wheel.set_deferred("freeze", true)
+
+func unlock_vehicle() -> void:
+	set_deferred("freeze", false)
+	if is_instance_valid(rear_wheel):
+		rear_wheel.set_deferred("freeze", false)
+	if is_instance_valid(front_wheel):
+		front_wheel.set_deferred("freeze", false)
+	is_active = true
+	if is_inside_tree() and engine_audio and not engine_audio.playing:
+		engine_audio.play()
+
 func set_active(active: bool) -> void:
-	is_active = active
-	if not active:
-		_stop_effects()
-		air_time = 0.0
-		air_rotation_accum = 0.0
-		wheelie_time = 0.0
-		linear_velocity = Vector2.ZERO
-		angular_velocity = 0.0
-		if rear_wheel:
-			rear_wheel.angular_velocity = 0.0
-		if front_wheel:
-			front_wheel.angular_velocity = 0.0
+	if active:
+		unlock_vehicle()
+	else:
+		lock_vehicle()
 
 func _check_ground_contact() -> void:
 	var rear_contact: bool = (rear_wheel.contact_monitor and rear_wheel.get_colliding_bodies().size() > 0) if rear_wheel else false
@@ -709,6 +731,11 @@ func get_speed_kmh() -> float:
 
 func reset_vehicle(at_position: Vector2) -> void:
 	is_active = true
+	freeze = false
+	if is_instance_valid(rear_wheel):
+		rear_wheel.freeze = false
+	if is_instance_valid(front_wheel):
+		front_wheel.freeze = false
 	current_fuel = max_fuel
 	current_nitro = max_nitro
 	is_nitro_requested = false
