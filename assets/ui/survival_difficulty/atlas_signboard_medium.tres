@@ -1,8 +1,0 @@
-[gd_resource type="AtlasTexture" load_steps=2 format=3 uid="uid://atlas_signboard_medium_001"]
-
-[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/wooden_difficulty_signs_sheet.png" id="1_sheet"]
-
-[resource]
-atlas = ExtResource("1_sheet")
-region = Rect2(730, 124, 676, 445)
-filter_clip = true
