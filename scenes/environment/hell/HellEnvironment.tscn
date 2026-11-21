@@ -1,0 +1,159 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/environment/HellEnvironment.gd" id="1_c6ukq"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/background/sky/hell_sky_crimson_panorama.png" id="2_sky_crimson"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/background/blood_moon/hell_blood_moon.png" id="3_blood_moon"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/vfx/particles/subterranean_magma_glow_mask.png" id="4_glow_mask"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/architecture/chains/hell_cavern_ceiling_chains.png" id="5_cavern_ceiling"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/architecture/cages/hell_hanging_cage_skeleton.png" id="6_hanging_cage"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/background/distant_mountains/hell_volcanic_ridges_left.png" id="7_mount_left"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/background/distant_mountains/hell_volcanic_ridges_right.png" id="8_mount_right"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/background/fortress/hell_giant_demon_fortress.png" id="9_demon_fortress"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/midground/lavafalls/hell_lavafall_cascade_left.png" id="10_lava_left"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/midground/lavafalls/hell_lavafall_cascade_right.png" id="11_lava_right"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/architecture/banners/hell_skull_banner_left.png" id="15_banner_l"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/architecture/banners/hell_skull_banner_right.png" id="16_banner_r"]
+[ext_resource type="SpriteFrames" path="res://assets/environments/hell/architecture/banners/banner_wave.tres" id="17_banner_wave"]
+[ext_resource type="SpriteFrames" path="res://assets/environments/hell/architecture/braziers/brazier_fire.tres" id="18_brazier_fire"]
+[ext_resource type="Shader" path="res://scripts/shaders/molten_lava_flow.gdshader" id="22_lava_shader"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/vfx/lava/lava_strip8.png" id="23_lava_tex"]
+[ext_resource type="Shader" path="res://scripts/shaders/heat_distortion_shimmer.gdshader" id="24_shimmer_shader"]
+[ext_resource type="Texture2D" path="res://assets/environments/hell/vfx/particles/floating_ember_orb.png" id="27_ember"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lava"]
+shader = ExtResource("22_lava_shader")
+shader_parameter/flow_velocity = Vector2(0.08, 0.0)
+shader_parameter/wave_amplitude = 0.015
+shader_parameter/wave_frequency = 8.0
+shader_parameter/wave_speed = 1.2
+shader_parameter/magma_glow_tint = Color(1.05, 0.45, 0.05, 1)
+shader_parameter/thermal_pulse_speed = 1.5
+shader_parameter/thermal_pulse_amount = 0.12
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_shimmer"]
+shader = ExtResource("24_shimmer_shader")
+shader_parameter/distortion_strength = 0.02
+shader_parameter/scroll_velocity = Vector2(0.02, -0.06)
+
+[sub_resource type="Gradient" id="Gradient_ember"]
+offsets = PackedFloat32Array(0, 0.18, 0.75, 1)
+colors = PackedColorArray(1, 0.45, 0.05, 0, 1, 0.72, 0.2, 0.85, 1, 0.52, 0.12, 0.8, 0.85, 0.25, 0.05, 0)
+
+[node name="HellEnvironment" type="ParallaxBackground" unique_id=1037132325]
+script = ExtResource("1_c6ukq")
+
+[node name="SkyLayer" type="ParallaxLayer" parent="." unique_id=183093542]
+motion_scale = Vector2(0.01, 0)
+motion_mirroring = Vector2(1920, 0)
+
+[node name="VolcanicSkyBackground" type="TextureRect" parent="SkyLayer" unique_id=435033354]
+offset_left = -4000.0
+offset_top = 0.0
+offset_right = 30000.0
+offset_bottom = 720.0
+texture = ExtResource("2_sky_crimson")
+stretch_mode = 1
+
+[node name="SubterraneanGlow" type="Sprite2D" parent="SkyLayer" unique_id=228965278]
+modulate = Color(1, 0.42, 0.1, 0.4)
+position = Vector2(960, 620)
+scale = Vector2(4.5, 1.5)
+texture = ExtResource("4_glow_mask")
+
+[node name="DistantCragsLayer" type="ParallaxLayer" parent="." unique_id=366686892]
+motion_scale = Vector2(0.06, 0)
+motion_mirroring = Vector2(2560, 0)
+
+[node name="MidBasaltArchitectureLayer" type="ParallaxLayer" parent="." unique_id=1978714436]
+motion_scale = Vector2(0.24, 0)
+motion_mirroring = Vector2(2560, 0)
+
+[node name="AnimatedBannerLeft" type="AnimatedSprite2D" parent="MidBasaltArchitectureLayer"]
+position = Vector2(220, 340)
+scale = Vector2(0.65, 0.65)
+sprite_frames = ExtResource("17_banner_wave")
+animation = &"wave"
+autoplay = "wave"
+
+[node name="AnimatedBannerRight" type="AnimatedSprite2D" parent="MidBasaltArchitectureLayer"]
+position = Vector2(1750, 340)
+scale = Vector2(0.65, 0.65)
+sprite_frames = ExtResource("17_banner_wave")
+animation = &"wave"
+autoplay = "wave"
+
+[node name="BrazierPost1" type="AnimatedSprite2D" parent="MidBasaltArchitectureLayer"]
+position = Vector2(460, 390)
+scale = Vector2(0.45, 0.45)
+sprite_frames = ExtResource("18_brazier_fire")
+animation = &"burn"
+autoplay = "burn"
+
+[node name="BrazierPost2" type="AnimatedSprite2D" parent="MidBasaltArchitectureLayer"]
+position = Vector2(1500, 390)
+scale = Vector2(0.45, 0.45)
+sprite_frames = ExtResource("18_brazier_fire")
+animation = &"burn"
+autoplay = "burn"
+
+[node name="LavaThermalLayer" type="ParallaxLayer" parent="." unique_id=1456790937]
+motion_scale = Vector2(0.35, 0)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="VolcanicAshDrift" type="CPUParticles2D" parent="LavaThermalLayer"]
+position = Vector2(640, 200)
+amount = 24
+lifetime = 4.0
+emission_shape = 3
+emission_rect_extents = Vector2(700, 250)
+direction = Vector2(0.8, 0.4)
+spread = 25.0
+gravity = Vector2(15, 12)
+initial_velocity_min = 20.0
+initial_velocity_max = 50.0
+scale_amount_min = 1.5
+scale_amount_max = 3.5
+color = Color(0.18, 0.14, 0.16, 0.75)
+
+[node name="LavaStreamSurface" type="Sprite2D" parent="LavaThermalLayer" unique_id=1478252982]
+material = SubResource("ShaderMaterial_lava")
+position = Vector2(1024, 640)
+scale = Vector2(16, 1.8)
+texture = ExtResource("23_lava_tex")
+
+[node name="HeatShimmer" type="ColorRect" parent="LavaThermalLayer" unique_id=500870817]
+material = SubResource("ShaderMaterial_shimmer")
+offset_left = 650.0
+offset_top = 480.0
+offset_right = 850.0
+offset_bottom = 540.0
+
+[node name="FloatingCinders" type="CPUParticles2D" parent="LavaThermalLayer" unique_id=17443693]
+position = Vector2(640, 580)
+amount = 24
+lifetime = 3.0
+emission_shape = 3
+emission_rect_extents = Vector2(640, 100)
+gravity = Vector2(10, -35)
+scale_amount_min = 2.0
+scale_amount_max = 4.5
+color = Color(1, 0.55, 0.1, 0.85)
+
+[node name="AtmosphericEmbers" type="CPUParticles2D" parent="LavaThermalLayer"]
+position = Vector2(640, 520)
+texture = ExtResource("27_ember")
+amount = 22
+lifetime = 4.5
+preprocess = 2.0
+emission_shape = 3
+emission_rect_extents = Vector2(700, 220)
+direction = Vector2(0.25, -1)
+spread = 28.0
+gravity = Vector2(8, -20)
+initial_velocity_min = 18.0
+initial_velocity_max = 40.0
+scale_amount_min = 0.04
+scale_amount_max = 0.08
+color_ramp = SubResource("Gradient_ember")
+
+

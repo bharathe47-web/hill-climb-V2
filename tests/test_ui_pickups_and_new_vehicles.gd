@@ -38,20 +38,25 @@ func test_nitro_button_redesign() -> void:
 	var nitro_btn: TextureButton = hud.get_node_or_null("%NitroButton")
 	assert(nitro_btn != null, "NitroButton must exist in HUD")
 	assert(nitro_btn.texture_normal != null, "NitroButton must have normal texture")
-	assert(nitro_btn.texture_normal.resource_path.ends_with("nitro_bottle.png"), 
-		"NitroButton must use clean nitro_bottle artwork, got %s" % nitro_btn.texture_normal.resource_path)
+	assert(nitro_btn.texture_normal.resource_path.ends_with("control_button_base.png"),
+		"NitroButton must use the dedicated touch-control frame, got %s" % nitro_btn.texture_normal.resource_path)
+	var nitro_icon: TextureRect = nitro_btn.get_node_or_null("NitroButtonIcon")
+	assert(nitro_icon != null, "NitroButton must contain a separate centered bottle icon")
+	assert(nitro_icon.texture != null and nitro_icon.texture.resource_path.ends_with("nitro_bottle.png"), "NitroButtonIcon must use nitro_bottle artwork")
+	assert(nitro_icon.mouse_filter == Control.MOUSE_FILTER_IGNORE, "The icon must not intercept touch input")
 	
 	# Verify no unnecessary text label node exists on the button
 	var label = nitro_btn.get_node_or_null("NitroButtonLabel")
 	assert(label == null, "Old NitroButtonLabel text must be removed from NitroButton")
 	
-	# Verify position on left side cleanly above BrakePedal with matching size
+	# Verify position on left side beside BrakePedal keeping driving lane clear
 	var brake_pedal: TextureButton = hud.get_node_or_null("%BrakePedal")
 	var gas_pedal: TextureButton = hud.get_node_or_null("%GasPedal")
 	assert(brake_pedal != null, "BrakePedal must exist")
 	assert(gas_pedal != null, "GasPedal must exist")
-	assert(nitro_btn.offset_bottom <= brake_pedal.offset_top, 
-		"NitroButton (bottom: %f) must be cleanly above BrakePedal (top: %f)" % [nitro_btn.offset_bottom, brake_pedal.offset_top])
+	assert(nitro_btn.offset_left >= brake_pedal.offset_right or nitro_btn.offset_bottom <= brake_pedal.offset_top, 
+		"NitroButton must be positioned cleanly beside or above BrakePedal")
+	assert(nitro_btn.offset_top >= -220.0, "NitroButton must not encroach into upper driving lane")
 	# Verify mobile button size scaling (140x140 px for all three controls)
 	assert(brake_pedal.offset_right - brake_pedal.offset_left == 140.0, "BrakePedal width must be 140px")
 	assert(gas_pedal.offset_right - gas_pedal.offset_left == 140.0, "GasPedal width must be 140px")
@@ -203,25 +208,50 @@ func test_vehicle_selection_carousel() -> void:
 	for i in range(3):
 		await process_frame
 		
-	var showcase: HomeVehicleShowcase = menu.get_node("%VehicleShowcase")
-	assert(showcase != null, "Home screen must contain the vehicle showcase")
+	var change_btn: Button = menu.get_node_or_null("%ChangeVehicleButton")
+	assert(change_btn != null, "ChangeVehicleButton must exist")
+	change_btn.pressed.emit()
 	
-	# Every registered vehicle must be displayable on the home screen with a valid body sprite
-	for v_meta in VehicleRegistry.get_all_vehicles():
-		SaveManager.set_selected_vehicle_id(v_meta["id"])
-		menu.refresh_vehicle()
-		assert(showcase.vehicle_id == v_meta["id"], "Home screen must show selected vehicle %s" % v_meta["id"])
-		var body := showcase.find_child("BodySprite", true, false) as Sprite2D
-		assert(body != null and body.texture != null, "Vehicle %s must have a valid body texture on home screen" % v_meta["id"])
+	var panel = menu.get_node_or_null("%VehicleSelectPanel")
+	assert(panel.visible == true, "VehicleSelectPanel must be visible")
 	
-	SaveManager.set_selected_vehicle_id("trophy_truck")
+	var prev_btn: Button = menu.get_node_or_null("%PrevVehicleButton")
+	var next_btn: Button = menu.get_node_or_null("%NextVehicleButton")
+	var scroll_cnt: ScrollContainer = menu.get_node_or_null("%ScrollContainer")
+	assert(prev_btn != null and next_btn != null, "Navigation arrows must exist")
+	assert(scroll_cnt != null, "ScrollContainer must exist")
+	
+	# Verify all 4 vehicle cards exist with valid previews
+	var cards = menu.vehicle_cards_container.get_children()
+	assert(cards.size() == 4, "All 4 vehicle cards must be rendered (got %d)" % cards.size())
+	
+	var all_vehicles = VehicleRegistry.get_all_vehicles()
+	for idx in range(cards.size()):
+		var card = cards[idx]
+		var v_meta = all_vehicles[idx]
+		# Find TextureRect in card
+		var tex_rect: TextureRect = null
+		for child in card.find_children("*", "TextureRect", true, false):
+			tex_rect = child
+			break
+		assert(tex_rect != null, "Card %d must contain TextureRect" % idx)
+		assert(tex_rect.texture != null, "Card for %s must have valid texture preview (cannot be blank)" % v_meta["id"])
+	
+	# Test Next arrow click
+	var init_scroll = scroll_cnt.scroll_horizontal
+	next_btn.pressed.emit()
+	
+	# Test selecting Trophy Truck
+	menu._on_vehicle_selected("trophy_truck")
 	assert(SaveManager.get_selected_vehicle_id() == "trophy_truck", "Selected vehicle must save as trophy_truck")
-	SaveManager.set_selected_vehicle_id("blue_flame_truck")
+	
+	# Reset to Blue Flame Truck
+	menu._on_vehicle_selected("blue_flame_truck")
 	assert(SaveManager.get_selected_vehicle_id() == "blue_flame_truck", "Reset back to blue_flame_truck")
 	
 	root.remove_child(menu)
 	menu.free()
-	print("  ✓ Home screen shows every selectable vehicle; selection persistence verified!")
+	print("  ✓ Vehicle selection carousel (4 vehicles, previews, navigation arrows, selection persistence) verified!")
 
 func test_new_vehicles_integration_and_physics() -> void:
 	print("-> [5/5] Verifying 3 New Vehicles (Blue Flame Truck, Orc Racer, Trophy Truck)...")

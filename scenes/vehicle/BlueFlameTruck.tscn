@@ -17,12 +17,14 @@
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_truck_chassis"]
 friction = 0.55
+bounce = 0.08
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_truck_wheel"]
 friction = 1.8
+bounce = 0.18
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_wheel"]
-radius = 21.6
+radius = 22.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_chassis"]
 size = Vector2(104, 26)
@@ -41,7 +43,7 @@ script = ExtResource("1_controller")
 base_motor_torque = 110000.0
 base_brake_torque = 65000.0
 base_wheel_friction = 1.8
-base_suspension_softness = 0.22
+base_suspension_softness = 0.65
 motor_torque = 110000.0
 brake_torque = 65000.0
 air_tilt_torque = 30000.0
@@ -51,45 +53,40 @@ position = Vector2(2, -6)
 shape = SubResource("RectangleShape2D_chassis")
 
 [node name="RearWheelMount" type="Marker2D" parent="."]
-position = Vector2(-25.09, 15.69)
+position = Vector2(-42, 18)
 
 [node name="FrontWheelMount" type="Marker2D" parent="."]
-position = Vector2(32.33, 15.69)
+position = Vector2(45, 18)
 
 [node name="RearStrutMount" type="Marker2D" parent="."]
-position = Vector2(-25.09, 1.6899999999999995)
+position = Vector2(-42, 4)
 
 [node name="FrontStrutMount" type="Marker2D" parent="."]
-position = Vector2(32.33, 1.6899999999999995)
+position = Vector2(45, 4)
 
 [node name="RearStrutVisual" type="Line2D" parent="."]
-visible = false
 points = PackedVector2Array(-42, 4, -42, 18)
 width = 4.0
 default_color = Color(0.35, 0.38, 0.42, 1)
 
 [node name="FrontStrutVisual" type="Line2D" parent="."]
-visible = false
 points = PackedVector2Array(45, 4, 45, 18)
 width = 4.0
 default_color = Color(0.35, 0.38, 0.42, 1)
 
 [node name="RearShock" type="Sprite2D" parent="."]
-visible = false
 z_index = -1
 position = Vector2(-42, 11)
 scale = Vector2(0.12, 0.14)
 texture = ExtResource("7_shock")
 
 [node name="FrontShock" type="Sprite2D" parent="."]
-visible = false
 z_index = -1
 position = Vector2(45, 11)
 scale = Vector2(0.12, 0.14)
 texture = ExtResource("7_shock")
 
 [node name="DriverSprite" type="Sprite2D" parent="."]
-visible = false
 z_index = -1
 position = Vector2(-6, -18)
 scale = Vector2(0.14, 0.14)
@@ -101,7 +98,6 @@ scale = Vector2(0.14, 0.14)
 texture = ExtResource("10_exhaust")
 
 [node name="BodySprite" type="Sprite2D" parent="."]
-z_index = 1
 position = Vector2(2, -6)
 scale = Vector2(0.18, 0.18)
 texture = ExtResource("9_body")
@@ -109,17 +105,17 @@ texture = ExtResource("9_body")
 [node name="ExhaustParticles" type="CPUParticles2D" parent="."]
 position = Vector2(-60, 8)
 emitting = false
-amount = 5
-lifetime = 0.4
+amount = 14
+lifetime = 0.6
 texture = ExtResource("2_smoke")
 direction = Vector2(-1, -0.4)
 spread = 20.0
 gravity = Vector2(0, -50)
 initial_velocity_min = 40.0
 initial_velocity_max = 90.0
-scale_amount_min = 0.012
-scale_amount_max = 0.035
-color = Color(0.92, 0.92, 0.92, 0.25)
+scale_amount_min = 0.05
+scale_amount_max = 0.1
+color = Color(0.85, 0.85, 0.85, 0.6)
 
 [node name="BoostParticles" type="CPUParticles2D" parent="."]
 position = Vector2(-60, 8)
@@ -177,8 +173,7 @@ collision_mask = 1
 shape = SubResource("CircleShape2D_crash")
 
 [node name="RearWheel" type="RigidBody2D" parent="." groups=["vehicle"]]
-z_index = -1
-position = Vector2(-25.09, 15.69)
+position = Vector2(-42, 18)
 collision_layer = 2
 collision_mask = 1
 mass = 2.5
@@ -196,8 +191,7 @@ scale = Vector2(0.18, 0.18)
 texture = ExtResource("12_rim")
 
 [node name="FrontWheel" type="RigidBody2D" parent="." groups=["vehicle"]]
-z_index = -1
-position = Vector2(32.33, 15.69)
+position = Vector2(45, 18)
 collision_layer = 2
 collision_mask = 1
 mass = 2.5
@@ -215,13 +209,13 @@ scale = Vector2(0.18, 0.18)
 texture = ExtResource("12_rim")
 
 [node name="RearJoint" type="PinJoint2D" parent="."]
-position = Vector2(-25.09, 15.69)
+position = Vector2(-42, 18)
 node_a = NodePath("..")
 node_b = NodePath("../RearWheel")
-softness = 0.22
+softness = 0.65
 
 [node name="FrontJoint" type="PinJoint2D" parent="."]
-position = Vector2(32.33, 15.69)
+position = Vector2(45, 18)
 node_a = NodePath("..")
 node_b = NodePath("../FrontWheel")
-softness = 0.22
+softness = 0.65

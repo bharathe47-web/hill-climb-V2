@@ -33,6 +33,8 @@ var run_time: float = 0.0
 var finish_reason: String = ""
 var is_new_record: bool = false
 var vehicle_ref: Node = null
+var game_ref: Node = null
+var is_restart_in_progress: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -110,6 +112,9 @@ func finish_run(reason: String = "") -> void:
 
 func restart_run() -> void:
 	get_tree().paused = false
+	if is_instance_valid(game_ref) and game_ref.has_method("execute_restart_transaction"):
+		game_ref.execute_restart_transaction()
+		return
 	current_state = RunState.READY
 	run_restarted.emit()
 	start_run()

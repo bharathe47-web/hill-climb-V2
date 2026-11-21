@@ -201,7 +201,7 @@ func test_speedometer_integration() -> void:
 	var speed_needle: Sprite2D = hud.get_node_or_null("%SpeedNeedle")
 	var speed_label: Label = hud.get_node_or_null("%SpeedDigitalLabel")
 	var nitro_btn: TextureButton = hud.get_node_or_null("%NitroButton")
-	var nitro_bottle: TextureRect = hud.find_child("NitroBottleIcon", true, false)
+	var nitro_bottle: TextureRect = hud.get_node_or_null("TopStatsPanel/Margin/VBox/NitroSection/NitroHeader/NitroBottleIcon")
 	
 	assert(speed_needle != null, "HUD must have SpeedNeedle")
 	assert(speed_label != null, "HUD must have SpeedDigitalLabel")
@@ -336,20 +336,37 @@ func test_front_ui_vehicle_selection_and_persistence() -> void:
 	for i in range(5):
 		await process_frame
 		
-	# Home screen shows the Garage-selected vehicle (default first)
-	var showcase: HomeVehicleShowcase = menu.get_node("%VehicleShowcase")
-	assert(showcase.vehicle_id == "blue_flame_truck", "Home must show default selected vehicle")
+	var change_btn: Button = menu.get_node_or_null("%ChangeVehicleButton")
+	assert(change_btn != null, "MainMenu must contain ChangeVehicleButton")
+	assert(change_btn.text == "CHANGE VEHICLE", "Button text must be 'CHANGE VEHICLE'")
 	
-	# Select vehicles (as the Garage does) and verify the home screen follows the saved selection
-	SaveManager.set_selected_vehicle_id("trophy_truck")
-	menu.refresh_vehicle()
+	# Click CHANGE VEHICLE
+	change_btn.pressed.emit()
+	assert(menu.vehicle_select_panel.visible == true, "Vehicle select panel must open on button press")
+	assert(menu.content_vbox.visible == false, "Main menu content should hide when panel is open")
+	
+	# Verify vehicle cards exist in container (all 4 registered vehicles)
+	var cards = menu.vehicle_cards_container.get_children()
+	assert(cards.size() == 4, "Must render exactly 4 vehicle selection cards (got %d)" % cards.size())
+	
+	var prev_btn: Button = menu.get_node_or_null("%PrevVehicleButton")
+	var next_btn: Button = menu.get_node_or_null("%NextVehicleButton")
+	assert(prev_btn != null and next_btn != null, "Carousel navigation arrows must exist")
+	
+	# Select Trophy Truck
+	menu._on_vehicle_selected("trophy_truck")
 	assert(SaveManager.get_selected_vehicle_id() == "trophy_truck", "Selected vehicle must persist as trophy_truck")
-	assert(showcase.vehicle_id == "trophy_truck", "Home must display trophy_truck")
 	
-	SaveManager.set_selected_vehicle_id("orc_racer")
-	menu.refresh_vehicle()
+	# Select Orc Racer
+	menu._on_vehicle_selected("orc_racer")
 	assert(SaveManager.get_selected_vehicle_id() == "orc_racer", "Selected vehicle must persist as orc_racer")
-	assert(showcase.vehicle_id == "orc_racer", "Home must display orc_racer")
+	
+	# Close panel via back button
+	var back_btn: Button = menu.get_node_or_null("%VehicleSelectBackButton")
+	assert(back_btn != null, "Vehicle select panel must have Back button")
+	back_btn.pressed.emit()
+	assert(menu.vehicle_select_panel.visible == false, "Vehicle select panel must close")
+	assert(menu.content_vbox.visible == true, "Main content must be visible again")
 	
 	root.remove_child(menu)
 	menu.free()
