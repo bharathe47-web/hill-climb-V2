@@ -145,7 +145,7 @@ func _populate_vehicle_cards() -> void:
 		child.queue_free()
 	
 	var current_selected: String = SaveManager.get_selected_vehicle_id()
-	var all_vehicles: Array[Dictionary] = VehicleRegistry.get_all_vehicles()
+	var all_vehicles: Array[Dictionary] = VehicleRegistry.get_starter_vehicles()
 	
 	var font_future = load("res://assets/fonts/Kenney_Future.ttf")
 	var font_bold = load("res://assets/fonts/Boxy-Bold.ttf")

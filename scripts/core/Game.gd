@@ -30,6 +30,7 @@ var start_x: float = 0.0
 var _stopped_timer: float = 0.0
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_setup_vehicle()
 	_setup_camera()
 	setup_terrain()
@@ -63,12 +64,17 @@ func _setup_vehicle() -> void:
 		vehicle = vehicle_slot.get_child(0)
 	
 	if is_instance_valid(vehicle):
-		vehicle.global_position = spawn_position
-		start_x = spawn_position.x
+		var target_spawn := spawn_position
+		if vehicle.has_method("get_wheel_bottom_offset"):
+			target_spawn.y = 420.0 - vehicle.get_wheel_bottom_offset()
+		vehicle.global_position = target_spawn
+		start_x = target_spawn.x
 		if not vehicle.crashed.is_connected(_on_vehicle_crashed):
 			vehicle.crashed.connect(_on_vehicle_crashed)
 		if vehicle.has_signal("hard_landed") and not vehicle.hard_landed.is_connected(_on_vehicle_hard_landed):
 			vehicle.hard_landed.connect(_on_vehicle_hard_landed)
+		if vehicle.has_signal("monster_surge_shake_requested") and not vehicle.monster_surge_shake_requested.is_connected(_on_monster_surge_shake):
+			vehicle.monster_surge_shake_requested.connect(_on_monster_surge_shake)
 		if is_instance_valid(game_manager) and game_manager.has_method("bind_vehicle"):
 			game_manager.bind_vehicle(vehicle)
 
@@ -185,11 +191,18 @@ func _on_vehicle_hard_landed(severity: float) -> void:
 	if is_instance_valid(follow_camera) and follow_camera.has_method("add_trauma"):
 		follow_camera.add_trauma(severity * 0.4)
 
+func _on_monster_surge_shake(trauma: float) -> void:
+	if is_instance_valid(follow_camera) and follow_camera.has_method("add_trauma"):
+		follow_camera.add_trauma(trauma)
+
 func _on_vehicle_crashed() -> void:
 	if is_instance_valid(follow_camera) and follow_camera.has_method("add_trauma"):
 		follow_camera.add_trauma(0.7)
 	if is_instance_valid(game_manager) and game_manager.current_state == GameManagerScript.RunState.PLAYING:
-		game_manager.finish_run("crashed")
+		var reason: String = "crashed"
+		if is_instance_valid(vehicle) and "crash_reason" in vehicle and vehicle.crash_reason != "":
+			reason = vehicle.crash_reason
+		game_manager.finish_run(reason)
 
 func _on_run_restarted() -> void:
 	if is_instance_valid(music_player):
@@ -197,9 +210,12 @@ func _on_run_restarted() -> void:
 		if not music_player.playing:
 			music_player.play()
 	_stopped_timer = 0.0
-	start_x = spawn_position.x
+	var target_spawn := spawn_position
+	if is_instance_valid(vehicle) and vehicle.has_method("get_wheel_bottom_offset"):
+		target_spawn.y = 420.0 - vehicle.get_wheel_bottom_offset()
+	start_x = target_spawn.x
 	if is_instance_valid(vehicle):
-		vehicle.reset_vehicle(spawn_position)
+		vehicle.reset_vehicle(target_spawn)
 	if is_instance_valid(follow_camera) and is_instance_valid(vehicle):
 		if follow_camera.has_method("snap_to_target"):
 			follow_camera.snap_to_target()

@@ -201,7 +201,7 @@ func test_speedometer_integration() -> void:
 	var speed_needle: Sprite2D = hud.get_node_or_null("%SpeedNeedle")
 	var speed_label: Label = hud.get_node_or_null("%SpeedDigitalLabel")
 	var nitro_btn: TextureButton = hud.get_node_or_null("%NitroButton")
-	var nitro_bottle: TextureRect = hud.get_node_or_null("TopStatsPanel/Margin/VBox/NitroSection/NitroHeader/NitroBottleIcon")
+	var nitro_bottle: TextureRect = hud.find_child("NitroBottleIcon", true, false)
 	
 	assert(speed_needle != null, "HUD must have SpeedNeedle")
 	assert(speed_label != null, "HUD must have SpeedDigitalLabel")

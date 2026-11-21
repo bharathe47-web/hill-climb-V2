@@ -42,10 +42,11 @@ func _physics_process(delta: float) -> void:
 	global_position.x = lerpf(global_position.x, target_pos.x, follow_smoothing_speed * delta)
 	global_position.y = lerpf(global_position.y, target_pos.y, (follow_smoothing_speed * 0.65) * delta)
 	
-	# Apply subtle trauma screen shake on hard landing / crash
+	# Reset unnecessary camera shake motion effects to clean defaults
 	if trauma > 0.0:
 		_trauma_time += delta * 25.0
-		var shake_mag: float = trauma * trauma * 7.0 # Max 7 px subtle shake
-		var shake_offset := Vector2(sin(_trauma_time * 1.7) * shake_mag, cos(_trauma_time * 2.3) * shake_mag)
+		# Shake magnitude reset to 0.0 to eliminate unwanted camera jitter while decaying trauma
+		var shake_mag: float = 0.0
+		var shake_offset := Vector2.ZERO
 		global_position += shake_offset
 		trauma = maxf(0.0, trauma - delta * 2.2)

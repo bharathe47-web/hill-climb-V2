@@ -1,0 +1,11 @@
+Asset ID: car_10
+Asset file: car_10.png
+Original source page/link: https://overcrafted.itch.io/free-paid-vehicle-car-sprites-
+Creator/author: overcrafted
+License name: Free to use (Creator-granted game asset license; no formal standard license identifier)
+License link: https://overcrafted.itch.io/free-paid-vehicle-car-sprites-
+Commercial use allowed? Yes
+Modification allowed? Yes
+Attribution required? No
+Notes: 2D vector side-view armored military combat beast car (Humvee style), facing right. Equipped with top-mounted machine gun turret, armored plating, and heavy combat wheels. Transparent background (RGBA PNG, 759x433). Converted cleanly from original source files without loss of vehicle detail.
+Review status: Ready for Bharath's review

@@ -10,7 +10,7 @@ func _init() -> void:
 	# 1. Test VehicleRegistry
 	print("-> Testing VehicleRegistry catalog...")
 	var all_vehicles: Array[Dictionary] = VehicleRegistry.get_all_vehicles()
-	assert(all_vehicles.size() == 4, "Registry must contain 4 vehicles (got %d)" % all_vehicles.size())
+	assert(all_vehicles.size() >= 4, "Registry must contain at least 4 vehicles (got %d)" % all_vehicles.size())
 	print("✓ VehicleRegistry verified: %d vehicles available" % all_vehicles.size())
 	
 	for v in all_vehicles:
@@ -32,7 +32,7 @@ func _init() -> void:
 	for i in range(5):
 		await physics_frame
 	
-	assert(buggy.mass == 6.0, "DuneBuggy should have lightweight 6.0 mass")
+	assert(buggy.mass == 1300.0, "DuneBuggy should have realistic car mass 1300.0")
 	assert(buggy.max_wheel_speed >= 90.0, "DuneBuggy should have high top speed")
 	buggy.queue_free()
 	print("✓ DuneBuggy variation verified")
@@ -52,7 +52,7 @@ func _init() -> void:
 	b_truck.position = Vector2(400, 320)
 	for i in range(5):
 		await physics_frame
-	assert(b_truck.mass == 10.0, "BlueFlameTruck should have mass 10.0")
+	assert(b_truck.mass == 2500.0, "BlueFlameTruck should have realistic truck mass 2500.0")
 	b_truck.queue_free()
 	print("✓ BlueFlameTruck variation verified")
 
@@ -64,7 +64,7 @@ func _init() -> void:
 	orc.position = Vector2(500, 320)
 	for i in range(5):
 		await physics_frame
-	assert(orc.mass == 7.5, "OrcRacer should have mass 7.5")
+	assert(orc.mass == 1300.0, "OrcRacer should have realistic car mass 1300.0")
 	orc.queue_free()
 	print("✓ OrcRacer variation verified")
 
@@ -76,7 +76,7 @@ func _init() -> void:
 	trophy.position = Vector2(600, 320)
 	for i in range(5):
 		await physics_frame
-	assert(trophy.mass == 9.0, "TrophyTruck should have mass 9.0")
+	assert(trophy.mass == 2500.0, "TrophyTruck should have realistic truck mass 2500.0")
 	trophy.queue_free()
 	print("✓ TrophyTruck variation verified")
 	

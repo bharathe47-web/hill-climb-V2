@@ -48,10 +48,11 @@ static func load_save() -> Dictionary:
 		push_warning("SaveManager: Save data corrupted or invalid at %s, using defaults." % path)
 		return DEFAULT_SAVE_DATA.duplicate(true)
 	
-	# Merge loaded data with defaults to ensure all required keys exist
+	# Merge loaded data with defaults to ensure all required keys exist (ignoring obsolete character data)
 	var merged := DEFAULT_SAVE_DATA.duplicate(true)
 	for key in json_data.keys():
-		merged[key] = json_data[key]
+		if key != "selected_character_id":
+			merged[key] = json_data[key]
 		
 	return merged
 

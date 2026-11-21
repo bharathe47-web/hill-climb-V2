@@ -7,6 +7,7 @@
 [ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future_Narrow.ttf" id="5_font_narrow"]
 [ext_resource type="PackedScene" uid="uid://game_hud_scene_001" path="res://scenes/ui/hud/game_hud.tscn" id="6_shared_hud"]
 [ext_resource type="Texture2D" path="res://assets/environment/survival/destroyed_city/terrain/dusty_ground/survival_drivable_ground_strip.png" id="7_ground_tex"]
+[ext_resource type="PackedScene" uid="uid://pause_menu_001" path="res://scenes/ui/PauseMenu.tscn" id="8_pause_menu"]
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_ground"]
 distance = -410.0
@@ -48,12 +49,15 @@ polygon = PackedVector2Array(-10000, 410, 50000, 410, 50000, 1200, -10000, 1200)
 
 [node name="FollowCamera" type="Camera2D" parent="."]
 position = Vector2(0, 300)
+zoom = Vector2(1.35, 1.35)
 script = ExtResource("3_cam")
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 
 [node name="SurvivalHUD" parent="UILayer" instance=ExtResource("6_shared_hud")]
 current_mode = 2
+
+[node name="PauseMenu" parent="UILayer" instance=ExtResource("8_pause_menu")]
 
 [node name="ExitMenuButton" type="Button" parent="UILayer"]
 anchors_preset = 1

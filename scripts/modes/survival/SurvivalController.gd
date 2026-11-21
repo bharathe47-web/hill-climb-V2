@@ -58,6 +58,7 @@ signal warning_requested(target_position: Vector2, duration: float)
 @onready var heart_container: HBoxContainer = get_node_or_null("%HeartContainer")
 @onready var game_over_panel: Control = get_node_or_null("%GameOverPanel")
 @onready var ad_offer_panel: Control = get_node_or_null("%AdOfferPanel")
+@onready var pause_menu: Control = get_node_or_null("UILayer/PauseMenu")
 @onready var time_label: Label = get_node_or_null("%TimeLabel")
 @onready var distance_label: Label = get_node_or_null("%DistanceLabel")
 
@@ -109,7 +110,10 @@ func _setup_vehicle() -> void:
 
 	if is_instance_valid(veh):
 		veh.name = "Vehicle"
-		veh.global_position = Vector2(0.0, 382.0)
+		var spawn_pos := Vector2(0.0, 382.0)
+		if veh.has_method("get_wheel_bottom_offset"):
+			spawn_pos.y = 420.0 - veh.get_wheel_bottom_offset()
+		veh.global_position = spawn_pos
 		vehicle_slot.add_child(veh)
 		vehicle = veh
 		_start_x = veh.global_position.x
@@ -131,8 +135,19 @@ func _setup_ui() -> void:
 			hud.bind_survival_controller(self)
 		if is_instance_valid(vehicle) and hud.has_method("bind_vehicle"):
 			hud.bind_vehicle(vehicle)
+
+	if is_instance_valid(pause_menu):
+		pause_menu.visible = false
+		if pause_menu.has_method("bind_game_manager"):
+			pause_menu.bind_game_manager(self)
+		if pause_menu.has_signal("menu_requested") and not pause_menu.menu_requested.is_connected(_on_menu_pressed):
+			pause_menu.menu_requested.connect(_on_menu_pressed)
 			
 	_update_heart_display()
+
+func restart_run() -> void:
+	get_tree().paused = false
+	start_run()
 
 func start_run() -> void:
 	_run_generation += 1
