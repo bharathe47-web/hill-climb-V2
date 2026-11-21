@@ -443,19 +443,20 @@ const TEX_HEAVEN_FLOWERS: Array = [
 ]
 const TEX_HEAVEN_GARDEN_BED: Texture2D = preload("res://assets/environments/heaven/decorations/celestial_garden_bed.png")
 const TEX_HEAVEN_PLANTER: Texture2D = preload("res://assets/environments/heaven/decorations/celestial_planter_urn.png")
-const TEX_HEAVEN_BRIDGE_ARCH: Texture2D = preload("res://assets/environments/heaven/architecture/heaven_stone_bridge_arch.png")
+const TEX_HEAVEN_BRIDGE_ARCH: Texture2D = preload("res://assets/environments/heaven/architecture/heaven_viaduct_arch_cutout.png")
+var TEX_HELL_BRIDGE_ARCH: Texture2D = load("res://assets/environments/hell/architecture/hell_bridge/hell_volcanic_bridge_arch.png")
+var FRAMES_HELL_TORCH: SpriteFrames = load("res://assets/environments/hell/architecture/torches/torch_burn.tres")
+const TEX_HEAVEN_BALUSTRADE: Texture2D = preload("res://assets/environments/heaven/architecture/heaven_marble_balustrade.png")
+const TEX_HEAVEN_DECK: Texture2D = preload("res://assets/environments/heaven/architecture/heaven_marble_deck_inlaid.png")
 const TEX_ROCKS: Array = [
 	preload("res://assets/terrain/rocks/small_stones_pebbles.png"),
 	preload("res://assets/terrain/rocks/large_rock_boulder_01.png")
 ]
 const TEX_HELL_ROCKS: Array = [
-	preload("res://assets/environments/hell/terrain/hell_volcanic_rock_a.png"),
-	preload("res://assets/environments/hell/terrain/hell_volcanic_rock_b.png"),
-	preload("res://assets/environments/hell/terrain/hell_volcanic_rock_c.png")
+	preload("res://assets/environments/hell/foreground/skulls/skulls_cluster_prop.png"),
+	preload("res://assets/environments/hell/foreground/skeletons/skeleton_remains_prop.png")
 ]
-const TEX_HELL_BASALT_COLUMN: Texture2D = preload("res://assets/environments/hell/terrain/hell_basalt_column.png")
-const TEX_HELL_MAGMA_VENT: Texture2D = preload("res://assets/environments/hell/terrain/magma_vent_fissure_prop.png")
-const TEX_HELL_OBSIDIAN_SPIKES: Texture2D = preload("res://assets/environments/hell/terrain/volcanic_obsidian_spikes_cluster.png")
+const TEX_HELL_OBSIDIAN_SPIKES: Texture2D = null
 const TEX_PROPS: Array = [
 	preload("res://assets/environment/countryside/fences/wooden_fence_01.png"),
 	preload("res://assets/environment/countryside/fences/wooden_fence_broken.png"),
@@ -524,23 +525,23 @@ func _apply_geometry() -> void:
 		active_grass_hl = Color(1.0, 0.96, 0.70, 0.95)
 		active_grass_width = 2.4
 		active_grass_hl_width = 1.2
-		active_ground_tex_scale = Vector2(0.5, 0.75)
+		active_ground_tex_scale = Vector2(1.0, 1.0)
 		if terrain_profile and "ground_texture" in terrain_profile and terrain_profile.ground_texture:
 			active_ground_tex = terrain_profile.ground_texture
 		else:
-			active_ground_tex = preload("res://assets/environments/heaven/architecture/heaven_marble_floor.png")
+			active_ground_tex = TEX_HEAVEN_DECK
 		if terrain_profile and "subsoil_texture" in terrain_profile and terrain_profile.subsoil_texture:
 			active_subsoil_tex = terrain_profile.subsoil_texture
 		else:
 			active_subsoil_tex = preload("res://assets/environments/heaven/architecture/heaven_cloud_underside.png")
 	elif is_hell:
-		# Dark volcanic crust over layered ash-rock; the narrow orange edge reads as heat, not a thick outline.
-		active_ground_col = Color(0.84, 0.80, 0.77, 1.0)
-		active_subsoil_col = Color(0.22, 0.11, 0.09, 1.0)
-		active_grass_col = Color(0.90, 0.36, 0.10, 1.0) # Fine molten crust edge
-		active_grass_hl = Color(1.0, 0.62, 0.20, 0.88)
-		active_grass_width = 2.8
-		active_grass_hl_width = 1.4
+		# Dark volcanic stone bricks over glowing volcanic masonry with radiant molten rim
+		active_ground_col = Color(1.0, 1.0, 1.0, 1.0)
+		active_subsoil_col = Color(0.88, 0.82, 0.80, 1.0)
+		active_grass_col = Color(1.0, 0.52, 0.10, 1.0) # Radiant molten crust rim
+		active_grass_hl = Color(1.0, 0.75, 0.25, 0.95)
+		active_grass_width = 3.0
+		active_grass_hl_width = 1.5
 		active_ground_tex_scale = Vector2(0.5, 0.75)
 		if terrain_profile and "ground_texture" in terrain_profile and terrain_profile.ground_texture:
 			active_ground_tex = terrain_profile.ground_texture
@@ -563,14 +564,14 @@ func _apply_geometry() -> void:
 	# world depth, creating the giant flat slab visible in the supplied captures.
 	var texture_height := active_ground_tex.get_height() if active_ground_tex else 70
 	if is_heaven:
-		# Substantial royal ivory marble roadway deck (68px depth) with gold rosettes & panel bevel
+		# Sleek royal ivory marble roadway deck (68px depth) with gold diamond inlays
 		visual_surface_band_depth = 68.0
 	elif is_hell:
-		visual_surface_band_depth = clampf(float(texture_height) * active_ground_tex_scale.y, 30.0, 104.0)
+		visual_surface_band_depth = 56.0
 	else:
 		# Clean, slim countryside grass crest (38px depth) seamlessly transitioning to the earth body
 		visual_surface_band_depth = 38.0
-	if is_floating_platform:
+	if is_floating_platform and not is_heaven:
 		visual_surface_band_depth = minf(visual_surface_band_depth, platform_thickness * 0.42)
 
 	var ground_band_pts := PackedVector2Array()
@@ -618,6 +619,7 @@ func _apply_geometry() -> void:
 		subsoil_polygon.texture_scale = Vector2(1.0, 1.0)
 		subsoil_polygon.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 		subsoil_polygon.z_index = 0
+		subsoil_polygon.visible = not is_heaven # In Heaven, viaduct arches reveal the cloud ocean behind
 
 		# Planar world-space UV mapping guarantees zero fan distortion, zero shearing,
 		# and 100% continuous earth texture across all hills, valleys and segment seams.
@@ -626,10 +628,7 @@ func _apply_geometry() -> void:
 		for v in subsoil_pts:
 			var world_x: float = position.x + v.x
 			var world_y: float = position.y + v.y
-			if is_heaven:
-				subsoil_uv.append(Vector2(world_x * 0.5, world_y * 0.5))
-				subsoil_colors.append(Color.WHITE)
-			elif is_hell:
+			if is_hell:
 				subsoil_uv.append(Vector2(world_x, world_y))
 				subsoil_colors.append(Color.WHITE)
 			else:
@@ -645,27 +644,96 @@ func _apply_geometry() -> void:
 	if facade:
 		for c in facade.get_children():
 			c.queue_free()
-		if is_heaven and generated_surface_points.size() >= 2:
+		if (is_heaven or is_hell) and generated_surface_points.size() >= 2:
 			facade.visible = true
-			var arch_w: float = 320.0
 			var total_len: float = last_pt.x - first_pt.x
-			var arch_count: int = int(ceil(total_len / arch_w)) + 1
+			var nominal_w: float = 540.0
+			var arch_count: int = maxi(1, int(round(total_len / nominal_w)))
+			var arch_span_w: float = total_len / float(arch_count)
+
+			# 1. Continuous Connecting Fascia Band following exact curved road underside
+			var fascia_line := Line2D.new()
+			fascia_line.name = "ConnectingFascia"
+			var fascia_pts := PackedVector2Array()
+			for pt in generated_surface_points:
+				fascia_pts.append(Vector2(pt.x, pt.y + visual_surface_band_depth - 4.0))
+			fascia_line.points = fascia_pts
+			fascia_line.width = 16.0
+			fascia_line.default_color = Color(0.96, 0.94, 0.90, 1.0) if is_heaven else Color(0.22, 0.14, 0.14, 1.0) # Ivory marble or dark basalt
+			fascia_line.joint_mode = Line2D.LINE_JOINT_ROUND
+			fascia_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+			fascia_line.end_cap_mode = Line2D.LINE_CAP_ROUND
+			fascia_line.z_index = -3
+			facade.add_child(fascia_line)
+
+			# 2. Seamless Viaduct Arch Modules attached directly to bridge underside
 			for ai in range(arch_count):
-				var ax := first_pt.x + float(ai) * arch_w
-				if ax > last_pt.x:
-					break
-				var sample_x := clampf(ax + arch_w * 0.5, first_pt.x, last_pt.x)
-				var pt_info := get_surface_point_and_normal_at(sample_x)
-				var pt: Vector2 = pt_info["point"]
-				var norm: Vector2 = pt_info["normal"]
-				var slope_ang := _surface_slope_angle_from_normal(norm)
+				var x0 := first_pt.x + float(ai) * arch_span_w
+				var x1 := first_pt.x + float(ai + 1) * arch_span_w
+				var y0 := get_surface_y_at(x0) + visual_surface_band_depth
+				var y1 := get_surface_y_at(x1) + visual_surface_band_depth
+				var dx := x1 - x0
+				var dy := y1 - y0
+				var chord_len := sqrt(dx * dx + dy * dy)
+				var chord_angle := atan2(dy, dx)
+				var mid_under := Vector2((x0 + x1) * 0.5, (y0 + y1) * 0.5)
+				# True upward normal in 2D screen coordinates (-Y is UP)
+				var norm_up := Vector2(sin(chord_angle), -cos(chord_angle))
+
+				# Open Viaduct Cutout Arch attached directly to the underside of the roadway
 				var arch_spr := Sprite2D.new()
-				arch_spr.texture = TEX_HEAVEN_BRIDGE_ARCH
-				arch_spr.position = Vector2(sample_x, pt.y + visual_surface_band_depth + 118.0)
-				arch_spr.rotation = 0.0 # Classical masonry piers stand strictly vertical supporting the road
-				arch_spr.scale = Vector2(1.02, 1.0)
-				arch_spr.z_index = 0
+				arch_spr.name = "ViaductArch_%d" % ai
+				arch_spr.texture = TEX_HEAVEN_BRIDGE_ARCH if is_heaven else TEX_HELL_BRIDGE_ARCH
+				arch_spr.offset = Vector2(0.0, 140.0) # Anchor top-center at local (0, 0)
+				arch_spr.position = mid_under + norm_up * 8.0 # Tuck 8px into fascia for guaranteed seamless connection
+				arch_spr.rotation = chord_angle # Follow local bridge underside tangent
+				arch_spr.scale = Vector2(chord_len / 640.0, 1.0) # Exact span fit: zero gaps, zero overlaps
+				arch_spr.z_index = -2 # Below road deck and vehicle
 				facade.add_child(arch_spr)
+
+				# 3. Decorative Stone Pier Cap at each support position
+				var pier_cap := Line2D.new()
+				pier_cap.name = "PierCap_%d" % ai
+				var cap_dir := Vector2(cos(chord_angle), sin(chord_angle))
+				pier_cap.points = PackedVector2Array([
+					Vector2(x0, y0) - cap_dir * 28.0,
+					Vector2(x0, y0) + cap_dir * 28.0
+				])
+				pier_cap.width = 12.0
+				pier_cap.default_color = Color(0.92, 0.76, 0.28, 0.95) if is_heaven else Color(0.95, 0.40, 0.10, 0.95) # Gold or molten orange rim
+				pier_cap.joint_mode = Line2D.LINE_JOINT_ROUND
+				pier_cap.begin_cap_mode = Line2D.LINE_CAP_BOX
+				pier_cap.end_cap_mode = Line2D.LINE_CAP_BOX
+				pier_cap.z_index = -1
+				facade.add_child(pier_cap)
+
+				# In Hell, place burning bridge torches along pier posts
+				if is_hell and FRAMES_HELL_TORCH:
+					var torch_anim := AnimatedSprite2D.new()
+					torch_anim.name = "BridgeTorch_%d" % ai
+					torch_anim.sprite_frames = FRAMES_HELL_TORCH
+					torch_anim.animation = &"burn"
+					torch_anim.autoplay = "burn"
+					torch_anim.position = Vector2(x0, y0 - 36.0)
+					torch_anim.scale = Vector2(0.32, 0.32)
+					torch_anim.z_index = -1
+					facade.add_child(torch_anim)
+
+			# Last pier cap at segment exit boundary
+			var last_y := get_surface_y_at(last_pt.x) + visual_surface_band_depth
+			var exit_cap := Line2D.new()
+			exit_cap.name = "PierCap_Exit"
+			exit_cap.points = PackedVector2Array([
+				Vector2(last_pt.x - 28.0, last_y),
+				Vector2(last_pt.x + 28.0, last_y)
+			])
+			exit_cap.width = 12.0
+			exit_cap.default_color = Color(0.92, 0.76, 0.28, 0.95) if is_heaven else Color(0.95, 0.40, 0.10, 0.95)
+			exit_cap.joint_mode = Line2D.LINE_JOINT_ROUND
+			exit_cap.begin_cap_mode = Line2D.LINE_CAP_BOX
+			exit_cap.end_cap_mode = Line2D.LINE_CAP_BOX
+			exit_cap.z_index = -1
+			facade.add_child(exit_cap)
 		else:
 			facade.visible = false
 
@@ -750,16 +818,6 @@ func _build_decorations() -> void:
 		return
 
 	if segment_type == SegmentType.RAMP_HELL_TO_NORMAL:
-		var vent_idx := int(generated_surface_points.size() * 0.4)
-		var v_pt := generated_surface_points[vent_idx]
-		var vent := Sprite2D.new()
-		vent.name = "EscapeMagmaVent"
-		vent.texture = load("res://assets/environments/hell/terrain/magma_vent_fissure_prop.png")
-		vent.scale = Vector2(0.55, 0.55)
-		vent.offset = Vector2(0, -vent.texture.get_height() * 0.5)
-		vent.position = v_pt + Vector2(0, 5)
-		vent.z_index = -3
-		decorations_root.add_child(vent)
 		return
 
 	if terrain_profile and "decorations_enabled" in terrain_profile and not terrain_profile.decorations_enabled:
@@ -813,56 +871,16 @@ func _build_decorations() -> void:
 				spr.rotation = clampf(slope_angle * 0.25, -0.2, 0.2)
 				decorations_root.add_child(spr)
 		elif is_hell:
-			# Rich volcanic dressing: basalt pillars, magma fissures, obsidian spikes, and volcanic rubble
+			# Dark-fantasy volcanic dressing: authentic skull/bone remains only (NO dotted obstacle blocks)
 			var hell_choice := rng.randf()
-			if slope_deg < 20.0 and hell_choice < 0.22:
-				# Towering hexagonal basalt column landmark behind the driving track
-				var spr := Sprite2D.new()
-				spr.add_to_group(vis_group)
-				spr.texture = TEX_HELL_BASALT_COLUMN
-				spr.z_index = -2 # Behind vehicle
-				spr.modulate = Color(0.72, 0.65, 0.65, 0.95)
-				var sc := rng.randf_range(0.22, 0.28)
-				spr.scale = Vector2(sc, sc)
-				spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 4)
-				spr.position = pt
-				spr.rotation = clampf(slope_angle * 0.20, -0.15, 0.15)
-				decorations_root.add_child(spr)
-			elif slope_deg < 18.0 and hell_choice < 0.45:
-				# Glowing subterranean magma fissure vent
-				var spr := Sprite2D.new()
-				spr.add_to_group(vis_group)
-				spr.texture = TEX_HELL_MAGMA_VENT
-				spr.z_index = -1
-				spr.modulate = Color(1.0, 0.9, 0.85, 0.98)
-				var sc := rng.randf_range(0.35, 0.45)
-				spr.scale = Vector2(sc, sc)
-				spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 2)
-				spr.position = pt
-				spr.rotation = clampf(slope_angle * 0.25, -0.2, 0.2)
-				decorations_root.add_child(spr)
-			elif hell_choice < 0.70:
-				# Jagged obsidian spikes cluster
-				var spr := Sprite2D.new()
-				spr.add_to_group(vis_group)
-				spr.texture = TEX_HELL_OBSIDIAN_SPIKES
-				spr.z_index = 1
-				spr.modulate = Color(0.88, 0.82, 0.82, 1.0)
-				var sc := rng.randf_range(0.14, 0.18)
-				spr.scale = Vector2(sc, sc)
-				spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 3)
-				spr.position = pt
-				spr.rotation = clampf(slope_angle * 0.25, -0.22, 0.22)
-				decorations_root.add_child(spr)
-			else:
-				# Volcanic basalt rock / rubble
+			if hell_choice < 0.65:
 				var rock_tex: Texture2D = TEX_HELL_ROCKS[rng.randi() % TEX_HELL_ROCKS.size()]
 				var spr := Sprite2D.new()
 				spr.add_to_group(vis_group)
 				spr.texture = rock_tex
 				spr.modulate = Color(0.96, 0.91, 0.86, 1.0)
-				spr.z_index = 1 # Small foreground boulders sit on the crust, not behind it.
-				var sc := rng.randf_range(0.16, 0.22)
+				spr.z_index = -1 # Background decorative placement, not on top of driving road
+				var sc := rng.randf_range(0.18, 0.25)
 				spr.scale = Vector2(sc, sc)
 				spr.offset = Vector2(0, -rock_tex.get_height() * 0.5 + 3)
 				spr.position = pt

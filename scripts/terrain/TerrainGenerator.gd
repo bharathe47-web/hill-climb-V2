@@ -407,26 +407,54 @@ func _generate_next_procedural_segment(custom_length: float = -1.0, profile_over
 	current_difficulty = clampf(current_difficulty, 1.0, 3.0)
 	
 	var dist_to_boundary := get_distance_to_next_biome_boundary(next_attach_point.x)
-	var seg_type := _select_segment_type(current_difficulty)
-	var seg_length := default_segment_length * rng.randf_range(0.9, 1.25)
-	if custom_length > 0.0:
-		seg_length = custom_length
-
-	# Strictly clamp segment length so it never crosses a biome boundary
-	if seg_length >= dist_to_boundary or dist_to_boundary < default_segment_length * 1.35:
-		seg_length = dist_to_boundary
-
 	if profile_override != null:
 		active_terrain_profile = profile_override
 	else:
 		active_terrain_profile = get_profile_for_world_x(next_attach_point.x)
+
+	var b_type := get_biome_type_for_world_x(next_attach_point.x)
+	var is_heaven := (b_type == 1) or (active_terrain_profile != null and str(active_terrain_profile.get("profile_name")).begins_with("Heaven"))
+
+	var seg_type := _select_segment_type(current_difficulty, is_heaven)
+	var seg_length := default_segment_length * rng.randf_range(0.9, 1.25)
+	if custom_length > 0.0:
+		seg_length = custom_length
+	elif is_heaven:
+		# Long, elegant viaduct spans for graceful continuity
+		seg_length = clampf(seg_length, 900.0, 1300.0)
+
+	# Strictly clamp segment length so it never crosses a biome boundary
+	if seg_length >= dist_to_boundary or dist_to_boundary < default_segment_length * 1.35:
+		seg_length = dist_to_boundary
 
 	var amp: float = 0.0
 	var height_change: float = 0.0
 	var start_slope: float = current_slope
 	var target_slope: float = 0.0
 
-	if seg_type == TerrainSegment.SegmentType.FLAT:
+	if is_heaven:
+		# Heaven Elevated Viaduct: gentle, smooth continuous undulations (no deep V-shaped dips, no abrupt climbs)
+		start_slope = clampf(start_slope, -0.06, 0.06)
+		if seg_type == TerrainSegment.SegmentType.FLAT:
+			seg_length = minf(rng.randf_range(700.0, 1000.0), dist_to_boundary) if custom_length <= 0.0 else seg_length
+			amp = 0.0
+			height_change = 0.0
+			target_slope = 0.0
+		else:
+			amp = 26.0 * rng.randf_range(0.9, 1.1)
+			var heaven_baseline_y := 350.0
+			var heaven_center_bias := (heaven_baseline_y - next_attach_point.y) * 0.20
+			height_change = rng.randf_range(-25.0, 25.0) * 0.6 + heaven_center_bias
+			height_change = clampf(height_change, -32.0, 32.0)
+			
+			var predicted_end_y := next_attach_point.y + height_change
+			if predicted_end_y < 260.0:
+				height_change = absf(height_change) + 10.0
+			elif predicted_end_y > 440.0:
+				height_change = -absf(height_change) - 10.0
+			
+			target_slope = clampf((height_change / seg_length) * 0.70, -0.06, 0.06)
+	elif seg_type == TerrainSegment.SegmentType.FLAT:
 		# Relatively flat section to gain speed and momentum
 		seg_length = minf(rng.randf_range(600.0, 800.0), dist_to_boundary) if custom_length <= 0.0 else seg_length
 		amp = 0.0
@@ -453,7 +481,16 @@ func _generate_next_procedural_segment(custom_length: float = -1.0, profile_over
 	
 	return _create_segment(seg_type, seg_length, 0.0, height_change, amp, start_slope, target_slope)
 
-func _select_segment_type(_diff: float) -> TerrainSegment.SegmentType:
+func _select_segment_type(_diff: float, is_heaven: bool = false) -> TerrainSegment.SegmentType:
+	if is_heaven:
+		# Classical Heaven viaduct only uses gentle harmonic waves and causeways (never motocross pits or washboard bumps)
+		var h_roll := rng.randf()
+		if h_roll < 0.50:
+			return TerrainSegment.SegmentType.GENTLE_HILLS
+		elif h_roll < 0.80:
+			return TerrainSegment.SegmentType.ROLLING_WAVES
+		else:
+			return TerrainSegment.SegmentType.FLAT
 	var roll := rng.randf()
 	if roll < 0.60:
 		# 60% Gentle rolling terrain (smooth waves, pleasant hills, undulating contours)

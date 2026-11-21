@@ -426,25 +426,19 @@ func _spawn_flower_cluster(parent: Node2D, center_x: float, surface_y: float, co
 		parent.add_child(fl)
 
 ## Preloaded Hell architectural, environmental, and decorative assets
-const TEX_HELL_DRAGON_SKULL: Texture2D = preload("res://assets/environments/hell/decorations/giant_dragon_skull_decal.png")
-const TEX_HELL_BASALT_COLUMN: Texture2D = preload("res://assets/environments/hell/terrain/hell_basalt_column.png")
-const TEX_HELL_SKULL_PILE: Texture2D = preload("res://assets/environments/hell/decorations/catacomb_skull_pile_decal.png")
-const TEX_HELL_MAGMA_VENT: Texture2D = preload("res://assets/environments/hell/terrain/magma_vent_fissure_prop.png")
-const TEX_HELL_OBSIDIAN_SPIKES: Texture2D = preload("res://assets/environments/hell/terrain/volcanic_obsidian_spikes_cluster.png")
+const TEX_HELL_BASALT_COLUMN: Texture2D = null # Permanently removed unwanted jagged strip
+const TEX_HELL_SKULL_PILE: Texture2D = preload("res://assets/environments/hell/foreground/skulls/skulls_cluster_prop.png")
+const TEX_HELL_MAGMA_VENT: Texture2D = null # Legacy dotted obstacle permanently removed
+const TEX_HELL_OBSIDIAN_SPIKES: Texture2D = null # Legacy dotted obstacle permanently removed
 const TEX_HELL_GLOW_MASK: Texture2D = preload("res://assets/environments/hell/vfx/particles/subterranean_magma_glow_mask.png")
 const TEX_HELL_CINDER: Texture2D = preload("res://assets/environments/hell/vfx/particles/volcanic_cinder_spark_01.png")
 const TEX_HELL_ASH: Texture2D = preload("res://assets/environments/hell/vfx/particles/volcanic_ash_cloud_02.png")
-const SCENE_HELL_DRAGON: PackedScene = preload("res://scenes/environment/hell/characters/FlyingHellDragon.tscn")
-const SCENE_HELL_SKELETON: PackedScene = preload("res://scenes/environment/hell/characters/SkeletonKnight.tscn")
-const SCENE_HELL_GOBLIN: PackedScene = preload("res://scenes/environment/hell/characters/DemonGoblin.tscn")
-const SCENE_HELL_FIEND: PackedScene = preload("res://scenes/environment/hell/characters/HornedFiend.tscn")
 const SCENE_COIN: PackedScene = preload("res://scenes/pickups/Coin.tscn")
 const SCENE_FUEL: PackedScene = preload("res://scenes/pickups/FuelPickup.tscn")
 const SCENE_NITRO: PackedScene = preload("res://scenes/pickups/NitroPickup.tscn")
 const TEX_HELL_ROCKS: Array = [
-	preload("res://assets/environments/hell/terrain/hell_volcanic_rock_a.png"),
-	preload("res://assets/environments/hell/terrain/hell_volcanic_rock_b.png"),
-	preload("res://assets/environments/hell/terrain/hell_volcanic_rock_c.png")
+	preload("res://assets/environments/hell/foreground/skulls/skulls_cluster_prop.png"),
+	preload("res://assets/environments/hell/foreground/skeletons/skeleton_remains_prop.png")
 ]
 
 ## 3. Hell Route (Lower catch basin and volcanic cavern): from X = 50px -> X = realm_total_length
@@ -522,17 +516,10 @@ func _build_hell_dressing() -> void:
 	var get_y := func(local_x: float) -> float:
 		return hell_segment.get_surface_y_at(local_x - catch_start_x) if hell_segment else hell_y
 
-	# 1. Entry Catch Basin & Giant Dragon Skull Portal (X = 1200px = 512m)
+	# 1. Entry Catch Basin (X = 1200px = 512m)
 	# Safe spacing: never place hazards directly on the landing basin (0 - 2,000px)
 	var portal_x := 1200.0
 	var portal_y: float = get_y.call(portal_x)
-	var skull_portal := Sprite2D.new()
-	skull_portal.name = "GiantDragonSkullPortal"
-	skull_portal.texture = TEX_HELL_DRAGON_SKULL
-	skull_portal.scale = Vector2(0.70, 0.70)
-	skull_portal.position = Vector2(portal_x, portal_y - 105.0)
-	skull_portal.z_index = -1
-	dressing_root.add_child(skull_portal)
 
 	_spawn_basalt_pillar(dressing_root, portal_x - 350.0, float(get_y.call(portal_x - 350.0)))
 	_spawn_basalt_pillar(dressing_root, portal_x + 350.0, float(get_y.call(portal_x + 350.0)))
@@ -540,20 +527,10 @@ func _build_hell_dressing() -> void:
 	_spawn_hell_cinder_burst(dressing_root, portal_x, portal_y - 20.0, 16, 25.0, 55.0)
 	_spawn_skull_pile(dressing_root, portal_x + 550.0, float(get_y.call(portal_x + 550.0)))
 
-	# 2. Obsidian Crags & Skeleton Knight Outpost (X = 8500px = 585m)
+	# 2. Obsidian Crags (X = 8500px = 585m)
 	var skel_x := 8500.0 + (enc_mod - 1.5) * 350.0
 	var skel_y: float = get_y.call(skel_x)
 	_spawn_magma_vent(dressing_root, skel_x - 380.0, float(get_y.call(skel_x - 380.0)))
-	_spawn_obsidian_spikes(dressing_root, skel_x + 350.0, float(get_y.call(skel_x + 350.0)))
-
-	if SCENE_HELL_SKELETON:
-		var skel: Node2D = SCENE_HELL_SKELETON.instantiate()
-		skel.name = "SkeletonKnight1"
-		skel.scale = Vector2(0.32, 0.32)
-		skel.position = Vector2(skel_x, skel_y - 50.0)
-		skel.modulate = Color(0.90, 0.85, 0.80, 0.90)
-		skel.z_index = -2
-		dressing_root.add_child(skel)
 
 	# Phase 6: Reward Coin Trail 1 (5 coins)
 	_spawn_coin_trail(dressing_root, skel_x - 800.0, 5, 200.0)
@@ -561,7 +538,7 @@ func _build_hell_dressing() -> void:
 	# Phase 6: Reward Nitro Canister 1 (high-risk recovery after descent)
 	_spawn_nitro_canister(dressing_root, skel_x + 700.0, float(get_y.call(skel_x + 700.0)) - 42.0)
 
-	# 3. Demon's Chasm Dip, Jump & Demon Goblin (X = 19000px = 690m)
+	# 3. Demon's Chasm Dip & Jump (X = 19000px = 690m)
 	var chasm_x := 16500.0 + (enc_mod - 1.5) * 450.0
 	var chasm_y: float = get_y.call(chasm_x)
 	_spawn_magma_glow(dressing_root, chasm_x, chasm_y + 20.0, Vector2(3.2, 1.1))
@@ -572,24 +549,6 @@ func _build_hell_dressing() -> void:
 	var gob_x := 19500.0 + (enc_mod - 1.5) * 400.0
 	var gob_y: float = get_y.call(gob_x)
 	_spawn_magma_vent(dressing_root, gob_x - 400.0, float(get_y.call(gob_x - 400.0)))
-	if SCENE_HELL_GOBLIN:
-		var goblin: Node2D = SCENE_HELL_GOBLIN.instantiate()
-		goblin.name = "DemonGoblinSentinel"
-		goblin.scale = Vector2(0.24, 0.24)
-		goblin.position = Vector2(gob_x, 260.0)
-		goblin.modulate = Color(0.85, 0.70, 0.65, 0.85)
-		goblin.z_index = -3
-		dressing_root.add_child(goblin)
-
-	# Flying Hell Dragon soaring across upper cavern
-	if SCENE_HELL_DRAGON:
-		var dragon: Node2D = SCENE_HELL_DRAGON.instantiate()
-		dragon.name = "FlyingHellDragonCavern"
-		dragon.scale = Vector2(0.45, 0.45)
-		dragon.position = Vector2(21000.0 + (enc_mod - 1.5) * 400.0, 320.0)
-		dragon.modulate = Color(0.85, 0.70, 0.70, 0.85)
-		dragon.z_index = -3
-		dressing_root.add_child(dragon)
 
 	# Phase 6: Reward Coin Trail 2 (5 coins over Demon's Chasm jump lip)
 	_spawn_coin_trail(dressing_root, gob_x + 600.0, 5, 200.0)
@@ -600,17 +559,7 @@ func _build_hell_dressing() -> void:
 	_spawn_basalt_pillar(dressing_root, fiend_x - 450.0, float(get_y.call(fiend_x - 450.0)))
 	_spawn_basalt_pillar(dressing_root, fiend_x + 450.0, float(get_y.call(fiend_x + 450.0)))
 	_spawn_skull_pile(dressing_root, fiend_x - 650.0, float(get_y.call(fiend_x - 650.0)))
-	_spawn_obsidian_spikes(dressing_root, fiend_x + 650.0, float(get_y.call(fiend_x + 650.0)))
 	_spawn_magma_glow(dressing_root, fiend_x, fiend_y + 15.0, Vector2(2.5, 0.9))
-
-	if SCENE_HELL_FIEND:
-		var fiend: Node2D = SCENE_HELL_FIEND.instantiate()
-		fiend.name = "HornedFiendSentinel"
-		fiend.scale = Vector2(0.18, 0.18)
-		fiend.position = Vector2(fiend_x, 240.0)
-		fiend.modulate = Color(0.75, 0.55, 0.50, 0.85)
-		fiend.z_index = -3
-		dressing_root.add_child(fiend)
 
 	# Phase 6: Reward Coin Trail 3 (5 coins in Horned Fiend's lair)
 	_spawn_coin_trail(dressing_root, fiend_x - 600.0, 5, 200.0)
@@ -626,14 +575,6 @@ func _build_hell_dressing() -> void:
 	# Phase 6: Reward Fuel Canister 2 (preparing for geyser ascent)
 	_spawn_fuel_canister(dressing_root, outpost_x - 700.0, float(get_y.call(outpost_x - 700.0)) - 42.0)
 
-	if SCENE_HELL_SKELETON:
-		var skel2: Node2D = SCENE_HELL_SKELETON.instantiate()
-		skel2.name = "SkeletonKnight2"
-		skel2.scale = Vector2(0.40, 0.40)
-		skel2.position = Vector2(outpost_x, outpost_y - 45.0)
-		skel2.z_index = -2
-		dressing_root.add_child(skel2)
-
 	_spawn_basalt_pillar(dressing_root, outpost_x - 550.0, float(get_y.call(outpost_x - 550.0)))
 	_spawn_basalt_pillar(dressing_root, outpost_x + 750.0, float(get_y.call(outpost_x + 750.0)))
 
@@ -643,16 +584,9 @@ func _build_hell_dressing() -> void:
 	_spawn_magma_geyser_event(dressing_root, geyser_x, geyser_y)
 	_spawn_basalt_pillar(dressing_root, 45500.0, float(get_y.call(45500.0)))
 	_spawn_basalt_pillar(dressing_root, 49200.0, float(get_y.call(49200.0)))
-	_spawn_obsidian_spikes(dressing_root, 46000.0, float(get_y.call(46000.0)))
-	_spawn_obsidian_spikes(dressing_root, 48800.0, float(get_y.call(48800.0)))
 
-func _spawn_basalt_pillar(parent: Node2D, x: float, y: float) -> void:
-	var pillar := Sprite2D.new()
-	pillar.texture = TEX_HELL_BASALT_COLUMN
-	pillar.scale = Vector2(0.55, 0.55)
-	pillar.position = Vector2(x, y - 80.0)
-	pillar.z_index = -2
-	parent.add_child(pillar)
+func _spawn_basalt_pillar(_parent: Node2D, _x: float, _y: float) -> void:
+	pass # Permanently removed unwanted black-and-orange jagged strip
 
 func _spawn_skull_pile(parent: Node2D, x: float, y: float) -> void:
 	var pile := Sprite2D.new()
@@ -662,23 +596,11 @@ func _spawn_skull_pile(parent: Node2D, x: float, y: float) -> void:
 	pile.z_index = -1
 	parent.add_child(pile)
 
-func _spawn_obsidian_spikes(parent: Node2D, x: float, y: float) -> void:
-	var spikes := Sprite2D.new()
-	spikes.name = "ObsidianSpikes"
-	spikes.texture = TEX_HELL_OBSIDIAN_SPIKES
-	spikes.scale = Vector2(0.40, 0.40)
-	spikes.position = Vector2(x, y - 26.0)
-	spikes.z_index = -1
-	parent.add_child(spikes)
+func _spawn_obsidian_spikes(_parent: Node2D, _x: float, _y: float) -> void:
+	pass # Permanently removed legacy dotted obstacle
 
 func _spawn_magma_vent(parent: Node2D, x: float, y: float) -> void:
-	var vent := Sprite2D.new()
-	vent.name = "MagmaVent"
-	vent.texture = TEX_HELL_MAGMA_VENT
-	vent.scale = Vector2(0.45, 0.45)
-	vent.position = Vector2(x, y - 10.0)
-	vent.z_index = -1
-	parent.add_child(vent)
+	# Dotted obstacle sprite permanently removed; maintain ambient cinder particle atmosphere
 	_spawn_hell_cinder_burst(parent, x, y - 14.0, 8, 20.0, 45.0)
 
 func _spawn_magma_glow(parent: Node2D, x: float, y: float, glow_scale: Vector2) -> void:
@@ -878,6 +800,25 @@ func _on_merge_trigger_body_entered(body: Node2D) -> void:
 	_merge_resolved = true
 	merge_completed.emit(encounter_index)
 
+func _process(_delta: float) -> void:
+	if progression_controller and progression_controller.current_biome_index == WorldCycleSchedule.BiomeType.HELL:
+		if is_instance_valid(heaven_segment) and heaven_segment.visible:
+			isolate_route(WorldCycleSchedule.BiomeType.HELL)
+
 ## Binds to BiomeProgressionController to dispatch route decisions
 func bind_progression_controller(controller: BiomeProgressionController) -> void:
 	progression_controller = controller
+	if not progression_controller.branch_confirmed.is_connected(_on_progression_branch_confirmed):
+		progression_controller.branch_confirmed.connect(_on_progression_branch_confirmed)
+	if not progression_controller.biome_changed.is_connected(_on_progression_biome_changed):
+		progression_controller.biome_changed.connect(_on_progression_biome_changed)
+	if progression_controller.current_biome_index == WorldCycleSchedule.BiomeType.HELL:
+		isolate_route(WorldCycleSchedule.BiomeType.HELL)
+
+func _on_progression_branch_confirmed(realm: int, enc_idx: int) -> void:
+	if enc_idx == encounter_index:
+		isolate_route(realm)
+
+func _on_progression_biome_changed(_old_biome: int, new_biome: int, _cycle_idx: int) -> void:
+	if new_biome == WorldCycleSchedule.BiomeType.HELL:
+		isolate_route(WorldCycleSchedule.BiomeType.HELL)

@@ -75,7 +75,7 @@ static func create_heaven_profile() -> Resource:
 	prof.set_script(load("res://scripts/terrain/BiomeTerrainProfile.gd"))
 	prof.set("profile_name", "Heaven")
 	prof.set("biome_type", 1) # HEAVEN
-	prof.set("ground_texture", load("res://assets/environments/heaven/architecture/heaven_marble_floor.png"))
+	prof.set("ground_texture", load("res://assets/environments/heaven/architecture/heaven_marble_deck_inlaid.png"))
 	prof.set("subsoil_texture", load("res://assets/environments/heaven/architecture/heaven_cloud_underside.png"))
 	prof.set("ground_color", Color(1.0, 1.0, 1.0, 1.0))
 	prof.set("subsoil_color", Color(1.0, 1.0, 1.0, 1.0))
@@ -110,25 +110,20 @@ static func create_hell_profile() -> Resource:
 	prof.set_script(load("res://scripts/terrain/BiomeTerrainProfile.gd"))
 	prof.set("profile_name", "Hell")
 	prof.set("biome_type", 2) # HELL
-	prof.set("ground_texture", load("res://assets/environments/hell/terrain/hell_basalt_platform.png"))
-	prof.set("subsoil_texture", load("res://assets/environments/hell/vfx/lava/lava_tiles.png"))
-	prof.set("ground_color", Color(0.88, 0.82, 0.82, 1.0))
-	prof.set("subsoil_color", Color(0.85, 0.35, 0.15, 0.9))
+	prof.set("ground_texture", load("res://assets/environments/hell/architecture/stone_terrain/hell_volcanic_brick_surface.png"))
+	prof.set("subsoil_texture", load("res://assets/environments/hell/architecture/hell_bridge/stone_bridge_masonry.png"))
+	prof.set("ground_color", Color(0.95, 0.90, 0.90, 1.0))
+	prof.set("subsoil_color", Color(0.22, 0.11, 0.09, 1.0))
 	prof.set("surface_friction", 0.95)
 	prof.set("decorations_enabled", true)
 
 	prof.set("props_textures", [
-		load("res://assets/environments/hell/terrain/hell_basalt_column.png"),
-		load("res://assets/environments/hell/decorations/giant_dragon_skull_decal.png"),
-		load("res://assets/environments/hell/decorations/catacomb_skull_pile_decal.png"),
-		load("res://assets/environments/hell/terrain/magma_vent_fissure_prop.png")
+		load("res://assets/environments/hell/foreground/skulls/skulls_cluster_prop.png"),
+		load("res://assets/environments/hell/foreground/skeletons/skeleton_remains_prop.png")
 	])
 	prof.set("rocks_textures", [
-		load("res://assets/environments/hell/terrain/hell_volcanic_rock_a.png"),
-		load("res://assets/environments/hell/terrain/hell_volcanic_rock_b.png"),
-		load("res://assets/environments/hell/terrain/hell_volcanic_rock_c.png"),
-		load("res://assets/environments/hell/terrain/volcanic_obsidian_spike_single.png"),
-		load("res://assets/environments/hell/terrain/volcanic_obsidian_spikes_cluster.png")
+		load("res://assets/environments/hell/foreground/skulls/skulls_cluster_prop.png"),
+		load("res://assets/environments/hell/foreground/skeletons/skeleton_remains_prop.png")
 	])
 	prof.set("flora_textures", [
 		load("res://assets/environments/hell/decorations/skulls/skull_01.png"),

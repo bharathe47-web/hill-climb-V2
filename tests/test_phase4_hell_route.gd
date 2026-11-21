@@ -111,10 +111,9 @@ func _test_2_visual_dressing_characters_and_pickups() -> void:
 	var dressing: Node2D = encounter.get_node_or_null("HellDressing")
 	_assert_check(dressing != null, "HellDressing container created")
 	
-	# Check Giant Dragon Skull Entrance Landmark
+	# Check Giant Dragon Skull Entrance Landmark (rectangular cave image) is permanently removed
 	var skull_portal = dressing.get_node_or_null("GiantDragonSkullPortal")
-	_assert_check(skull_portal != null, "Giant Dragon Skull Entrance Landmark instantiated")
-	_assert_check(skull_portal.z_index == -1, "Dragon Skull Portal placed at background safe depth (z_index = -1)")
+	_assert_check(skull_portal == null, "Giant Dragon Skull Entrance Landmark (rectangular cave image) permanently removed")
 	
 	# Check Magma Geyser Eruption visual event
 	var geyser_event = dressing.get_node_or_null("MagmaGeyserEruption")
@@ -141,11 +140,11 @@ func _test_2_visual_dressing_characters_and_pickups() -> void:
 	
 	for child in dressing.get_children():
 		if child is Sprite2D:
-			if child.texture == BranchingEncounterClass.TEX_HELL_BASALT_COLUMN:
+			if BranchingEncounterClass.TEX_HELL_BASALT_COLUMN != null and child.texture == BranchingEncounterClass.TEX_HELL_BASALT_COLUMN:
 				pillar_count += 1
-			elif child.texture == BranchingEncounterClass.TEX_HELL_MAGMA_VENT:
+			elif BranchingEncounterClass.TEX_HELL_MAGMA_VENT != null and child.texture == BranchingEncounterClass.TEX_HELL_MAGMA_VENT:
 				vent_count += 1
-			elif child.texture == BranchingEncounterClass.TEX_HELL_OBSIDIAN_SPIKES:
+			elif BranchingEncounterClass.TEX_HELL_OBSIDIAN_SPIKES != null and child.texture == BranchingEncounterClass.TEX_HELL_OBSIDIAN_SPIKES:
 				spike_count += 1
 			elif child.texture == BranchingEncounterClass.TEX_HELL_GLOW_MASK:
 				glow_count += 1
@@ -171,18 +170,18 @@ func _test_2_visual_dressing_characters_and_pickups() -> void:
 			elif c_name.contains("Dragon"):
 				dragon_count += 1
 
-	_assert_check(pillar_count >= 8, "Basalt column landmarks placed along Hell route (%d pillars >= 8)" % pillar_count)
-	_assert_check(vent_count >= 3, "Magma vent fissure props placed along track (%d vents >= 3)" % vent_count)
-	_assert_check(spike_count >= 4, "Obsidian spikes clusters placed along track (%d spikes >= 4)" % spike_count)
+	_assert_check(pillar_count == 0, "Verified: 0 unwanted jagged black-orange strips in Hell route (Got: %d)" % pillar_count)
+	_assert_check(vent_count == 0, "Verified: 0 legacy dotted magma vent obstacles in Hell route (Got: %d)" % vent_count)
+	_assert_check(spike_count == 0, "Verified: 0 legacy dotted obsidian spike obstacles in Hell route (Got: %d)" % spike_count)
 	_assert_check(glow_count >= 3, "Subterranean magma glow masks placed in dips and geyser (%d glows >= 3)" % glow_count)
 	_assert_check(pile_count >= 2, "Catacomb skull pile decals placed along route (%d piles >= 2)" % pile_count)
 	_assert_check(cinder_emitters >= 4, "Volcanic cinder/smoke particle emitters active (%d emitters >= 4)" % cinder_emitters)
 	
-	# Character checks
-	_assert_check(skeleton_count >= 2, "Skeleton Knight ambient characters placed (%d sentinels >= 2)" % skeleton_count)
-	_assert_check(goblin_count >= 1, "Demon Goblin ambient character placed (%d goblins >= 1)" % goblin_count)
-	_assert_check(fiend_count >= 1, "Horned Fiend ambient character placed (%d fiends >= 1)" % fiend_count)
-	_assert_check(dragon_count >= 1, "Flying Hell Dragon ambient wildlife active overhead (%d dragons >= 1)" % dragon_count)
+	# Character checks - verify legacy cartoon characters and dragon have been removed
+	_assert_check(skeleton_count == 0, "Verified: 0 legacy Skeleton Knight characters in Hell route (Got: %d)" % skeleton_count)
+	_assert_check(goblin_count == 0, "Verified: 0 legacy Demon Goblin characters in Hell route (Got: %d)" % goblin_count)
+	_assert_check(fiend_count == 0, "Verified: 0 legacy Horned Fiend characters in Hell route (Got: %d)" % fiend_count)
+	_assert_check(dragon_count == 0, "Verified: 0 legacy Flying Hell Dragon characters in Hell route (Got: %d)" % dragon_count)
 	
 	# Pickup checks
 	_assert_check(coin_count >= 10, "Coin reward opportunities placed along Hell route (%d coins >= 10)" % coin_count)

@@ -94,6 +94,10 @@ func set_environment_active(active: bool) -> void:
 	
 	for child in get_children():
 		if child is CanvasItem:
+			if child.name == "DoveFlockLayer":
+				child.visible = false
+				child.modulate.a = 0.0
+				continue
 			child.visible = active
 			child.modulate.a = 1.0 if active else 0.0
 

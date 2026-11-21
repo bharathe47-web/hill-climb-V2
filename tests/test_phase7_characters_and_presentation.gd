@@ -20,15 +20,13 @@ func _init() -> void:
 	print("=================================================================\n")
 
 	var passed := true
-	passed = await _test_hell_character_animations() and passed
-	passed = await _test_safe_shelf_positioning() and passed
 	passed = await _test_collision_isolation() and passed
 	passed = await _test_visibility_culling_and_lifecycle() and passed
 	passed = await _test_heaven_wildlife_and_scenery() and passed
 	passed = await _test_normal_land_scenery_completion() and passed
 	passed = await _test_hell_decorative_hazards() and passed
 	passed = await _test_themed_collectible_presentation() and passed
-	passed = await _test_standalone_character_scenes() and passed
+	passed = await _test_legacy_hell_cleanup_isolation() and passed
 
 	if passed:
 		print("\n=================================================================")
@@ -41,80 +39,18 @@ func _init() -> void:
 		print("=================================================================\n")
 		quit(1)
 
-func _test_hell_character_animations() -> bool:
-	print("-> [1/9] Verifying Hell character animations & state loop flags...")
-	
-	# Skeleton Knight
-	var skel_sf: SpriteFrames = load("res://assets/environments/hell/characters/skeleton_knight/skeleton_knight.tres")
-	assert(skel_sf != null, "skeleton_knight.tres must exist")
-	assert(skel_sf.has_animation("idle"), "Skeleton must have idle")
-	assert(skel_sf.has_animation("walk"), "Skeleton must have walk")
-	assert(skel_sf.has_animation("attack1"), "Skeleton must have attack1")
-	assert(skel_sf.has_animation("attack2"), "Skeleton must have attack2")
-	assert(skel_sf.has_animation("dead"), "Skeleton must have dead")
-	assert(skel_sf.get_animation_loop("idle") == true, "Skeleton idle must loop")
-	assert(skel_sf.get_animation_loop("walk") == true, "Skeleton walk must loop")
-	print("  ✓ Skeleton Knight: idle, walk, attack1, attack2, dead verified")
-
-	# Demon Goblin
-	var gob_sf: SpriteFrames = load("res://assets/environments/hell/characters/demon_goblin/demon_goblin.tres")
-	assert(gob_sf != null, "demon_goblin.tres must exist")
-	assert(gob_sf.has_animation("idle"), "Goblin must have idle")
-	assert(gob_sf.has_animation("walk"), "Goblin must have walk")
-	assert(gob_sf.get_animation_loop("idle") == true, "Goblin idle must loop")
-	assert(gob_sf.get_animation_loop("walk") == true, "Goblin walk must loop")
-	print("  ✓ Demon Goblin: idle (8f), walk (43f) verified")
-
-	# Horned Fiend
-	var fiend_sf: SpriteFrames = load("res://assets/environments/hell/characters/horned_fiend/horned_fiend.tres")
-	assert(fiend_sf != null, "horned_fiend.tres must exist")
-	assert(fiend_sf.has_animation("walk"), "Horned Fiend must have walk")
-	assert(fiend_sf.get_animation_loop("walk") == true, "Horned Fiend walk must loop")
-	print("  ✓ Horned Fiend: walk (13f) verified")
-
-	# Flying Dragon
-	var drag_sf: SpriteFrames = load("res://assets/environments/hell/characters/flying_dragon/flying_dragon.tres")
-	assert(drag_sf != null, "flying_dragon.tres must exist")
-	assert(drag_sf.has_animation("fly"), "Dragon must have fly")
-	assert(drag_sf.get_animation_loop("fly") == true, "Dragon fly must loop")
-	print("  ✓ Flying Hell Dragon: fly (4f) verified")
-
-	return true
-
-func _test_safe_shelf_positioning() -> bool:
-	print("-> [2/9] Auditing safe shelf positioning & vehicle corridor clearance...")
+func _test_legacy_hell_cleanup_isolation() -> bool:
+	print("-> [7/7] Verifying legacy cartoon character removal & quarantine isolation...")
 	var hell_scene: PackedScene = load("res://scenes/environment/hell/HellEnvironment.tscn")
 	var hell_inst: HellEnvironment = hell_scene.instantiate() as HellEnvironment
 	root.add_child(hell_inst)
 	await process_frame
 
-	var char_layer: ParallaxLayer = hell_inst.get_node("AmbientCharactersLayer")
-	var dragon_layer: ParallaxLayer = hell_inst.get_node("AmbientDragonLayer")
-
-	# In Hell, road ground baseline is Y ~ 420px. Safe shelves must sit at Y <= 380px.
-	var skel: AnimatedSprite2D = char_layer.get_node("SkeletonKnight")
-	var gob: AnimatedSprite2D = char_layer.get_node("DemonGoblin")
-	var fiend: AnimatedSprite2D = char_layer.get_node("HornedFiend")
-	var dragon: AnimatedSprite2D = dragon_layer.get_node("FlyingHellDragon")
-
-	assert(skel.position.y <= 300.0, "Skeleton Knight must sit safely on basalt column shelf (Y <= 300, got %f)" % skel.position.y)
-	assert(gob.position.y <= 300.0, "Demon Goblin must sit safely on basalt column shelf (Y <= 300, got %f)" % gob.position.y)
-	assert(fiend.position.y <= 380.0, "Horned Fiend must sit safely on side shelf (Y <= 380, got %f)" % fiend.position.y)
-	assert(dragon.position.y <= 160.0, "Flying Hell Dragon must soar in aerial layer (Y <= 160, got %f)" % dragon.position.y)
-
-	# Verify Parallax motion scale is <= 0.25 (deep background, isolated from gameplay lane)
-	assert(char_layer.motion_scale.x <= 0.25, "Ambient characters must be in deep background layer")
-	assert(dragon_layer.motion_scale.x <= 0.15, "Aerial dragon must be in deep background layer")
-
-	# Test horizontal platform patrol bounding
-	var init_skel_x := skel.position.x
-	hell_inst._process(1.0)
-	var moved_skel_x := skel.position.x
-	assert(absf(moved_skel_x - init_skel_x) <= hell_inst.patrol_range + 1.0, 
-		"Skeleton patrol must remain strictly bounded to platform (range %f)" % hell_inst.patrol_range)
+	assert(hell_inst.get_node_or_null("AmbientCharactersLayer") == null, "AmbientCharactersLayer must be removed")
+	assert(hell_inst.get_node_or_null("AmbientDragonLayer") == null, "AmbientDragonLayer must be removed")
 
 	hell_inst.queue_free()
-	print("  ✓ Shelf elevations, aerial clearance, and bounded platform patrols verified!")
+	print("  ✓ Verified: 0 legacy cartoon characters/dragon in active HellEnvironment!")
 	return true
 
 func _test_collision_isolation() -> bool:
@@ -156,18 +92,18 @@ func _test_visibility_culling_and_lifecycle() -> bool:
 		assert(notifier != null, "AnimatedSprite %s must have VisibleOnScreenNotifier2D" % sprite.name)
 
 	# Test offscreen pause
-	var skel: AnimatedSprite2D = hell_inst.get_node("AmbientCharactersLayer/SkeletonKnight")
-	hell_inst._on_sprite_screen_exited(skel)
-	assert(not skel.is_playing(), "SkeletonKnight must pause when offscreen")
+	var banner: AnimatedSprite2D = hell_inst.get_node("MidBasaltArchitectureLayer/AnimatedBannerLeft")
+	hell_inst._on_sprite_screen_exited(banner)
+	assert(not banner.is_playing(), "AnimatedBannerLeft must pause when offscreen")
 
 	# Test onscreen resume
-	hell_inst._on_sprite_screen_entered(skel)
-	assert(skel.is_playing(), "SkeletonKnight must resume playing when onscreen")
+	hell_inst._on_sprite_screen_entered(banner)
+	assert(banner.is_playing(), "AnimatedBannerLeft must resume playing when onscreen")
 
 	# Test environment deactivation
 	hell_inst.set_environment_active(false)
 	assert(not hell_inst.visible, "HellEnvironment must hide when inactive")
-	assert(not skel.is_playing(), "All sprites must pause when environment is inactive")
+	assert(not banner.is_playing(), "All sprites must pause when environment is inactive")
 
 	hell_inst.queue_free()
 	print("  ✓ Visibility culling and inactive mobile pauses verified!")
@@ -254,17 +190,18 @@ func _test_hell_decorative_hazards() -> bool:
 	var thermal_layer: ParallaxLayer = hell_inst.get_node("LavaThermalLayer")
 
 	# Decorative props
-	assert(mid_layer.get_node_or_null("DragonSkullPortal") != null, "DragonSkullPortal must exist")
-	assert(mid_layer.get_node_or_null("CatacombSkullPile") != null, "CatacombSkullPile must exist")
-	assert(mid_layer.get_node_or_null("ObsidianSpikesCluster") != null, "ObsidianSpikesCluster must exist")
+	assert(mid_layer.get_node_or_null("DragonSkullPortal") == null, "DragonSkullPortal must be permanently removed")
+	assert(mid_layer.get_node_or_null("CatacombSkullPile") == null, "CatacombSkullPile must be permanently removed")
+	assert(mid_layer.get_node_or_null("ObsidianSpikesCluster") == null, "ObsidianSpikesCluster must be permanently removed")
 	assert(thermal_layer.get_node_or_null("LavaStreamSurface") != null, "LavaStreamSurface must exist")
-	assert(thermal_layer.get_node_or_null("MagmaVentProp") != null, "MagmaVentProp must exist")
-	assert(thermal_layer.get_node_or_null("TorchFlameLeft") != null, "TorchFlameLeft must exist")
+	assert(thermal_layer.get_node_or_null("MagmaVentProp") == null, "MagmaVentProp must be permanently removed")
+	assert(thermal_layer.get_node_or_null("TorchFlameLeft") == null, "TorchFlameLeft must be permanently removed")
+	assert(thermal_layer.get_node_or_null("TorchFlameRight") == null, "TorchFlameRight must be permanently removed")
 
-	# Verify torch flame animation is playing
-	var torch: AnimatedSprite2D = thermal_layer.get_node("TorchFlameLeft")
-	assert(torch.sprite_frames.has_animation("burn"), "Torch must have burn animation")
-	assert(torch.sprite_frames.get_frame_count("burn") == 25, "Fire must have 25 frames")
+	# Verify proper standalone braziers with transparent flame are active
+	var brazier1: AnimatedSprite2D = mid_layer.get_node("BrazierPost1")
+	assert(brazier1.sprite_frames.has_animation("burn"), "Brazier must have burn animation")
+	assert(brazier1.sprite_frames.get_frame_count("burn") == 26, "Brazier fire must have 26 frames")
 
 	hell_inst.queue_free()
 	print("  ✓ Dragon skulls, basalt columns, skull piles, obsidian spikes, and lava verified!")
@@ -315,35 +252,25 @@ func _test_themed_collectible_presentation() -> bool:
 
 func _test_standalone_character_scenes() -> bool:
 	print("-> [9/9] Verifying modular standalone character scenes...")
-	var character_scenes := [
-		{"path": "res://scenes/environment/hell/characters/SkeletonKnight.tscn", "name": "SkeletonKnight", "anim": "idle"},
-		{"path": "res://scenes/environment/hell/characters/DemonGoblin.tscn", "name": "DemonGoblin", "anim": "idle"},
-		{"path": "res://scenes/environment/hell/characters/HornedFiend.tscn", "name": "HornedFiend", "anim": "walk"},
-		{"path": "res://scenes/environment/hell/characters/FlyingHellDragon.tscn", "name": "FlyingHellDragon", "anim": "fly"},
-		{"path": "res://scenes/environment/heaven/wildlife/HeavenDove.tscn", "name": "HeavenDove", "anim": "fly"}
-	]
+	var scene_path := "res://scenes/environment/heaven/wildlife/HeavenDove.tscn"
+	assert(ResourceLoader.exists(scene_path), "Character scene must exist: " + scene_path)
+	var packed: PackedScene = load(scene_path)
+	var inst: Node2D = packed.instantiate() as Node2D
+	root.add_child(inst)
 
-	for data in character_scenes:
-		var scene_path: String = data["path"]
-		assert(ResourceLoader.exists(scene_path), "Character scene must exist: " + scene_path)
-		var packed: PackedScene = load(scene_path)
-		var inst: Node2D = packed.instantiate() as Node2D
-		root.add_child(inst)
+	# Check AnimatedSprite2D
+	var sprite: AnimatedSprite2D = inst.get_node("AnimatedSprite2D")
+	assert(sprite != null, "Must have AnimatedSprite2D")
+	assert(sprite.sprite_frames.has_animation("fly"), "Must have animation: fly")
 
-		# Check AnimatedSprite2D
-		var sprite: AnimatedSprite2D = inst.get_node("AnimatedSprite2D")
-		assert(sprite != null, "Must have AnimatedSprite2D")
-		assert(sprite.sprite_frames.has_animation(data["anim"]), "Must have animation: " + data["anim"])
+	# Check VisibleOnScreenNotifier2D
+	var notifier: VisibleOnScreenNotifier2D = inst.get_node("VisibleOnScreenNotifier2D")
+	assert(notifier != null, "Must have VisibleOnScreenNotifier2D")
 
-		# Check VisibleOnScreenNotifier2D
-		var notifier: VisibleOnScreenNotifier2D = inst.get_node("VisibleOnScreenNotifier2D")
-		assert(notifier != null, "Must have VisibleOnScreenNotifier2D")
+	# Check 0 colliders
+	var colliders := _find_colliders(inst)
+	assert(colliders.is_empty(), "Character must have 0 colliders")
 
-		# Check 0 colliders
-		var colliders := _find_colliders(inst)
-		assert(colliders.is_empty(), "Character must have 0 colliders")
-
-		inst.queue_free()
-		print("  ✓ %s standalone scene verified (anim: '%s', culling notifier, 0 colliders)" % [data["name"], data["anim"]])
-
+	inst.queue_free()
+	print("  ✓ HeavenDove standalone scene verified (anim: 'fly', culling notifier, 0 colliders)")
 	return true

@@ -126,9 +126,7 @@ func _test_hell_environment() -> bool:
 	var expected_layers := [
 		"SkyLayer",
 		"DistantCragsLayer",
-		"AmbientDragonLayer",
 		"MidBasaltArchitectureLayer",
-		"AmbientCharactersLayer",
 		"LavaThermalLayer"
 	]
 
@@ -140,35 +138,23 @@ func _test_hell_environment() -> bool:
 			return false
 		print("  ✓ Layer verified: ", layer_name, " (motion_scale: ", layer.motion_scale, ")")
 
-	# Check ambient dragon
-	var dragon := inst.get_node_or_null("AmbientDragonLayer/FlyingHellDragon") as AnimatedSprite2D
-	if not dragon or not dragon.sprite_frames:
-		printerr("  ✗ FlyingHellDragon missing or has null sprite_frames")
+	# Verify removal of legacy cartoon characters and dragon
+	var dragon := inst.get_node_or_null("AmbientDragonLayer/FlyingHellDragon")
+	var char_layer := inst.get_node_or_null("AmbientCharactersLayer")
+	if dragon != null or char_layer != null:
+		printerr("  ✗ Legacy cartoon characters or dragon still present in HellEnvironment!")
 		inst.free()
 		return false
-	if dragon.sprite_frames.get_frame_count(&"fly") != 4:
-		printerr("  ✗ FlyingHellDragon frame count != 4")
-		inst.free()
-		return false
-	print("  ✓ FlyingHellDragon AnimatedSprite2D verified (4 frames)!")
+	print("  ✓ Verified legacy cartoon dragon and ambient characters are removed!")
 
-	# Check ambient characters (Skeleton, Demon Goblin, Horned Fiend)
-	var skel := inst.get_node_or_null("AmbientCharactersLayer/SkeletonKnight") as AnimatedSprite2D
-	var demon := inst.get_node_or_null("AmbientCharactersLayer/DemonGoblin") as AnimatedSprite2D
-	var fiend := inst.get_node_or_null("AmbientCharactersLayer/HornedFiend") as AnimatedSprite2D
-	if not skel or not demon or not fiend:
-		printerr("  ✗ SkeletonKnight, DemonGoblin, or HornedFiend missing from AmbientCharactersLayer")
+	# Check that black-square torch flames are permanently removed from LavaThermalLayer
+	var torch_left := inst.get_node_or_null("LavaThermalLayer/TorchFlameLeft")
+	var torch_right := inst.get_node_or_null("LavaThermalLayer/TorchFlameRight")
+	if torch_left != null or torch_right != null:
+		printerr("  ✗ TorchFlameLeft or TorchFlameRight black fire square tiles still present in HellEnvironment!")
 		inst.free()
 		return false
-	print("  ✓ Ambient characters verified (Skeleton Knight, Demon Goblin, Horned Fiend)!")
-
-	# Check torch flame
-	var torch := inst.get_node_or_null("LavaThermalLayer/TorchFlameLeft") as AnimatedSprite2D
-	if not torch or not torch.sprite_frames or torch.sprite_frames.get_frame_count(&"burn") != 25:
-		printerr("  ✗ TorchFlameLeft missing or invalid fire_sheet_5x5.tres")
-		inst.free()
-		return false
-	print("  ✓ Torch flames verified (fire_sheet_5x5.tres, 25 frames)!")
+	print("  ✓ Verified black-square torch flames (TorchFlameLeft/Right) are permanently removed!")
 
 	# Check lava flow and heat shimmer shaders
 	var lava := inst.get_node_or_null("LavaThermalLayer/LavaStreamSurface") as Sprite2D
@@ -183,14 +169,27 @@ func _test_hell_environment() -> bool:
 		return false
 	print("  ✓ Molten lava and heat shimmer ShaderMaterials verified!")
 
-	# Check dragon skull portal and basalt columns
-	var dragon_skull := inst.get_node_or_null("MidBasaltArchitectureLayer/DragonSkullPortal") as Sprite2D
-	var col_left := inst.get_node_or_null("MidBasaltArchitectureLayer/BasaltColumnLeft") as Sprite2D
-	if not dragon_skull or not col_left:
-		printerr("  ✗ DragonSkullPortal or BasaltColumnLeft missing")
+	# Check dragon skull portal and floating basalt column strips removal
+	var dragon_skull := inst.get_node_or_null("MidBasaltArchitectureLayer/DragonSkullPortal")
+	var col_left := inst.get_node_or_null("MidBasaltArchitectureLayer/BasaltColumnLeft")
+	var col_right := inst.get_node_or_null("MidBasaltArchitectureLayer/BasaltColumnRight")
+	if dragon_skull != null:
+		printerr("  ✗ DragonSkullPortal rectangular cave image still present in MidBasaltArchitectureLayer!")
 		inst.free()
 		return false
-	print("  ✓ DragonSkullPortal and Basalt columns verified!")
+	if col_left != null or col_right != null:
+		printerr("  ✗ Floating horizontal strips (BasaltColumnLeft/Right) still present in MidBasaltArchitectureLayer!")
+		inst.free()
+		return false
+	var banner_l := inst.get_node_or_null("MidBasaltArchitectureLayer/AnimatedBannerLeft")
+	var banner_r := inst.get_node_or_null("MidBasaltArchitectureLayer/AnimatedBannerRight")
+	var brazier_1 := inst.get_node_or_null("MidBasaltArchitectureLayer/BrazierPost1")
+	var brazier_2 := inst.get_node_or_null("MidBasaltArchitectureLayer/BrazierPost2")
+	if not banner_l or not banner_r or not brazier_1 or not brazier_2:
+		printerr("  ✗ Missing required banners or braziers in MidBasaltArchitectureLayer")
+		inst.free()
+		return false
+	print("  ✓ DragonSkullPortal and floating horizontal strips verified removed; banners/braziers preserved!")
 
 	inst.free()
 	return true

@@ -128,7 +128,7 @@ func _test_hazard_safety_and_spacing() -> void:
 	if hell_dressing:
 		for child in hell_dressing.get_children():
 			if child is Sprite2D:
-				var is_hazard: bool = (child.texture == encounter.TEX_HELL_MAGMA_VENT) or (child.texture == encounter.TEX_HELL_OBSIDIAN_SPIKES)
+				var is_hazard: bool = (encounter.TEX_HELL_MAGMA_VENT != null and child.texture == encounter.TEX_HELL_MAGMA_VENT) or (encounter.TEX_HELL_OBSIDIAN_SPIKES != null and child.texture == encounter.TEX_HELL_OBSIDIAN_SPIKES)
 				if is_hazard:
 					if child.position.x < catch_basin_limit:
 						hazards_in_catch_basin += 1
@@ -138,8 +138,8 @@ func _test_hazard_safety_and_spacing() -> void:
 						total_obsidian_spikes += 1
 	
 	_assert_true(hazards_in_catch_basin == 0, "No hazards placed inside the catch basin (0m-20m) ensuring safe falling reception (Got: %d)" % hazards_in_catch_basin)
-	_assert_true(total_magma_vents >= 3, "Telegraphed magma vents placed on basalt flats and ridges (Count: %d >= 3)" % total_magma_vents)
-	_assert_true(total_obsidian_spikes >= 4, "Telegraphed obsidian spikes clusters placed along track (Count: %d >= 4)" % total_obsidian_spikes)
+	_assert_true(total_magma_vents == 0, "Verified: 0 legacy dotted magma vent obstacles in Hell route (Got: %d)" % total_magma_vents)
+	_assert_true(total_obsidian_spikes == 0, "Verified: 0 legacy dotted obsidian spike obstacles in Hell route (Got: %d)" % total_obsidian_spikes)
 	
 	get_root().remove_child(encounter)
 	encounter.queue_free()

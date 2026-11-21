@@ -3,21 +3,24 @@
 [ext_resource type="Script" path="res://scripts/environment/HeavenEnvironment.gd" id="1_g2g6f"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/sky/puffy_sky_blue_01.png" id="2_qy5sv"]
 [ext_resource type="Shader" path="res://scripts/shaders/celestial_atmospheric_glow.gdshader" id="3_fphwc"]
-[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_rose_window.png" id="4_rose_win"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_01.png" id="6_nag25"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_08.png" id="7_n656k"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_15.png" id="8_crjeg"]
-[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_palace_column.png" id="11_gr4uw"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_column_corinthian_gold.png" id="10_column_gold"]
 [ext_resource type="SpriteFrames" path="res://assets/environments/heaven/wildlife/dove_flight.tres" id="12_tir2s"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_06.png" id="13_125bk"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_18.png" id="14_nxamk"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_22.png" id="15_f2jc2"]
-[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_palace_arch_gateway.png" id="17_vckx0"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_golden_archway.png" id="17_vckx0"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/heaven_angel_statue.png" id="19_f21b4"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/particles/spark_01.png" id="30_3o0b0"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/particles/light_01.png" id="31_light"]
-[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_distant_palace_silhouette.png" id="35_dist_palace"]
-[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_palace_corridor_seamless.png" id="50_corridor_master"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_grand_palace_detailed.png" id="35_grand_palace"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_floating_island_left.png" id="36_island_left"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_floating_island_right.png" id="37_island_right"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_arch_stained_glass.png" id="38_arch_glass"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/light_masks/cone_composed_a.png" id="40_sunburst"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_palace_entablature.png" id="51_entablature"]
 
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_01.png" id="22_mhmmp"]
 [ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_03.png" id="23_oc2x2"]
@@ -60,6 +63,14 @@ position = Vector2(640, 70)
 scale = Vector2(0.75, 0.75)
 texture = ExtResource("31_light")
 
+[node name="CelestialSunburstRays" type="Sprite2D" parent="SkyLayer"]
+material = SubResource("CanvasItemMaterial_spark")
+modulate = Color(1, 0.96, 0.82, 0.35)
+position = Vector2(640, 150)
+rotation = -0.38
+scale = Vector2(2.4, 2.0)
+texture = ExtResource("40_sunburst")
+
 [node name="DistantCloudsLayer" type="ParallaxLayer" parent="." unique_id=300323379]
 motion_scale = Vector2(0.04, 0)
 motion_mirroring = Vector2(2560, 0)
@@ -82,19 +93,28 @@ position = Vector2(2050, 85)
 scale = Vector2(1.15, 1.05)
 texture = ExtResource("8_crjeg")
 
-[node name="DistantPalaceLayer" type="ParallaxLayer" parent="." unique_id=1783141619]
-motion_scale = Vector2(0.10, 0)
+[node name="FloatingIslandsLayer" type="ParallaxLayer" parent="." unique_id=158291048]
+motion_scale = Vector2(0.06, 0)
 motion_mirroring = Vector2(2560, 0)
 
-[node name="DistantPalaceSilhouette1" type="Sprite2D" parent="DistantPalaceLayer"]
-position = Vector2(640, 160)
-scale = Vector2(0.48, 0.48)
-texture = ExtResource("35_dist_palace")
+[node name="IslandLeft1" type="Sprite2D" parent="FloatingIslandsLayer"]
+position = Vector2(280, 260)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("36_island_left")
 
-[node name="DistantPalaceSilhouette2" type="Sprite2D" parent="DistantPalaceLayer"]
-position = Vector2(1920, 160)
-scale = Vector2(0.48, 0.48)
-texture = ExtResource("35_dist_palace")
+[node name="IslandRight1" type="Sprite2D" parent="FloatingIslandsLayer"]
+position = Vector2(1480, 260)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("37_island_right")
+
+[node name="DistantPalaceLayer" type="ParallaxLayer" parent="." unique_id=1783141619]
+motion_scale = Vector2(0.08, 0)
+motion_mirroring = Vector2(1920, 0)
+
+[node name="DistantPalaceSilhouette" type="Sprite2D" parent="DistantPalaceLayer"]
+position = Vector2(960, 220)
+scale = Vector2(1.25, 1.25)
+texture = ExtResource("35_grand_palace")
 
 [node name="DoveFlockLayer" type="ParallaxLayer" parent="." unique_id=860215217]
 visible = false
@@ -126,6 +146,34 @@ sprite_frames = ExtResource("12_tir2s")
 animation = &"fly"
 autoplay = "fly"
 
+[node name="CloudOceanLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.35, 0)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="OceanCloud1" type="Sprite2D" parent="CloudOceanLayer"]
+modulate = Color(1, 1, 1, 0.88)
+position = Vector2(250, 580)
+scale = Vector2(1.4, 1.0)
+texture = ExtResource("13_125bk")
+
+[node name="OceanCloud2" type="Sprite2D" parent="CloudOceanLayer"]
+modulate = Color(1, 1, 1, 0.92)
+position = Vector2(750, 600)
+scale = Vector2(1.5, 1.1)
+texture = ExtResource("14_nxamk")
+
+[node name="OceanCloud3" type="Sprite2D" parent="CloudOceanLayer"]
+modulate = Color(1, 1, 1, 0.88)
+position = Vector2(1300, 570)
+scale = Vector2(1.4, 1.0)
+texture = ExtResource("15_f2jc2")
+
+[node name="OceanCloud4" type="Sprite2D" parent="CloudOceanLayer"]
+modulate = Color(1, 1, 1, 0.92)
+position = Vector2(1800, 610)
+scale = Vector2(1.6, 1.15)
+texture = ExtResource("6_nag25")
+
 [node name="CelestialCloudsLayer" type="ParallaxLayer" parent="." unique_id=1205353702]
 motion_scale = Vector2(0.18, 0)
 motion_mirroring = Vector2(2048, 0)
@@ -149,12 +197,46 @@ scale = Vector2(1.05, 0.75)
 texture = ExtResource("15_f2jc2")
 
 [node name="MidPalaceArchitectureLayer" type="ParallaxLayer" parent="." unique_id=743859988]
-motion_scale = Vector2(0.28, 0)
-motion_mirroring = Vector2(3200, 0)
+motion_scale = Vector2(0.24, 0)
+motion_mirroring = Vector2(2560, 0)
 
-[node name="MasterCorridor" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
-position = Vector2(1600, 360)
-texture = ExtResource("50_corridor_master")
+[node name="Entablature1" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(440, 40)
+texture = ExtResource("51_entablature")
+
+[node name="Entablature2" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(1480, 40)
+texture = ExtResource("51_entablature")
+
+[node name="StainedGlassArch1" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(440, 200)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("38_arch_glass")
+
+[node name="StainedGlassArch2" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(1480, 200)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("38_arch_glass")
+
+[node name="Column0" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(240, 360)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("10_column_gold")
+
+[node name="Column1" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(640, 360)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("10_column_gold")
+
+[node name="Column2" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(1280, 360)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("10_column_gold")
+
+[node name="Column3" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(1680, 360)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("10_column_gold")
 
 [node name="GoldenArchway" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=45960148]
 visible = false
@@ -234,5 +316,5 @@ initial_velocity_min = 10.0
 initial_velocity_max = 25.0
 scale_amount_min = 0.08
 scale_amount_max = 0.22
-color = Color(1.0, 0.95, 0.70, 0.75)
+color = Color(1, 0.95, 0.7, 0.75)
 texture = ExtResource("30_3o0b0")
