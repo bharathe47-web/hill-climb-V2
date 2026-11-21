@@ -48,6 +48,7 @@ All tasks are tracked using strict, unambiguous status codes:
 | **J-20** | **Six-State Realistic Background Upgrade & Embankment Stratification** | All 6 States | Joel | `generate_six_state_realistic_backgrounds.py`, `IndianRoadsControllerV2.gd`, `IndianRoadTerrainV2.gd`, `IndianRoadsModeV2.tscn`, 22 BG PNGs, `capture_six_state_background_evidence.gd` | **VERIFIED COMPLETE** | PASS (30/30 in-engine GPU viewport captures, 3 automated suites passing 100%, 0 regression errors) | 30 Real In-Engine Viewport Screenshots in `docs/screenshots/backgrounds/` | 100% Commercial Clearance (CC0 / Original Joel Artwork) | None. Fully Delivered & Verified. |
 | **J-21** | **Gameplay Refinement Master Task (Route Calibration, Compact Nitro HUD, Route Map, Pause Bug Fix, Landmark & Scenery Positioning)** | All 6 States & HUD | Joel | `RouteRegistry.gd`, `RoadsideLandmarkRegistry.gd`, `IndianRoadsHUD.tscn`, `IndianRoadsHUD.gd`, `RouteMapOverlay.tscn`, `RouteMapOverlay.gd`, `IndianRoadsController.gd`, `RoadsideLandmark.tscn`, `RoadsideLandmark.gd`, `IndianRoadTerrainV2.gd`, `IndianRoadTerrain.gd` | **VERIFIED COMPLETE** | PASS (`test_gameplay_refinement.gd`, `test_all_six_indian_roads_states.gd`, `test_all_landmarks_instantiation.gd`, `test_glass_bridge_traversal.gd`) | 12 Real In-Engine Viewport Screenshots in `docs/screenshots/gameplay_refinement/` | 100% Commercial Clearance (CC0 / Custom Joel Vector UI & Artwork) | None. Fully Delivered & Verified. |
 | **J-22** | **Indian Roads Six-State Bug Fix and Vehicle Wheel Alignment** | All 6 States & Vehicle Physics | Joel | `scripts/vehicle/VehicleController.gd`, `scenes/vehicle/BlueFlameTruck.tscn`, `scripts/modes/indian_roads/RoadsideLandmark.gd`, `scripts/modes/indian_roads/LandmarkV2.gd`, `scenes/.../LandmarkV2.tscn`, `scripts/modes/indian_roads/CheckpointV2.gd`, `scripts/modes/indian_roads/KanyakumariGlassBridge.gd`, `scripts/modes/indian_roads/IndianRoadTerrainV2.gd`, `scripts/modes/indian_roads/RouteMapOverlay.gd`, `scripts/modes/indian_roads/StateSelectionController.gd` | **VERIFIED COMPLETE** | PASS (`test_wheel_alignment_debug.gd`, `test_gameplay_refinement.gd`, `test_all_six_indian_roads_states.gd`, `test_glass_bridge_traversal.gd`, `test_indian_roads_mode.gd`) | 17 Real In-Engine Viewport Screenshots in `docs/screenshots/six_state_bug_fixes/` | 100% Commercial Clearance (CC0 / Custom Joel Vector & Physics Enhancements) | None. Fully Delivered & Verified. |
+| **J-23** | **Landmark Information Bottom Panel & Vehicle Wheel Attachment Fix** | All 6 States & HUD / Vehicle Physics | Joel | `scripts/modes/indian_roads/LandmarkCatalogueData.gd`, `scenes/modes/indian_roads/IndianRoadsHUD.tscn`, `scripts/modes/indian_roads/IndianRoadsHUD.gd`, `scripts/modes/indian_roads/IndianRoadsController.gd`, `scripts/vehicle/VehicleController.gd`, `tests/test_landmark_info_and_wheel_fix.gd` | **VERIFIED COMPLETE** | PASS (`test_landmark_info_and_wheel_fix.gd` 4/4 passing, wheel displacement < 3.5px across all states, 0 crashes) | 11 Real In-Engine GPU Captures in `docs/screenshots/landmark_info_and_wheel_fix/` | 100% Commercial Clearance (CC0 / Custom UI & Physics Logic) | None. Fully Delivered & Verified. |
 
 ---
 
@@ -95,6 +96,15 @@ All tasks are tracked using strict, unambiguous status codes:
 - **TN-05 (Tamil Nadu Route Map Aspect & Projection Fix):** `VERIFIED COMPLETE` — Added aspect-fitted `map_rect` projection and distance-anchored 6-stop geometry in `RouteMapOverlay.gd`. Documented in `docs/TAMIL_NADU_MAP_BUG_REPORT.md`.
 - **TN-06 (End-to-End Route QA & Evidence Portfolio):** `VERIFIED COMPLETE` — Full 1100m route verified in `docs/TAMIL_NADU_ROUTE_QA.md` with 5 live 1280x720 GPU gameplay captures in `docs/screenshots/tamil_nadu_statue_map_fix/`.
 
+### Workstream 7: Landmark Bottom Info Panel & Wheel Attachment Physics (LI-WHEEL)
+- **LI-01 (44-Landmark Cultural Repository):** `VERIFIED COMPLETE` — Full 44-attraction database created in `scripts/modes/indian_roads/LandmarkCatalogueData.gd` covering verified history, architectural trivia, and cultural significance for all 6 states. Documented in `docs/LANDMARK_DESCRIPTION_CATALOGUE.md`.
+- **LI-02 (Bottom Info Card UI Architecture):** `VERIFIED COMPLETE` — Responsive $580 \times 160\text{ px}$ panel integrated in `scenes/modes/indian_roads/IndianRoadsHUD.tscn` with gold temple styling, close button `[✕]`, 6.5s auto-dismiss, and $> 180\text{ px}$ clearance from mobile touch controls. Documented in `docs/LANDMARK_BOTTOM_INFO_PANEL_REPORT.md`.
+- **LI-03 (Trigger Decoupling):** `VERIFIED COMPLETE` — Tourist attraction info decoupled from mandatory checkpoint milestones in `IndianRoadsController.gd`; start line waypoints cleanly ignored.
+- **WF-01 (Multi-Body Recovery Physics Synchronization):** `VERIFIED COMPLETE` — Created `recover_vehicle(at_position)` in `VehicleController.gd` syncing chassis and wheel rigid bodies directly via `PhysicsServer2D`, zeroing momentum and resetting pin joints.
+- **WF-02 (Suspension Travel Clamping):** `VERIFIED COMPLETE` — Added `_constrain_wheel_displacement()` enforcing 12px realistic suspension travel bounds under full Nitro and severe landings. Documented in `docs/VEHICLE_WHEEL_ATTACHMENT_AUDIT.md`.
+- **WF-03 (Quantitative Physics Benchmarking):** `VERIFIED COMPLETE` — 14-condition test matrix executed with wheel displacement $\le 1.47\text{ px}$ during Nitro and $0.00\text{ px}$ post-recovery. Documented in `docs/NITRO_AND_RECOVERY_WHEEL_TEST_REPORT.md`.
+- **QA-01 (Six-State Regression Verification & Screenshot Portfolio):** `VERIFIED COMPLETE` — Verified across all 6 states in `docs/SIX_STATE_LANDMARK_INFO_TEST_MATRIX.md` with 11 live GPU viewport captures in `docs/screenshots/landmark_info_and_wheel_fix/`.
+
 ---
 
 ## 4. Other Developers' Modules (Non-Joel Paths)
@@ -109,8 +119,8 @@ All tasks are tracked using strict, unambiguous status codes:
 
 ## 5. Final Sign-Off & Delivery Status
 
-- **Total Joel Tasks Tracked:** **21 Tasks (J-01 through J-21)**.
-- **Completion Rate:** **21 / 21 (100% VERIFIED COMPLETE)**.
+- **Total Joel Tasks Tracked:** **23 Tasks (J-01 through J-23)**.
+- **Completion Rate:** **23 / 23 (100% VERIFIED COMPLETE)**.
 - **Git Branch Status:** `feature/joel-roads-obstacles` preserved with clean, non-conflicting working tree.
 - **Engine Verification:** Godot 4.7.2 execution verified with zero errors, warnings, or memory leaks on AMD Radeon 610M GPU.
 - **Handoff:** Ready for team review and release build assembly.

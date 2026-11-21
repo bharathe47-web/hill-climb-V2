@@ -17,6 +17,7 @@ const RouteCompleteScreenScene = preload("res://scenes/modes/indian_roads/RouteC
 const RouteMapOverlay = preload("res://scripts/modes/indian_roads/RouteMapOverlay.gd")
 const RouteMapOverlayScene = preload("res://scenes/modes/indian_roads/RouteMapOverlay.tscn")
 const PauseMenuScene = preload("res://scenes/ui/PauseMenu.tscn")
+const LandmarkCatalogueData = preload("res://scripts/modes/indian_roads/LandmarkCatalogueData.gd")
 
 enum ModeState {
 	SELECTION,
@@ -313,6 +314,9 @@ func _on_landmark_reached(landmark_id: String, waypoint: WaypointData) -> void:
 	var banner_text := waypoint.announcement_text if waypoint != null else "LANDMARK DISCOVERED!"
 	if is_instance_valid(hud):
 		hud.show_announcement_toast(banner_text, "+%d Coins Reward" % reward)
+		if waypoint == null or waypoint.waypoint_type != WaypointData.WaypointType.START:
+			var info: Dictionary = LandmarkCatalogueData.get_landmark_info(landmark_id, active_route.state_id if active_route else "")
+			hud.show_landmark_info(info)
 	_update_next_waypoint_hud()
 
 func _mark_waypoint_reached(target_id: String, waypoint: WaypointData) -> void:
@@ -382,12 +386,19 @@ func _show_victory_screen(next_unlocked: String = "") -> void:
 func _on_vehicle_crashed() -> void:
 	# Keep gameplay friendly: reset vehicle rotation, place safely on road, and restore driving
 	if is_instance_valid(active_vehicle):
-		var safe_y: float = (active_terrain.get_height_at(active_vehicle.global_position.x) - 45.0) if is_instance_valid(active_terrain) else 335.0
-		active_vehicle.global_position.y = safe_y
-		active_vehicle.rotation = 0.0
-		active_vehicle.linear_velocity = Vector2.ZERO
-		active_vehicle.angular_velocity = 0.0
-		active_vehicle.set_active(true)
+		var target_x: float = active_vehicle.global_position.x
+		var safe_y: float = (active_terrain.get_height_at(target_x) - 45.0) if is_instance_valid(active_terrain) else 335.0
+		var target_pos := Vector2(target_x, safe_y)
+		if active_vehicle.has_method("recover_vehicle"):
+			active_vehicle.recover_vehicle(target_pos)
+		elif active_vehicle.has_method("reset_vehicle"):
+			active_vehicle.reset_vehicle(target_pos)
+		else:
+			active_vehicle.global_position = target_pos
+			active_vehicle.rotation = 0.0
+			active_vehicle.linear_velocity = Vector2.ZERO
+			active_vehicle.angular_velocity = 0.0
+			active_vehicle.set_active(true)
 		if is_instance_valid(hud):
 			hud.show_announcement_toast("RECOVERED!", "Vehicle uprighted — continue driving!")
 

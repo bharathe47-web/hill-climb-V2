@@ -180,11 +180,30 @@ func _physics_process(delta: float) -> void:
 	_update_nitro(delta)
 	_check_pothole_assist(delta)
 	_handle_input(delta)
+	_constrain_wheel_displacement()
 	_update_audio(delta)
 	_update_particles()
 	
 	was_grounded = is_grounded
 	_previous_linear_velocity = linear_velocity
+
+func _constrain_wheel_displacement() -> void:
+	# Keep physical wheels bound strictly to suspension travel envelope (preventing joint stretching/detachment)
+	var max_travel: float = 12.0
+	if rear_wheel and rear_wheel_mount:
+		var r_local := to_local(rear_wheel.global_position)
+		var diff := r_local - _initial_rear_wheel_offset
+		if diff.length() > max_travel:
+			var clamped_local := _initial_rear_wheel_offset + diff.normalized() * max_travel
+			rear_wheel.global_position = to_global(clamped_local)
+			rear_wheel.linear_velocity = rear_wheel.linear_velocity * 0.8
+	if front_wheel and front_wheel_mount:
+		var f_local := to_local(front_wheel.global_position)
+		var diff := f_local - _initial_front_wheel_offset
+		if diff.length() > max_travel:
+			var clamped_local := _initial_front_wheel_offset + diff.normalized() * max_travel
+			front_wheel.global_position = to_global(clamped_local)
+			front_wheel.linear_velocity = front_wheel.linear_velocity * 0.8
 
 func set_nitro_active(active: bool) -> void:
 	is_nitro_requested = active
@@ -765,6 +784,66 @@ func reset_vehicle(at_position: Vector2) -> void:
 	
 	_update_struts()
 	
+	if is_inside_tree() and engine_audio and not engine_audio.playing:
+		engine_audio.play()
+	if skid_audio and skid_audio.playing:
+		skid_audio.stop()
+
+## Recovers the vehicle to an upright position safely while preserving current fuel and nitro progress
+func recover_vehicle(at_position: Vector2) -> void:
+	is_active = true
+	is_nitro_requested = false
+	_deactivate_nitro()
+	_pothole_stuck_timer = 0.0
+	_pothole_hint_active = false
+	air_time = 0.0
+	air_rotation_accum = 0.0
+	_last_air_rotation = 0.0
+	wheelie_time = 0.0
+	pothole_assist_hint.emit(false)
+
+	# 1. Synchronize chassis transform via Node and PhysicsServer2D
+	global_position = at_position
+	rotation = 0.0
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+
+	var chassis_transform := Transform2D(0.0, at_position)
+	PhysicsServer2D.body_set_state(get_rid(), PhysicsServer2D.BODY_STATE_TRANSFORM, chassis_transform)
+	PhysicsServer2D.body_set_state(get_rid(), PhysicsServer2D.BODY_STATE_LINEAR_VELOCITY, Vector2.ZERO)
+	PhysicsServer2D.body_set_state(get_rid(), PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, 0.0)
+
+	# 2. Synchronize Rear Wheel transform and momentum in PhysicsServer2D
+	if rear_wheel:
+		rear_wheel.position = _initial_rear_wheel_offset
+		rear_wheel.rotation = 0.0
+		rear_wheel.linear_velocity = Vector2.ZERO
+		rear_wheel.angular_velocity = 0.0
+		var rear_transform := Transform2D(0.0, at_position + _initial_rear_wheel_offset)
+		PhysicsServer2D.body_set_state(rear_wheel.get_rid(), PhysicsServer2D.BODY_STATE_TRANSFORM, rear_transform)
+		PhysicsServer2D.body_set_state(rear_wheel.get_rid(), PhysicsServer2D.BODY_STATE_LINEAR_VELOCITY, Vector2.ZERO)
+		PhysicsServer2D.body_set_state(rear_wheel.get_rid(), PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, 0.0)
+
+	# 3. Synchronize Front Wheel transform and momentum in PhysicsServer2D
+	if front_wheel:
+		front_wheel.position = _initial_front_wheel_offset
+		front_wheel.rotation = 0.0
+		front_wheel.linear_velocity = Vector2.ZERO
+		front_wheel.angular_velocity = 0.0
+		var front_transform := Transform2D(0.0, at_position + _initial_front_wheel_offset)
+		PhysicsServer2D.body_set_state(front_wheel.get_rid(), PhysicsServer2D.BODY_STATE_TRANSFORM, front_transform)
+		PhysicsServer2D.body_set_state(front_wheel.get_rid(), PhysicsServer2D.BODY_STATE_LINEAR_VELOCITY, Vector2.ZERO)
+		PhysicsServer2D.body_set_state(front_wheel.get_rid(), PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, 0.0)
+
+	# 4. Re-align suspension pin joints
+	if rear_joint:
+		rear_joint.position = _initial_rear_wheel_offset
+	if front_joint:
+		front_joint.position = _initial_front_wheel_offset
+
+	_apply_wheel_friction(_current_base_friction)
+	_update_struts()
+
 	if is_inside_tree() and engine_audio and not engine_audio.playing:
 		engine_audio.play()
 	if skid_audio and skid_audio.playing:

@@ -28,11 +28,25 @@ signal return_to_menu_pressed
 @onready var brake_button: TouchScreenButton = get_node_or_null("%BrakeButton")
 @onready var nitro_button: TouchScreenButton = get_node_or_null("%NitroButton")
 
+# Dedicated Bottom Famous Place Information Panel
+@onready var landmark_info_panel: PanelContainer = get_node_or_null("%LandmarkInfoPanel")
+@onready var info_category_label: Label = get_node_or_null("%InfoCategoryLabel")
+@onready var info_close_button: Button = get_node_or_null("%InfoCloseButton")
+@onready var info_title_label: Label = get_node_or_null("%InfoTitleLabel")
+@onready var info_location_label: Label = get_node_or_null("%InfoLocationLabel")
+@onready var info_description_label: Label = get_node_or_null("%InfoDescriptionLabel")
+@onready var info_why_famous_label: Label = get_node_or_null("%InfoWhyFamousLabel")
+
 var _toast_tween: Tween = null
+var _info_tween: Tween = null
 
 func _ready() -> void:
 	if is_instance_valid(toast_panel):
 		toast_panel.visible = false
+	if is_instance_valid(landmark_info_panel):
+		landmark_info_panel.visible = false
+	if is_instance_valid(info_close_button):
+		info_close_button.pressed.connect(dismiss_landmark_info)
 	if is_instance_valid(pause_button):
 		pause_button.pressed.connect(func(): pause_pressed.emit())
 	if is_instance_valid(map_button):
@@ -128,3 +142,47 @@ func show_announcement_toast(main_text: String, sub_text: String = "") -> void:
 	# Fade out
 	_toast_tween.tween_property(toast_panel, "modulate:a", 0.0, 0.4)
 	_toast_tween.tween_callback(func(): toast_panel.visible = false)
+
+func show_landmark_info(info: Dictionary) -> void:
+	if not is_instance_valid(landmark_info_panel):
+		landmark_info_panel = get_node_or_null("%LandmarkInfoPanel")
+	if not is_instance_valid(landmark_info_panel):
+		return
+
+	if is_instance_valid(_info_tween):
+		_info_tween.kill()
+
+	var state_name: String = info.get("state", "India").to_upper()
+	if is_instance_valid(info_category_label):
+		info_category_label.text = "★ FAMOUS PLACE — %s" % state_name
+	if is_instance_valid(info_title_label):
+		info_title_label.text = info.get("name", "Famous Landmark").to_upper()
+	if is_instance_valid(info_location_label):
+		info_location_label.text = "Location: %s" % info.get("location", state_name)
+	if is_instance_valid(info_description_label):
+		info_description_label.text = info.get("description", "")
+	if is_instance_valid(info_why_famous_label):
+		var why: String = info.get("why_famous", "")
+		var fact: String = info.get("fact", "")
+		if fact != "":
+			info_why_famous_label.text = "Why famous: %s\nFact: %s" % [why, fact]
+		else:
+			info_why_famous_label.text = "Why famous: %s" % why
+
+	landmark_info_panel.visible = true
+	landmark_info_panel.modulate.a = 0.0
+
+	# Smoothly slide in from bottom and hold for comfortable reading (6.5s)
+	_info_tween = create_tween()
+	_info_tween.parallel().tween_property(landmark_info_panel, "modulate:a", 1.0, 0.30)
+	_info_tween.tween_interval(6.5)
+	_info_tween.tween_property(landmark_info_panel, "modulate:a", 0.0, 0.40)
+	_info_tween.tween_callback(func(): landmark_info_panel.visible = false)
+
+func dismiss_landmark_info() -> void:
+	if not is_instance_valid(landmark_info_panel):
+		return
+	if is_instance_valid(_info_tween):
+		_info_tween.kill()
+	landmark_info_panel.visible = false
+	landmark_info_panel.modulate.a = 0.0
