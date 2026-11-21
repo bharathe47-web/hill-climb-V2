@@ -31,7 +31,7 @@ signal route_started(state_id: String)
 signal route_completed(state_id: String, distance: float, time_s: float, coins: int)
 
 @export var default_state_id: String = "tamil_nadu"
-@export var start_with_selection: bool = false
+@export var start_with_selection: bool = true
 
 @onready var world_container: Node2D = $WorldContainer
 @onready var vehicle_slot: Node2D = $WorldContainer/VehicleSlot

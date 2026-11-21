@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://kanyakumariterrain001"]
+
+[ext_resource type="Script" path="res://scripts/terrain/KanyakumariTerrainGenerator.gd" id="1_gen"]
+
+[node name="KanyakumariTerrain" type="Node2D"]
+script = ExtResource("1_gen")

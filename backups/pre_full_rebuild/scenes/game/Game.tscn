@@ -1,0 +1,59 @@
+[gd_scene load_steps=12 format=3 uid="uid://game_scene_001"]
+
+[ext_resource type="Script" path="res://scripts/core/Game.gd" id="1_game_script"]
+[ext_resource type="Script" path="res://scripts/core/GameManager.gd" id="2_manager_script"]
+[ext_resource type="PackedScene" uid="uid://parallax_environment_001" path="res://scenes/environment/ParallaxEnvironment.tscn" id="3_parallax_env"]
+[ext_resource type="Script" path="res://scripts/core/FollowCamera.gd" id="4_camera_script"]
+[ext_resource type="PackedScene" uid="uid://test_track_001" path="res://scenes/terrain/TestTrack.tscn" id="5_test_track"]
+[ext_resource type="PackedScene" uid="uid://vehicle_root_001" path="res://scenes/vehicle/Vehicle.tscn" id="6_vehicle"]
+[ext_resource type="PackedScene" uid="uid://hud_scene_001" path="res://scenes/ui/HUD.tscn" id="7_hud"]
+[ext_resource type="PackedScene" uid="uid://pause_menu_001" path="res://scenes/ui/PauseMenu.tscn" id="8_pause_menu"]
+[ext_resource type="PackedScene" uid="uid://results_screen_001" path="res://scenes/ui/ResultsScreen.tscn" id="9_results_screen"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/background_music_happy_adventure.mp3" id="10_music"]
+[ext_resource type="AudioStream" path="res://assets/audio/ambience/countryside_wind_ambience.wav" id="11_ambience"]
+[ext_resource type="PackedScene" uid="uid://snowfall_manager_001" path="res://scenes/environment/SnowfallManager.tscn" id="12_snowfall"]
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1_game_script")
+spawn_position = Vector2(0, 382)
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("2_manager_script")
+
+[node name="ParallaxEnvironment" parent="." instance=ExtResource("3_parallax_env")]
+
+[node name="TerrainSlot" type="Node2D" parent="."]
+
+[node name="TestTrack" parent="TerrainSlot" instance=ExtResource("5_test_track")]
+
+[node name="VehicleSlot" type="Node2D" parent="."]
+
+[node name="Vehicle" parent="VehicleSlot" instance=ExtResource("6_vehicle")]
+position = Vector2(0, 382)
+
+[node name="FollowCamera" type="Camera2D" parent="."]
+position = Vector2(180, 332)
+zoom = Vector2(1.1, 1.1)
+script = ExtResource("4_camera_script")
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("10_music")
+volume_db = -12.0
+autoplay = true
+
+[node name="AmbiencePlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("11_ambience")
+volume_db = -16.0
+autoplay = true
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="HUD" parent="UILayer" instance=ExtResource("7_hud")]
+
+[node name="PauseMenu" parent="UILayer" instance=ExtResource("8_pause_menu")]
+visible = false
+
+[node name="ResultsScreen" parent="UILayer" instance=ExtResource("9_results_screen")]
+visible = false
+
+[node name="SnowfallManager" parent="." instance=ExtResource("12_snowfall")]

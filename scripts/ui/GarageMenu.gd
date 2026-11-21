@@ -1,6 +1,9 @@
 extends Control
 class_name GarageMenu
 
+## GarageMenu: Standalone vehicle showroom and performance upgrade station.
+## Connected directly to VehicleRegistry and SaveManager as single source of truth.
+
 signal vehicle_selected(vehicle_id: String)
 signal drive_pressed
 signal back_pressed
@@ -16,71 +19,52 @@ signal back_pressed
 @onready var prev_veh_btn: Button = $CenterRow/PreviewPanel/PrevButton
 @onready var next_veh_btn: Button = $CenterRow/PreviewPanel/NextButton
 
-const VEHICLES: Array[Dictionary] = [
-	{
-		"id": "red_jeep",
-		"name": "Red Trail Jeep",
-		"desc": "Classic 4x4 off-roader. Perfectly balanced for coastal hills.",
-		"cost": 0,
-		"tex": "res://art/vehicles/jeep_body.png"
-	},
-	{
-		"id": "auto_rickshaw",
-		"name": "Auto Rickshaw",
-		"desc": "Nimble 3-wheeler with high torque and lively suspension.",
-		"cost": 400,
-		"tex": "res://art/vehicles/rickshaw_body.png"
-	},
-	{
-		"id": "tractor",
-		"name": "Heavy Farm Tractor",
-		"desc": "Massive rear wheels and immense climb torque on steep grades.",
-		"cost": 800,
-		"tex": "res://art/vehicles/tractor_body.png"
-	},
-	{
-		"id": "mini_truck",
-		"name": "Mini Commercial Truck",
-		"desc": "High capacity fuel tank and stable commercial chassis.",
-		"cost": 1200,
-		"tex": "res://art/vehicles/mini_truck_body.png"
-	},
-	{
-		"id": "rally_jeep",
-		"name": "Pro Rally Racer",
-		"desc": "High-revving tuned engine and extreme nitro speed.",
-		"cost": 2000,
-		"tex": "res://art/vehicles/rally_jeep_body.png"
-	}
-]
-
+var vehicles_list: Array[Dictionary] = []
 var current_vehicle_index: int = 0
 
 func _ready() -> void:
-	back_btn.pressed.connect(_on_back)
-	drive_btn.pressed.connect(_on_drive)
-	prev_veh_btn.pressed.connect(_on_prev_vehicle)
-	next_veh_btn.pressed.connect(_on_next_vehicle)
-	select_btn.pressed.connect(_on_select_or_buy)
+	vehicles_list = VehicleRegistry.get_all_vehicles()
 	
-	# Find index of currently active vehicle
-	for i in range(VEHICLES.size()):
-		if VEHICLES[i]["id"] == GameState.active_vehicle_id:
+	if is_instance_valid(back_btn):
+		back_btn.pressed.connect(_on_back)
+	if is_instance_valid(drive_btn):
+		drive_btn.pressed.connect(_on_drive)
+	if is_instance_valid(prev_veh_btn):
+		prev_veh_btn.pressed.connect(_on_prev_vehicle)
+	if is_instance_valid(next_veh_btn):
+		next_veh_btn.pressed.connect(_on_next_vehicle)
+	if is_instance_valid(select_btn):
+		select_btn.pressed.connect(_on_select_or_buy)
+	
+	var active_id := SaveManager.get_selected_vehicle_id()
+	for i in range(vehicles_list.size()):
+		if vehicles_list[i].get("id", "") == active_id:
 			current_vehicle_index = i
 			break
 			
 	_update_view()
 
 func _update_view() -> void:
-	coin_label.text = str(GameState.coins)
-	var veh := VEHICLES[current_vehicle_index]
-	var v_id: String = veh["id"]
-	var is_unlocked: bool = GameState.is_vehicle_unlocked(v_id)
-	var is_active: bool = (GameState.active_vehicle_id == v_id)
+	if vehicles_list.is_empty():
+		return
+		
+	var coins := SaveManager.get_total_coins()
+	if is_instance_valid(coin_label):
+		coin_label.text = "%d" % coins
+		
+	var veh := vehicles_list[current_vehicle_index]
+	var v_id: String = veh.get("id", "blue_flame_truck")
+	var is_unlocked: bool = SaveManager.is_vehicle_unlocked(v_id)
+	var is_active: bool = (SaveManager.get_selected_vehicle_id() == v_id)
 	
-	vehicle_name_label.text = veh["name"]
-	vehicle_desc_label.text = veh["desc"]
-	vehicle_preview.texture = load(veh["tex"])
+	if is_instance_valid(vehicle_name_label):
+		vehicle_name_label.text = veh.get("display_name", "Vehicle")
+	if is_instance_valid(vehicle_desc_label):
+		vehicle_desc_label.text = veh.get("description", "")
+	if is_instance_valid(vehicle_preview):
+		var p_path: String = veh.get("preview_path", "")
+		if ResourceLoader.exists(p_path):
+			vehicle_preview.texture = load(p_path)
 	
 	# Select / Buy button state
 	var btn_style := StyleBoxFlat.new()
@@ -98,16 +82,18 @@ func _update_view() -> void:
 		select_btn.disabled = false
 		btn_style.bg_color = Color(0.12, 0.65, 0.32, 1)
 	else:
-		var cost: int = veh["cost"]
+		var cost: int = int(veh.get("unlock_cost", 0))
 		select_btn.text = "UNLOCK (%d Coins)" % cost
-		select_btn.disabled = (GameState.coins < cost)
+		select_btn.disabled = (coins < cost)
 		btn_style.bg_color = Color(0.9, 0.55, 0.12, 1)
 		
 	select_btn.add_theme_stylebox_override("normal", btn_style)
-	
 	_populate_upgrades(v_id)
 
 func _populate_upgrades(v_id: String) -> void:
+	if not is_instance_valid(upgrades_container):
+		return
+		
 	for c in upgrades_container.get_children():
 		c.queue_free()
 		
@@ -147,9 +133,12 @@ func _create_upgrade_row(v_id: String, stat_key: String, stat_name: String) -> P
 	# Name & Level
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(vbox)
 	
-	var lvl: int = GameState.get_upgrade_level(v_id, stat_key)
+	var lvl: int = SaveManager.get_upgrade_level(v_id, stat_key)
 	var name_lbl := Label.new()
 	name_lbl.text = stat_name
 	name_lbl.add_theme_font_size_override("font_size", 18)
@@ -158,7 +147,7 @@ func _create_upgrade_row(v_id: String, stat_key: String, stat_name: String) -> P
 	# Level pip dots
 	var pips_str := ""
 	for i in range(5):
-		pips_str += "[X] " if i < lvl else "[ ] "
+		pips_str += "★ " if i < lvl else "☆ "
 	var pips_lbl := Label.new()
 	pips_lbl.text = "Level %d/5  %s" % [lvl, pips_str]
 	pips_lbl.add_theme_color_override("font_color", Color(1, 0.85, 0.2, 1))
@@ -175,15 +164,15 @@ func _create_upgrade_row(v_id: String, stat_key: String, stat_name: String) -> P
 	b_style.corner_radius_bottom_right = 6
 	b_style.corner_radius_bottom_left = 6
 	
-	if lvl >= GameState.MAX_UPGRADE_LEVEL:
+	if lvl >= 5:
 		btn.text = "MAX"
 		btn.disabled = true
 		b_style.bg_color = Color(0.25, 0.28, 0.32, 1)
 	else:
-		var cost := GameState.get_upgrade_cost(lvl)
+		var cost := VehicleRegistry.get_upgrade_cost(lvl)
 		btn.text = "%d Coins" % cost
-		btn.disabled = (GameState.coins < cost)
-		b_style.bg_color = Color(0.12, 0.65, 0.32, 1) if GameState.coins >= cost else Color(0.3, 0.3, 0.35, 1)
+		btn.disabled = (SaveManager.get_total_coins() < cost)
+		b_style.bg_color = Color(0.12, 0.65, 0.32, 1) if SaveManager.get_total_coins() >= cost else Color(0.3, 0.3, 0.35, 1)
 		btn.pressed.connect(func(): _on_upgrade_stat(v_id, stat_key))
 		
 	btn.add_theme_stylebox_override("normal", b_style)
@@ -192,39 +181,38 @@ func _create_upgrade_row(v_id: String, stat_key: String, stat_name: String) -> P
 	return panel
 
 func _on_upgrade_stat(v_id: String, stat_key: String) -> void:
-	if GameState.upgrade_vehicle_stat(v_id, stat_key):
-		AudioManager.play_sfx("coin", 1.2)
+	if SaveManager.upgrade_vehicle_stat(v_id, stat_key):
 		_update_view()
 
 func _on_prev_vehicle() -> void:
-	AudioManager.play_sfx("click")
-	current_vehicle_index = (current_vehicle_index - 1 + VEHICLES.size()) % VEHICLES.size()
+	if vehicles_list.is_empty():
+		return
+	current_vehicle_index = (current_vehicle_index - 1 + vehicles_list.size()) % vehicles_list.size()
 	_update_view()
 
 func _on_next_vehicle() -> void:
-	AudioManager.play_sfx("click")
-	current_vehicle_index = (current_vehicle_index + 1) % VEHICLES.size()
+	if vehicles_list.is_empty():
+		return
+	current_vehicle_index = (current_vehicle_index + 1) % vehicles_list.size()
 	_update_view()
 
 func _on_select_or_buy() -> void:
-	var veh := VEHICLES[current_vehicle_index]
-	var v_id: String = veh["id"]
-	if GameState.is_vehicle_unlocked(v_id):
-		GameState.active_vehicle_id = v_id
-		AudioManager.play_sfx("click")
+	var veh := vehicles_list[current_vehicle_index]
+	var v_id: String = veh.get("id", "blue_flame_truck")
+	if SaveManager.is_vehicle_unlocked(v_id):
+		SaveManager.set_selected_vehicle_id(v_id)
+		vehicle_selected.emit(v_id)
 		_update_view()
 	else:
-		var cost: int = veh["cost"]
-		if GameState.spend_coins(cost):
-			GameState.unlock_vehicle(v_id)
-			GameState.active_vehicle_id = v_id
-			AudioManager.play_sfx("coin", 1.3)
+		var cost: int = int(veh.get("unlock_cost", 0))
+		if SaveManager.spend_coins(cost):
+			SaveManager.unlock_vehicle(v_id)
+			SaveManager.set_selected_vehicle_id(v_id)
+			vehicle_selected.emit(v_id)
 			_update_view()
 
 func _on_drive() -> void:
-	AudioManager.play_sfx("click")
 	drive_pressed.emit()
 
 func _on_back() -> void:
-	AudioManager.play_sfx("click")
 	back_pressed.emit()

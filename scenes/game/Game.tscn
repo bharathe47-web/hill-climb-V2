@@ -55,5 +55,3 @@ visible = false
 
 [node name="ResultsScreen" parent="UILayer" instance=ExtResource("9_results_screen")]
 visible = false
-
-[node name="SnowfallManager" parent="." instance=ExtResource("12_snowfall")]

@@ -11,6 +11,7 @@ const VehicleRegistry = preload("res://scripts/vehicle/VehicleRegistry.gd")
 signal start_game_requested
 signal start_survival_requested
 signal start_indian_roads_requested
+signal open_garage_requested
 signal quit_requested
 
 @onready var best_distance_label: Label = %BestDistanceLabel
@@ -66,8 +67,8 @@ func _connect_signals() -> void:
 		endless_mode_button.pressed.connect(_on_start_pressed)
 	if is_instance_valid(survival_mode_button) and not survival_mode_button.pressed.is_connected(_on_survival_pressed):
 		survival_mode_button.pressed.connect(_on_survival_pressed)
-	if is_instance_valid(garage_mode_button) and not garage_mode_button.pressed.is_connected(_on_change_vehicle_pressed):
-		garage_mode_button.pressed.connect(_on_change_vehicle_pressed)
+	if is_instance_valid(garage_mode_button) and not garage_mode_button.pressed.is_connected(_on_garage_pressed):
+		garage_mode_button.pressed.connect(_on_garage_pressed)
 	if is_instance_valid(indian_roads_mode_button) and not indian_roads_mode_button.pressed.is_connected(_on_indian_roads_pressed):
 		indian_roads_mode_button.pressed.connect(_on_indian_roads_pressed)
 
@@ -87,6 +88,9 @@ func _on_survival_pressed() -> void:
 
 func _on_indian_roads_pressed() -> void:
 	start_indian_roads_requested.emit()
+
+func _on_garage_pressed() -> void:
+	open_garage_requested.emit()
 
 func _on_change_vehicle_pressed() -> void:
 	_open_vehicle_selection()
