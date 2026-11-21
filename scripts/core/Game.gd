@@ -91,6 +91,8 @@ func setup_terrain() -> void:
 			gen.name = "TerrainGenerator"
 			gen.set("target", vehicle)
 			gen.set("auto_find_target", true)
+			if gen.has_signal("biome_changed"):
+				gen.connect("biome_changed", _on_biome_changed)
 			terrain_slot.add_child(gen)
 	else:
 		# Ensure TestTrack is present for controlled regression tests
@@ -246,3 +248,23 @@ func exit_to_main_menu() -> void:
 	return_to_main_menu_requested.emit()
 	if get_parent() == get_tree().root:
 		get_tree().change_scene_to_file("res://scenes/main/MainMenu.tscn")
+
+func _on_biome_changed(new_biome: int, biome_name: String) -> void:
+	var parallax = find_child("ParallaxEnvironment", true, false)
+	if is_instance_valid(parallax) and parallax.has_method("set_biome_theme"):
+		parallax.set_biome_theme(new_biome)
+	if is_instance_valid(hud) and hud.has_method("show_toast"):
+		var toast_color := Color(0.25, 0.9, 0.55)
+		match new_biome:
+			1: toast_color = Color(1.0, 0.92, 0.35)
+			2: toast_color = Color(1.0, 0.35, 0.15)
+		hud.show_toast("ENTERING " + biome_name.to_upper() + "!", "Endless Biome Exploration", toast_color)
+	if is_instance_valid(ambience_player):
+		match new_biome:
+			1:
+				ambience_player.pitch_scale = 1.15
+			2:
+				ambience_player.pitch_scale = 0.85
+			_:
+				ambience_player.pitch_scale = 1.0
+

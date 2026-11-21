@@ -19,6 +19,18 @@ enum SegmentType {
 	CUSTOM
 }
 
+enum BiomeType {
+	COUNTRYSIDE = 0,
+	HEAVEN = 1,
+	HELL = 2
+}
+
+@export var biome_type: BiomeType = BiomeType.COUNTRYSIDE:
+	set(val):
+		biome_type = val
+		if Engine.is_editor_hint():
+			rebuild_segment()
+
 @export var segment_type: SegmentType = SegmentType.GENTLE_HILLS:
 	set(val):
 		segment_type = val
@@ -369,9 +381,17 @@ func _apply_geometry() -> void:
 	
 	if ground_polygon:
 		ground_polygon.polygon = poly_pts
-		ground_polygon.color = Color(1, 1, 1, 1)
-		ground_polygon.texture = TEX_SOIL_SUBSURFACE
 		ground_polygon.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+		match biome_type:
+			BiomeType.HEAVEN:
+				ground_polygon.color = Color(0.90, 0.95, 1.0, 1.0)
+				ground_polygon.texture = TEX_SOIL_SUBSURFACE
+			BiomeType.HELL:
+				ground_polygon.color = Color(0.18, 0.12, 0.14, 1.0)
+				ground_polygon.texture = TEX_SOIL_SUBSURFACE
+			_: # COUNTRYSIDE
+				ground_polygon.color = Color(1, 1, 1, 1)
+				ground_polygon.texture = TEX_SOIL_SUBSURFACE
 	
 	# 2. Build subsoil polygon with slight offset for rich underground layering
 	if subsoil_polygon:
@@ -381,15 +401,35 @@ func _apply_geometry() -> void:
 		subsoil_pts.append(Vector2(last_pt.x, local_bottom_y))
 		subsoil_pts.append(Vector2(first_pt.x, local_bottom_y))
 		subsoil_polygon.polygon = subsoil_pts
-		subsoil_polygon.color = Color(0.9, 0.9, 0.9, 1)
-		subsoil_polygon.texture = TEX_DIRT_STRATA
 		subsoil_polygon.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+		match biome_type:
+			BiomeType.HEAVEN:
+				subsoil_polygon.color = Color(0.72, 0.84, 0.98, 0.9)
+				subsoil_polygon.texture = TEX_DIRT_STRATA
+			BiomeType.HELL:
+				subsoil_polygon.color = Color(0.10, 0.05, 0.07, 1.0)
+				subsoil_polygon.texture = TEX_DIRT_STRATA
+			_: # COUNTRYSIDE
+				subsoil_polygon.color = Color(0.9, 0.9, 0.9, 1)
+				subsoil_polygon.texture = TEX_DIRT_STRATA
 	
-	# 3. Grass lines hidden to maintain pure brown soil/dirt terrain style
+	# 3. Surface line rendering
 	if grass_line:
 		grass_line.visible = false
 	if grass_highlight_line:
-		grass_highlight_line.visible = false
+		match biome_type:
+			BiomeType.HEAVEN:
+				grass_highlight_line.visible = true
+				grass_highlight_line.points = generated_surface_points
+				grass_highlight_line.default_color = Color(1.0, 0.92, 0.45, 0.9)
+				grass_highlight_line.width = 6.0
+			BiomeType.HELL:
+				grass_highlight_line.visible = true
+				grass_highlight_line.points = generated_surface_points
+				grass_highlight_line.default_color = Color(1.0, 0.38, 0.08, 0.95)
+				grass_highlight_line.width = 7.0
+			_: # COUNTRYSIDE
+				grass_highlight_line.visible = false
 	
 	# 4. Optional procedural surface details (rocks, boulders, fences, signs)
 	if decorations_root:
@@ -409,8 +449,8 @@ func _build_decorations() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_val
 	
-	# 1. Place 1 fence / signpost / prop
-	if rng.randf() < 0.65:
+	# 1. Place props (fences/signs in Countryside only)
+	if biome_type == BiomeType.COUNTRYSIDE and rng.randf() < 0.65:
 		var prop_idx := rng.randi_range(2, generated_surface_points.size() - 3)
 		var p_pt := generated_surface_points[prop_idx]
 		var p_next := generated_surface_points[prop_idx + 1]
@@ -426,7 +466,7 @@ func _build_decorations() -> void:
 		prop_sprite.rotation = clampf(p_dir.angle() * 0.35, -0.3, 0.3)
 		decorations_root.add_child(prop_sprite)
 
-	# 2. Place 3-5 rocks and stone formations on the soil surface
+	# 2. Place 3-5 rocks and stone formations on the surface
 	var num_rocks := rng.randi_range(3, 5)
 	for s in range(num_rocks):
 		var s_idx := rng.randi_range(2, generated_surface_points.size() - 3)
@@ -442,4 +482,14 @@ func _build_decorations() -> void:
 		rock_sprite.offset = Vector2(0, -rock_tex.get_height() * 0.5)
 		rock_sprite.position = s_pt + Vector2(0, 1)
 		rock_sprite.rotation = clampf(s_dir.angle() * 0.4, -0.35, 0.35)
+		
+		# Biome specific tinting for rocks
+		match biome_type:
+			BiomeType.HEAVEN:
+				rock_sprite.modulate = Color(1.1, 1.15, 1.3, 0.9)
+			BiomeType.HELL:
+				rock_sprite.modulate = Color(0.4, 0.25, 0.28, 1.0)
+			_:
+				rock_sprite.modulate = Color.WHITE
+				
 		decorations_root.add_child(rock_sprite)

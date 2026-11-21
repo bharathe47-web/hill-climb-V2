@@ -8,12 +8,19 @@ extends Node2D
 
 signal segment_spawned(segment: TerrainSegment)
 signal segment_despawned(segment: TerrainSegment)
+signal biome_changed(new_biome: int, biome_name: String)
 
 @export var terrain_segment_scene: PackedScene = preload("res://scenes/terrain/TerrainSegment.tscn")
 @export var coin_scene: PackedScene = preload("res://scenes/pickups/Coin.tscn")
 @export var fuel_scene: PackedScene = preload("res://scenes/pickups/FuelPickup.tscn")
 @export var target: Node2D
 @export var auto_find_target: bool = true
+
+@export_group("Biomes Progression")
+## Current active endless biome (0: Countryside, 1: Heaven, 2: Hell)
+@export var current_biome: int = 0
+## Distance in pixels before transitioning to the next biome (~1200m)
+@export var biome_interval_distance: float = 12000.0
 
 @export_group("Generation Limits")
 ## How far ahead of the target terrain should be generated (in pixels)
@@ -171,9 +178,19 @@ func _cull_pickups_for_segment(seg: TerrainSegment) -> void:
 
 func _generate_next_procedural_segment() -> TerrainSegment:
 	segment_counter += 1
-	var progress_m := maxf(0.0, (next_attach_point.x - initial_spawn_point.x) / 100.0)
+	var progress_px := maxf(0.0, next_attach_point.x - initial_spawn_point.x)
+	var progress_m := progress_px / 100.0
 	current_difficulty = 1.0 + (progress_m / 250.0) * difficulty_growth
 	current_difficulty = clampf(current_difficulty, 1.0, 3.0)
+	
+	var target_biome: int = int(progress_px / biome_interval_distance) % 3
+	if target_biome != current_biome:
+		current_biome = target_biome
+		var b_name: String = "Countryside"
+		match current_biome:
+			1: b_name = "Heaven"
+			2: b_name = "Hell"
+		biome_changed.emit(current_biome, b_name)
 	
 	var seg_type := _select_segment_type(current_difficulty)
 	var seg_length := default_segment_length * rng.randf_range(0.9, 1.25)
@@ -211,30 +228,49 @@ func _generate_next_procedural_segment() -> TerrainSegment:
 
 func _select_segment_type(_diff: float) -> TerrainSegment.SegmentType:
 	var roll := rng.randf()
-	if roll < 0.60:
-		# 60% Gentle rolling terrain (smooth waves, pleasant hills, undulating contours)
-		if rng.randf() < 0.55:
+	if current_biome == 1: # HEAVEN: Soaring jumps, floating waves, smooth hills
+		if roll < 0.35:
+			return TerrainSegment.SegmentType.JUMP_RAMP
+		elif roll < 0.65:
+			return TerrainSegment.SegmentType.ROLLING_WAVES
+		elif roll < 0.85:
 			return TerrainSegment.SegmentType.GENTLE_HILLS
 		else:
-			return TerrainSegment.SegmentType.ROLLING_WAVES
-	elif roll < 0.80:
-		# 20% Relatively flat sections (moments to gain speed and momentum)
-		return TerrainSegment.SegmentType.FLAT
-	elif roll < 0.95:
-		# 15% Moderate hills and valleys (rewarding climbs, thrilling descents)
-		if rng.randf() < 0.50:
+			return TerrainSegment.SegmentType.FLAT
+	elif current_biome == 2: # HELL: Volcanic dips, steep climbs, double crests, washboards
+		if roll < 0.35:
 			return TerrainSegment.SegmentType.VALLEY_DIP
-		else:
+		elif roll < 0.65:
 			return TerrainSegment.SegmentType.STEEP_CLIMB
-	else:
-		# 5% Challenging sections (steep climbs, crest jumps, technical dips)
-		var c_roll := rng.randf()
-		if c_roll < 0.50:
-			return TerrainSegment.SegmentType.JUMP_RAMP
-		elif c_roll < 0.80:
+		elif roll < 0.85:
 			return TerrainSegment.SegmentType.DOUBLE_CREST
 		else:
 			return TerrainSegment.SegmentType.BUMPY_WASHBOARD
+	else: # COUNTRYSIDE / NORMAL LAND
+		if roll < 0.60:
+			# 60% Gentle rolling terrain (smooth waves, pleasant hills, undulating contours)
+			if rng.randf() < 0.55:
+				return TerrainSegment.SegmentType.GENTLE_HILLS
+			else:
+				return TerrainSegment.SegmentType.ROLLING_WAVES
+		elif roll < 0.80:
+			# 20% Relatively flat sections (moments to gain speed and momentum)
+			return TerrainSegment.SegmentType.FLAT
+		elif roll < 0.95:
+			# 15% Moderate hills and valleys (rewarding climbs, thrilling descents)
+			if rng.randf() < 0.50:
+				return TerrainSegment.SegmentType.VALLEY_DIP
+			else:
+				return TerrainSegment.SegmentType.STEEP_CLIMB
+		else:
+			# 5% Challenging sections (steep climbs, crest jumps, technical dips)
+			var c_roll := rng.randf()
+			if c_roll < 0.50:
+				return TerrainSegment.SegmentType.JUMP_RAMP
+			elif c_roll < 0.80:
+				return TerrainSegment.SegmentType.DOUBLE_CREST
+			else:
+				return TerrainSegment.SegmentType.BUMPY_WASHBOARD
 
 func _create_segment(
 	type: TerrainSegment.SegmentType,
@@ -257,6 +293,7 @@ func _create_segment(
 		seg = TerrainSegment.new()
 	
 	seg.segment_type = type
+	seg.biome_type = current_biome as TerrainSegment.BiomeType
 	seg.segment_length = length_val
 	seg.start_height = start_h
 	seg.end_height = end_h
@@ -420,6 +457,7 @@ func clear_terrain() -> void:
 	
 	segment_counter = 0
 	current_difficulty = 1.0
+	current_biome = 0
 	current_slope = 0.0
 	distance_since_last_fuel = 0.0
 	total_coins_spawned = 0

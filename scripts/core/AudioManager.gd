@@ -1,4 +1,7 @@
+class_name AudioManager
 extends Node
+
+const SaveManager = preload("res://scripts/core/SaveManager.gd")
 
 var sfx_player_pool: Array[AudioStreamPlayer] = []
 var music_player: AudioStreamPlayer
@@ -11,16 +14,16 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
 	music_player = AudioStreamPlayer.new()
-	music_player.bus = "Master"
+	music_player.bus = "Music"
 	add_child(music_player)
 	
 	engine_player = AudioStreamPlayer.new()
-	engine_player.bus = "Master"
+	engine_player.bus = "SFX"
 	add_child(engine_player)
 	
 	for i in range(pool_size):
 		var p := AudioStreamPlayer.new()
-		p.bus = "Master"
+		p.bus = "SFX"
 		add_child(p)
 		sfx_player_pool.append(p)
 	
@@ -28,27 +31,33 @@ func _ready() -> void:
 	update_volumes()
 
 func update_volumes() -> void:
-	var master_db: float = linear_to_db(GameState.master_volume)
-	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), master_db)
-	if music_player:
-		music_player.volume_db = linear_to_db(GameState.music_volume)
+	var sound_vol: float = SaveManager.get_sound_volume()
+	var music_vol: float = SaveManager.get_music_volume()
+	var sfx_bus_idx := AudioServer.get_bus_index("SFX")
+	if sfx_bus_idx != -1:
+		AudioServer.set_bus_volume_db(sfx_bus_idx, linear_to_db(sound_vol))
+	var music_bus_idx := AudioServer.get_bus_index("Music")
+	if music_bus_idx != -1:
+		AudioServer.set_bus_volume_db(music_bus_idx, linear_to_db(music_vol))
 
 func play_sfx(sound_name: String, pitch: float = 1.0, volume_scale: float = 1.0) -> void:
 	if not sounds.has(sound_name):
 		return
 	var stream: AudioStream = sounds[sound_name]
+	var sound_vol: float = SaveManager.get_sound_volume()
 	for player in sfx_player_pool:
 		if not player.playing:
 			player.stream = stream
 			player.pitch_scale = pitch
-			player.volume_db = linear_to_db(GameState.sfx_volume * volume_scale)
+			player.volume_db = linear_to_db(sound_vol * volume_scale)
 			player.play()
 			return
 
 func start_engine() -> void:
 	if sounds.has("engine_loop") and engine_player:
 		engine_player.stream = sounds["engine_loop"]
-		engine_player.volume_db = linear_to_db(GameState.sfx_volume * 0.45)
+		var sound_vol: float = SaveManager.get_sound_volume()
+		engine_player.volume_db = linear_to_db(sound_vol * 0.45)
 		if not engine_player.playing:
 			engine_player.play()
 
@@ -64,8 +73,10 @@ func update_engine_pitch(speed_ratio: float) -> void:
 func play_music(stream: AudioStream) -> void:
 	if music_player:
 		music_player.stream = stream
-		music_player.volume_db = linear_to_db(GameState.music_volume)
+		var music_vol: float = SaveManager.get_music_volume()
+		music_player.volume_db = linear_to_db(music_vol)
 		music_player.play()
+
 
 # Generate crisp procedural AudioStreamWAV for immediate standalone functionality
 func _generate_procedural_sounds() -> void:
