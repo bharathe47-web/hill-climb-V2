@@ -43,7 +43,7 @@ script = ExtResource("1_controller")
 base_motor_torque = 110000.0
 base_brake_torque = 65000.0
 base_wheel_friction = 1.8
-base_suspension_softness = 0.35
+base_suspension_softness = 0.05
 motor_torque = 110000.0
 brake_torque = 65000.0
 air_tilt_torque = 30000.0
@@ -178,6 +178,8 @@ collision_layer = 2
 collision_mask = 1
 mass = 2.5
 physics_material_override = SubResource("PhysicsMaterial_truck_wheel")
+contact_monitor = true
+max_contacts_reported = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RearWheel"]
 shape = SubResource("CircleShape2D_wheel")
@@ -196,6 +198,8 @@ collision_layer = 2
 collision_mask = 1
 mass = 2.5
 physics_material_override = SubResource("PhysicsMaterial_truck_wheel")
+contact_monitor = true
+max_contacts_reported = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FrontWheel"]
 shape = SubResource("CircleShape2D_wheel")
@@ -212,10 +216,10 @@ texture = ExtResource("12_rim")
 position = Vector2(-42, 18)
 node_a = NodePath("..")
 node_b = NodePath("../RearWheel")
-softness = 0.35
+softness = 0.05
 
 [node name="FrontJoint" type="PinJoint2D" parent="."]
 position = Vector2(45, 18)
 node_a = NodePath("..")
 node_b = NodePath("../FrontWheel")
-softness = 0.35
+softness = 0.05

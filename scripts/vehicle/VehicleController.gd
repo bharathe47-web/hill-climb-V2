@@ -45,7 +45,7 @@ signal clean_landed(bonus_coins: int)
 @export var base_brake_torque: float = 45000.0
 @export var base_max_wheel_speed: float = 80.0
 @export var base_wheel_friction: float = 1.6
-@export var base_suspension_softness: float = 0.6
+@export var base_suspension_softness: float = 0.05
 @export var base_max_fuel: float = 100.0
 
 @export_group("Current Active Physics")
@@ -160,10 +160,16 @@ func _ready() -> void:
 		engine_audio.play()
 	
 	add_to_group("vehicle")
-	if rear_wheel and not rear_wheel.is_in_group("vehicle"):
-		rear_wheel.add_to_group("vehicle")
-	if front_wheel and not front_wheel.is_in_group("vehicle"):
-		front_wheel.add_to_group("vehicle")
+	if rear_wheel:
+		rear_wheel.contact_monitor = true
+		rear_wheel.max_contacts_reported = 4
+		if not rear_wheel.is_in_group("vehicle"):
+			rear_wheel.add_to_group("vehicle")
+	if front_wheel:
+		front_wheel.contact_monitor = true
+		front_wheel.max_contacts_reported = 4
+		if not front_wheel.is_in_group("vehicle"):
+			front_wheel.add_to_group("vehicle")
 	
 	_ensure_nitro_visuals()
 
@@ -180,30 +186,11 @@ func _physics_process(delta: float) -> void:
 	_update_nitro(delta)
 	_check_pothole_assist(delta)
 	_handle_input(delta)
-	_constrain_wheel_displacement()
 	_update_audio(delta)
 	_update_particles()
 	
 	was_grounded = is_grounded
 	_previous_linear_velocity = linear_velocity
-
-func _constrain_wheel_displacement() -> void:
-	# Keep physical wheels bound strictly to suspension travel envelope (preventing joint stretching/detachment)
-	var max_travel: float = 12.0
-	if rear_wheel and rear_wheel_mount:
-		var r_local := to_local(rear_wheel.global_position)
-		var diff := r_local - _initial_rear_wheel_offset
-		if diff.length() > max_travel:
-			var clamped_local := _initial_rear_wheel_offset + diff.normalized() * max_travel
-			rear_wheel.global_position = to_global(clamped_local)
-			rear_wheel.linear_velocity = rear_wheel.linear_velocity * 0.8
-	if front_wheel and front_wheel_mount:
-		var f_local := to_local(front_wheel.global_position)
-		var diff := f_local - _initial_front_wheel_offset
-		if diff.length() > max_travel:
-			var clamped_local := _initial_front_wheel_offset + diff.normalized() * max_travel
-			front_wheel.global_position = to_global(clamped_local)
-			front_wheel.linear_velocity = front_wheel.linear_velocity * 0.8
 
 func set_nitro_active(active: bool) -> void:
 	is_nitro_requested = active
@@ -615,8 +602,8 @@ func _recalculate_upgrades() -> void:
 	_current_base_friction = eff_friction
 	_apply_wheel_friction(_current_base_friction + (nitro_traction_boost if is_nitro_active else 0.0))
 	
-	# 3. Suspension: firmer damping, reduces softness by 0.08 per level
-	var eff_softness: float = maxf(0.18, base_suspension_softness - (suspension_level - 1) * 0.08)
+	# 3. Suspension: firmer damping, reduces softness by 0.008 per level (0.05 at lvl 1 down to 0.01 at lvl 5)
+	var eff_softness: float = maxf(0.01, base_suspension_softness - (suspension_level - 1) * 0.008)
 	if rear_joint:
 		rear_joint.softness = eff_softness
 	if front_joint:
