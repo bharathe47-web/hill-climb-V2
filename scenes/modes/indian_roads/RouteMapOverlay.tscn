@@ -1,0 +1,227 @@
+[gd_scene format=3 uid="uid://rtemapoverlay01"]
+
+[ext_resource type="Script" path="res://scripts/modes/indian_roads/RouteMapOverlay.gd" id="1_script"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future.ttf" id="2_font_future"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future_Narrow.ttf" id="3_font_narrow"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.07, 0.11, 0.17, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.75, 0.95, 0.85)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.65)
+shadow_size = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_bg"]
+bg_color = Color(0.04, 0.07, 0.12, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.45, 0.65, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_bg"]
+bg_color = Color(0.12, 0.16, 0.22, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_fill"]
+bg_color = Color(0.2, 0.85, 0.45, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_resume"]
+bg_color = Color(0.15, 0.55, 0.85, 1)
+border_width_bottom = 3
+border_color = Color(0.08, 0.35, 0.6, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_close"]
+bg_color = Color(0.85, 0.25, 0.2, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="RouteMapOverlay" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.04, 0.08, 0.82)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ModalPanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(920, 560)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/ModalPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="MainVBox" type="VBoxContainer" parent="CenterContainer/ModalPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="HeaderHBox" type="HBoxContainer" parent="CenterContainer/ModalPanel/Margin/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleVBox" type="VBoxContainer" parent="CenterContainer/ModalPanel/Margin/MainVBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="StateTitleLabel" type="Label" parent="CenterContainer/ModalPanel/Margin/MainVBox/HeaderHBox/TitleVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.92, 0.35, 1)
+text = "TAMIL NADU HIGHWAY ROUTE MAP"
+
+[node name="RouteSubtitleLabel" type="Label" parent="CenterContainer/ModalPanel/Margin/MainVBox/HeaderHBox/TitleVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.7, 0.9, 1, 0.85)
+text = "KANYAKUMARI → CHENNAI  •  TOTAL: 1100m (1.1 KM)"
+
+[node name="CloseButton" type="Button" parent="CenterContainer/ModalPanel/Margin/MainVBox/HeaderHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_close")
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 16
+text = "✕"
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/ModalPanel/Margin/MainVBox"]
+layout_mode = 2
+
+[node name="ContentHBox" type="HBoxContainer" parent="CenterContainer/ModalPanel/Margin/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="MapContainer" type="PanelContainer" parent="CenterContainer/ModalPanel/Margin/MainVBox/ContentHBox"]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_map_bg")
+
+[node name="StateMapRect" type="TextureRect" parent="CenterContainer/ModalPanel/Margin/MainVBox/ContentHBox/MapContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RightVBox" type="VBoxContainer" parent="CenterContainer/ModalPanel/Margin/MainVBox/ContentHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="ProgressStatsVBox" type="VBoxContainer" parent="CenterContainer/ModalPanel/Margin/MainVBox/ContentHBox/RightVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StatsHBox" type="HBoxContainer" parent="CenterContainer/ModalPanel/Margin/MainVBox/ContentHBox/RightVBox/ProgressStatsVBox"]
+layout_mode = 2
+
+[node name="ProgressLabel" type="Label" parent="CenterContainer/ModalPanel/Margin/MainVBox/ContentHBox/RightVBox/ProgressStatsVBox/StatsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.2, 0.9, 1, 1)
+text = "PROGRESS: 415m / 1100m (38%)"
+
+[node name="RemainingLabel" type="Label" parent="CenterContainer/ModalPanel/Margin/MainVBox/ContentHBox/RightVBox/ProgressStatsVBox/StatsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+text = "REMAINING: 685m (0.7 KM)"
+
+[node name="ProgressBar" type="ProgressBar" parent="CenterContainer/ModalPanel/Margin/MainVBox/ContentHBox/RightVBox/ProgressStatsVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_prog_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_prog_fill")
+value = 38.0
+show_percentage = false
+
+[node name="WaypointsTitle" type="Label" parent="CenterContainer/ModalPanel/Margin/MainVBox/ContentHBox/RightVBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+text = "ROUTE WAYPOINTS & LANDMARKS:"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/ModalPanel/Margin/MainVBox/ContentHBox/RightVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="WaypointsVBox" type="VBoxContainer" parent="CenterContainer/ModalPanel/Margin/MainVBox/ContentHBox/RightVBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="FooterHBox" type="HBoxContainer" parent="CenterContainer/ModalPanel/Margin/MainVBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="ResumeButton" type="Button" parent="CenterContainer/ModalPanel/Margin/MainVBox/FooterHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 42)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_resume")
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "RESUME DRIVING"

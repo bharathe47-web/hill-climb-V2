@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="samosaGrad" x1="0%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#ffd166" />
+      <stop offset="40%" stop-color="#f4a261" />
+      <stop offset="85%" stop-color="#e76f51" />
+      <stop offset="100%" stop-color="#9a3412" />
+    </linearGradient>
+    <filter id="samShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="7" stdDeviation="5" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <g filter="url(#samShadow)">
+    <!-- Samosa Triangular Body -->
+    <path d="M 128 45 C 145 65 195 155 215 185 C 220 195 205 208 185 205 C 145 200 110 200 71 205 C 51 208 36 195 41 185 C 61 155 111 65 128 45 Z" 
+          fill="url(#samosaGrad)" stroke="#78290f" stroke-width="3.5" stroke-linejoin="round"/>
+    
+    <!-- Center Fold Seam Ridge -->
+    <path d="M 128 48 Q 124 125 128 202" stroke="#9a3412" stroke-width="3" fill="none" opacity="0.75"/>
+    
+    <!-- Crispy blisters / golden spots -->
+    <circle cx="105" cy="140" r="5" fill="#9a3412" opacity="0.45"/>
+    <circle cx="150" cy="160" r="6" fill="#9a3412" opacity="0.4"/>
+    <circle cx="120" cy="110" r="4" fill="#9a3412" opacity="0.35"/>
+    <circle cx="160" cy="130" r="4" fill="#ffb703" opacity="0.6"/>
+    <circle cx="90" cy="170" r="5" fill="#78290f" opacity="0.3"/>
+  </g>
+</svg>

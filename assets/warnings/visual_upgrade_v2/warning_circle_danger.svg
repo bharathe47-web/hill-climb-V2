@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="dangerFill" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff1744" stop-opacity="0.45" />
+      <stop offset="70%" stop-color="#d50000" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#b71c1c" stop-opacity="0.0" />
+    </radialGradient>
+  </defs>
+  <!-- Background pulsing disc -->
+  <circle cx="128" cy="128" r="105" fill="url(#dangerFill)"/>
+  
+  <!-- Dashed danger ring -->
+  <circle cx="128" cy="128" r="100" fill="none" stroke="#ff1744" stroke-width="6" stroke-dasharray="16 10"/>
+  <circle cx="128" cy="128" r="85" fill="none" stroke="#ffeb3b" stroke-width="3" opacity="0.8"/>
+  
+  <!-- Hazard triangle icon in center -->
+  <path d="M 128 65 L 175 148 L 81 148 Z" fill="#ffcc00" stroke="#b71c1c" stroke-width="4" stroke-linejoin="round"/>
+  <!-- Exclamation mark -->
+  <path d="M 128 92 L 128 122" stroke="#212121" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="128" cy="136" r="3.5" fill="#212121"/>
+</svg>

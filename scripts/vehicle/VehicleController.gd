@@ -224,6 +224,7 @@ func _ensure_nitro_visuals() -> void:
 	var flame_root := Node2D.new()
 	flame_root.name = "NitroFlame"
 	flame_root.position = exhaust_pos
+	flame_root.z_index = -2 # Behind chassis and wheels so flame never occludes wheels
 	flame_root.visible = false
 	add_child(flame_root)
 	nitro_flame = flame_root
@@ -260,6 +261,7 @@ func _ensure_nitro_visuals() -> void:
 	burst_spr.name = "NitroBurst"
 	burst_spr.texture = preload("res://assets/effects/nitro/nitro_flame_burst.png")
 	burst_spr.position = exhaust_pos
+	burst_spr.z_index = -2 # Behind chassis and wheels
 	burst_spr.scale = Vector2(0.38, 0.38)
 	burst_spr.offset = Vector2(-140, 0)
 	burst_spr.visible = false
@@ -270,6 +272,7 @@ func _ensure_nitro_visuals() -> void:
 	var sparks := CPUParticles2D.new()
 	sparks.name = "NitroSparks"
 	sparks.position = exhaust_pos
+	sparks.z_index = -1 # Behind vehicle body
 	sparks.emitting = false
 	sparks.amount = 16
 	sparks.lifetime = 0.4
@@ -414,6 +417,13 @@ func _handle_input(delta: float) -> void:
 	# Apply forward nitro thrust force along vehicle body local X
 	if is_nitro_active:
 		apply_central_force(transform.x * nitro_boost_force)
+		# Anti-wheelie pitch stabilization during high nitro thrust to keep both wheels aligned on the road
+		if is_grounded:
+			var rear_contact: bool = rear_wheel and rear_wheel.get_contact_count() > 0
+			var front_contact: bool = front_wheel and front_wheel.get_contact_count() > 0
+			if rear_contact and not front_contact:
+				# Front wheel has lifted into an excessive wheelie; apply stabilizing counter-pitch torque
+				apply_torque(-nitro_boost_force * 0.45)
 	
 	# Low fuel sputtering physical warning when tank < 15%
 	var sputter_mult: float = 1.0

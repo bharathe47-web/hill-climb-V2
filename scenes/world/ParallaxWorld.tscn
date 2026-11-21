@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://parallaxworld001"]
+
+[ext_resource type="Script" path="res://scripts/world/ParallaxWorld.gd" id="1_world"]
+[ext_resource type="Texture2D" path="res://art/parallax/sky_seamless.png" id="2_sky"]
+[ext_resource type="Texture2D" path="res://art/parallax/clouds_seamless.png" id="3_clouds"]
+[ext_resource type="Texture2D" path="res://art/parallax/sea_seamless.png" id="4_sea"]
+[ext_resource type="Texture2D" path="res://art/parallax/islands_vivekananda.png" id="5_islands"]
+[ext_resource type="Texture2D" path="res://art/parallax/town_coastal.png" id="6_town"]
+[ext_resource type="Texture2D" path="res://art/parallax/lighthouse.png" id="7_lighthouse"]
+
+[node name="ParallaxWorld" type="ParallaxBackground"]
+script = ExtResource("1_world")
+
+[node name="SkyLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0, 0)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="SkySprite" type="Sprite2D" parent="SkyLayer"]
+texture = ExtResource("2_sky")
+centered = false
+
+[node name="CloudLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.04, 0)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="CloudSprite" type="Sprite2D" parent="CloudLayer"]
+texture = ExtResource("3_clouds")
+centered = false
+
+[node name="SeaLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.12, 0)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="SeaSprite" type="Sprite2D" parent="SeaLayer"]
+texture = ExtResource("4_sea")
+centered = false
+
+[node name="IslandsLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.24, 0)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="IslandsSprite" type="Sprite2D" parent="IslandsLayer"]
+texture = ExtResource("5_islands")
+centered = false
+
+[node name="TownLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.42, 0)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="TownSprite" type="Sprite2D" parent="TownLayer"]
+position = Vector2(0, 200)
+texture = ExtResource("6_town")
+centered = false
+
+[node name="LighthouseSprite" type="Sprite2D" parent="TownLayer"]
+position = Vector2(1060, 260)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("7_lighthouse")

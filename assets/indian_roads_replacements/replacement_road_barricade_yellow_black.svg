@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 240" width="640" height="240">
+  <defs>
+    <filter id="bShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+    <pattern id="stripes" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="20" height="40" fill="#facc15"/>
+      <rect x="20" width="20" height="40" fill="#1e293b"/>
+    </pattern>
+    <linearGradient id="leg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="50%" stop-color="#94a3b8"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+  </defs>
+  <!-- A-Frame Legs -->
+  <polygon points="60,230 90,230 115,50 85,50" fill="url(#leg)"/>
+  <polygon points="140,230 110,230 85,50 115,50" fill="url(#leg)"/>
+  <polygon points="500,230 530,230 555,50 525,50" fill="url(#leg)"/>
+  <polygon points="580,230 550,230 525,50 555,50" fill="url(#leg)"/>
+  <rect x="50" y="222" width="100" height="12" fill="#1e293b" rx="3"/>
+  <rect x="490" y="222" width="100" height="12" fill="#1e293b" rx="3"/>
+  <!-- Cross Barrels with Hazard Pattern -->
+  <g filter="url(#bShadow)">
+    <!-- Top Hazard Rail -->
+    <rect x="20" y="45" width="600" height="55" rx="6" fill="url(#stripes)" stroke="#0f172a" stroke-width="4"/>
+    <!-- Bottom Hazard Rail -->
+    <rect x="20" y="125" width="600" height="55" rx="6" fill="url(#stripes)" stroke="#0f172a" stroke-width="4"/>
+    <!-- Warning Light Flasher on Top -->
+    <circle cx="320" cy="22" r="18" fill="#ea580c" stroke="#fed7aa" stroke-width="3"/>
+    <circle cx="320" cy="22" r="8" fill="#fef08a"/>
+    <rect x="310" y="38" width="20" height="8" fill="#334155"/>
+  </g>
+</svg>

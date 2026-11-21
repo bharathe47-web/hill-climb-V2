@@ -10,6 +10,7 @@ const VehicleRegistry = preload("res://scripts/vehicle/VehicleRegistry.gd")
 
 signal start_game_requested
 signal start_survival_requested
+signal start_indian_roads_requested
 signal quit_requested
 
 @onready var best_distance_label: Label = %BestDistanceLabel
@@ -85,8 +86,7 @@ func _on_survival_pressed() -> void:
 	start_survival_requested.emit()
 
 func _on_indian_roads_pressed() -> void:
-	# Joel's module is currently in development
-	pass
+	start_indian_roads_requested.emit()
 
 func _on_change_vehicle_pressed() -> void:
 	_open_vehicle_selection()

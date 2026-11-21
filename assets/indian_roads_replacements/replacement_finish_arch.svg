@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720">
+  <defs>
+    <filter id="archShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <linearGradient id="pillar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#d97706"/>
+      <stop offset="30%" stop-color="#fef08a"/>
+      <stop offset="70%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="archTruss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="tricolorOrange" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <linearGradient id="tricolorGreen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#archShadow)">
+    <!-- Left Column Base & Pillar -->
+    <rect x="80" y="660" width="160" height="50" rx="8" fill="#334155" stroke="#1e293b" stroke-width="4"/>
+    <rect x="100" y="160" width="120" height="505" fill="url(#pillar)" stroke="#92400e" stroke-width="4"/>
+    <rect x="80" y="140" width="160" height="30" rx="6" fill="#facc15" stroke="#92400e" stroke-width="3"/>
+    <!-- Right Column Base & Pillar -->
+    <rect x="960" y="660" width="160" height="50" rx="8" fill="#334155" stroke="#1e293b" stroke-width="4"/>
+    <rect x="980" y="160" width="120" height="505" fill="url(#pillar)" stroke="#92400e" stroke-width="4"/>
+    <rect x="960" y="140" width="160" height="30" rx="6" fill="#facc15" stroke="#92400e" stroke-width="3"/>
+    <!-- Overhead Grand Arch Span Structure -->
+    <rect x="60" y="60" width="1080" height="100" rx="14" fill="url(#archTruss)" stroke="#facc15" stroke-width="6"/>
+    <!-- Tricolor Ribbon Accents -->
+    <rect x="80" y="70" width="1040" height="12" fill="url(#tricolorOrange)" rx="2"/>
+    <rect x="80" y="82" width="1040" height="10" fill="#ffffff" rx="1"/>
+    <rect x="80" y="92" width="1040" height="12" fill="url(#tricolorGreen)" rx="2"/>
+    <!-- Banner Header -->
+    <text x="600" y="140" font-family="Arial, sans-serif" font-weight="900" font-size="34" fill="#fef08a" text-anchor="middle" letter-spacing="3">★ DESTINATION REACHED — VICTORY ★</text>
+    <!-- Checkerboard Finish Bunting Across the Arch -->
+    <g transform="translate(240, 160)">
+      <rect x="0" y="0" width="720" height="20" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+      <rect x="0" y="0" width="30" height="20" fill="#1e293b"/>
+      <rect x="60" y="0" width="30" height="20" fill="#1e293b"/>
+      <rect x="120" y="0" width="30" height="20" fill="#1e293b"/>
+      <rect x="180" y="0" width="30" height="20" fill="#1e293b"/>
+      <rect x="240" y="0" width="30" height="20" fill="#1e293b"/>
+      <rect x="300" y="0" width="30" height="20" fill="#1e293b"/>
+      <rect x="360" y="0" width="30" height="20" fill="#1e293b"/>
+      <rect x="420" y="0" width="30" height="20" fill="#1e293b"/>
+      <rect x="480" y="0" width="30" height="20" fill="#1e293b"/>
+      <rect x="540" y="0" width="30" height="20" fill="#1e293b"/>
+      <rect x="600" y="0" width="30" height="20" fill="#1e293b"/>
+      <rect x="660" y="0" width="30" height="20" fill="#1e293b"/>
+    </g>
+  </g>
+</svg>

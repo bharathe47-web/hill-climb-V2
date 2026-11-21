@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 640" width="512" height="640">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <linearGradient id="pole" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#4a5568"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <linearGradient id="signBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <linearGradient id="nhPlate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+  </defs>
+  <!-- Steel Pole -->
+  <rect x="238" y="240" width="36" height="390" fill="url(#pole)" rx="4"/>
+  <rect x="226" y="620" width="60" height="16" fill="#1e293b" rx="3"/>
+  <!-- Main Signboard -->
+  <g filter="url(#shadow)">
+    <rect x="36" y="30" width="440" height="280" rx="16" fill="#0f172a" stroke="#ffffff" stroke-width="6"/>
+    <rect x="44" y="38" width="424" height="264" rx="12" fill="url(#signBg)"/>
+    <!-- Yellow NH Crest -->
+    <rect x="186" y="56" width="140" height="74" rx="10" fill="url(#nhPlate)" stroke="#ffffff" stroke-width="3"/>
+    <text x="256" y="90" font-family="Arial, sans-serif" font-weight="900" font-size="24" fill="#0f172a" text-anchor="middle">NATIONAL HIGHWAY</text>
+    <text x="256" y="122" font-family="Arial, sans-serif" font-weight="900" font-size="34" fill="#0f172a" text-anchor="middle">NH 44</text>
+    <!-- Route Information -->
+    <line x1="60" y1="148" x2="452" y2="148" stroke="#ffffff" stroke-width="3" stroke-dasharray="8 6"/>
+    <text x="70" y="195" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="#ffffff">MADURAI</text>
+    <text x="442" y="195" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="#facc15" text-anchor="end">750 m</text>
+    <text x="70" y="245" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="#ffffff">CHENNAI</text>
+    <text x="442" y="245" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="#facc15" text-anchor="end">1800 m</text>
+    <text x="256" y="285" font-family="Arial, sans-serif" font-weight="bold" font-size="18" fill="#93c5fd" text-anchor="middle">SPEED LIMIT 80 km/h</text>
+  </g>
+</svg>

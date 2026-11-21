@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://checkpointbanner001"]
+
+[ext_resource type="Script" path="res://scripts/ui/CheckpointBanner.gd" id="1_cp"]
+[ext_resource type="FontFile" path="res://fonts/NotoSansTamil-Bold.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner"]
+bg_color = Color(0.06, 0.45, 0.22, 0.92)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 8
+
+[node name="CheckpointBanner" type="Control"]
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_right = 300.0
+offset_bottom = 90.0
+grow_horizontal = 2
+script = ExtResource("1_cp")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_banner")
+
+[node name="VBox" type="VBoxContainer" parent="PanelContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="LabelEN" type="Label" parent="PanelContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "CHECKPOINT 300m: Vivekananda Viewpoint"
+horizontal_alignment = 1
+
+[node name="LabelTA" type="Label" parent="PanelContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "விவேகானந்தர் பார்வை மையம்"
+horizontal_alignment = 1

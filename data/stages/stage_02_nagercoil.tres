@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/StageData.gd" id="1_stage"]
+
+[resource]
+script = ExtResource("1_stage")
+id = "stage_02_nagercoil"
+stage_name_en = "Nagercoil Foothills"
+stage_name_ta = "நாகர்கோவில் அடிவாரம்"
+subtitle_en = "Lush Ghats & Rubber Plantations"
+length_meters = 1500.0
+biome = "foothills"
+difficulty = 1.3
+terrain_seed = 2002
+hill_amplitude = 175.0
+hill_frequency = 0.002
+bump_amplitude = 24.0
+coin_density = 120.0
+fuel_interval_meters = 320.0
+checkpoints = [
+	{"distance": 400.0, "name_en": "Aralvaimozhi Pass", "name_ta": "ஆரல்வாய்மொழி கணவாய்"},
+	{"distance": 800.0, "name_en": "Muppandal Wind Farm", "name_ta": "முப்பந்தல் காற்றாலை பண்ணை"},
+	{"distance": 1200.0, "name_en": "Valliyur Junction", "name_ta": "வள்ளியூர் சந்திப்பு"},
+	{"distance": 1500.0, "name_en": "Tirunelveli Gateway", "name_ta": "திருநெல்வேலி நுழைவு"}
+]
+landmark_props = [
+	{"distance": 200.0, "prop_type": "tea_shop"},
+	{"distance": 450.0, "prop_type": "sign_kanyakumari"},
+	{"distance": 780.0, "prop_type": "bollard"},
+	{"distance": 1150.0, "prop_type": "lamp_post"}
+]
