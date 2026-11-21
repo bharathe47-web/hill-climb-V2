@@ -43,7 +43,7 @@ base_motor_torque = 60000.0
 base_brake_torque = 35000.0
 base_max_wheel_speed = 90.0
 base_wheel_friction = 1.7
-base_suspension_softness = 0.05
+base_suspension_softness = 0.01
 motor_torque = 60000.0
 brake_torque = 35000.0
 max_wheel_speed = 90.0
@@ -209,10 +209,10 @@ texture = ExtResource("12_buggy_front_wheel")
 position = Vector2(-35, 16)
 node_a = NodePath("..")
 node_b = NodePath("../RearWheel")
-softness = 0.05
+softness = 0.01
 
 [node name="FrontJoint" type="PinJoint2D" parent="."]
 position = Vector2(35, 16)
 node_a = NodePath("..")
 node_b = NodePath("../FrontWheel")
-softness = 0.05
+softness = 0.01

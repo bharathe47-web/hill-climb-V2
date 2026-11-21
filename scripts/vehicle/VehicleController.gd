@@ -45,7 +45,7 @@ signal clean_landed(bonus_coins: int)
 @export var base_brake_torque: float = 45000.0
 @export var base_max_wheel_speed: float = 80.0
 @export var base_wheel_friction: float = 1.6
-@export var base_suspension_softness: float = 0.05
+@export var base_suspension_softness: float = 0.01
 @export var base_max_fuel: float = 100.0
 
 @export_group("Current Active Physics")
@@ -80,7 +80,7 @@ signal clean_landed(bonus_coins: int)
 ## Nitro passive recharge rate in units per second when inactive
 @export var nitro_recharge_rate: float = 14.0
 ## Forward thrust applied directly along vehicle forward heading (transform.x)
-@export var nitro_boost_force: float = 18000.0
+@export var nitro_boost_force: float = 7000.0
 ## Motor torque multiplier while nitro is engaged
 @export var nitro_torque_multiplier: float = 1.6
 ## Max wheel rotational speed multiplier while nitro is engaged
@@ -186,6 +186,7 @@ func _physics_process(delta: float) -> void:
 	_update_nitro(delta)
 	_check_pothole_assist(delta)
 	_handle_input(delta)
+	_enforce_wheel_attachment_safety()
 	_update_audio(delta)
 	_update_particles()
 	
@@ -422,14 +423,25 @@ func _handle_input(delta: float) -> void:
 	
 	# Apply forward nitro thrust force along vehicle body local X
 	if is_nitro_active:
-		apply_central_force(transform.x * nitro_boost_force)
-		# Anti-wheelie pitch stabilization during high nitro thrust to keep both wheels aligned on the road
+		var thrust_vec: Vector2 = transform.x
+		if not is_grounded:
+			# When airborne, mitigate excessive downward thrust if vehicle is pitched nose-down
+			if thrust_vec.y > 0.2:
+				thrust_vec.y = 0.2
+				thrust_vec = thrust_vec.normalized()
+		apply_central_force(thrust_vec * nitro_boost_force)
+		
+		# Pitch stabilization during nitro thrust
 		if is_grounded:
 			var rear_contact: bool = rear_wheel and rear_wheel.get_contact_count() > 0
 			var front_contact: bool = front_wheel and front_wheel.get_contact_count() > 0
 			if rear_contact and not front_contact:
 				# Front wheel has lifted into an excessive wheelie; apply stabilizing counter-pitch torque
-				apply_torque(-nitro_boost_force * 0.45)
+				apply_torque(-nitro_boost_force * 0.35)
+		else:
+			# In air, stabilize extreme pitch angles under nitro
+			if absf(rotation) > 0.35:
+				apply_torque(-signf(rotation) * air_tilt_torque * 0.5)
 	
 	# Low fuel sputtering physical warning when tank < 15%
 	var sputter_mult: float = 1.0
@@ -515,6 +527,25 @@ func _update_struts() -> void:
 			front_shock.rotation = (local_front - front_mount).angle() - PI * 0.5
 			var dist: float = front_mount.distance_to(local_front)
 			front_shock.scale = Vector2(0.12, clampf(dist / 140.0, 0.08, 0.22))
+
+func _enforce_wheel_attachment_safety() -> void:
+	# Unbreakable safety constraint: prevent physics solver stretching beyond 3.0 px under any extreme shock
+	if rear_wheel:
+		var current_r_local: Vector2 = to_local(rear_wheel.global_position)
+		var r_drift: float = current_r_local.distance_to(_initial_rear_wheel_offset)
+		if r_drift > 2.5:
+			var corrected_local: Vector2 = _initial_rear_wheel_offset + (current_r_local - _initial_rear_wheel_offset).limit_length(2.5)
+			var corrected_global: Vector2 = to_global(corrected_local)
+			rear_wheel.global_position = corrected_global
+			PhysicsServer2D.body_set_state(rear_wheel.get_rid(), PhysicsServer2D.BODY_STATE_TRANSFORM, Transform2D(rear_wheel.rotation, corrected_global))
+	if front_wheel:
+		var current_f_local: Vector2 = to_local(front_wheel.global_position)
+		var f_drift: float = current_f_local.distance_to(_initial_front_wheel_offset)
+		if f_drift > 2.5:
+			var corrected_local: Vector2 = _initial_front_wheel_offset + (current_f_local - _initial_front_wheel_offset).limit_length(2.5)
+			var corrected_global: Vector2 = to_global(corrected_local)
+			front_wheel.global_position = corrected_global
+			PhysicsServer2D.body_set_state(front_wheel.get_rid(), PhysicsServer2D.BODY_STATE_TRANSFORM, Transform2D(front_wheel.rotation, corrected_global))
 
 func _update_particles() -> void:
 	var accel_input: float = Input.get_axis("brake_reverse", "accelerate")
@@ -602,8 +633,8 @@ func _recalculate_upgrades() -> void:
 	_current_base_friction = eff_friction
 	_apply_wheel_friction(_current_base_friction + (nitro_traction_boost if is_nitro_active else 0.0))
 	
-	# 3. Suspension: firmer damping, reduces softness by 0.008 per level (0.05 at lvl 1 down to 0.01 at lvl 5)
-	var eff_softness: float = maxf(0.01, base_suspension_softness - (suspension_level - 1) * 0.008)
+	# 3. Suspension: firmer damping, maintains rigid joint alignment across all upgrade tiers
+	var eff_softness: float = clampf(base_suspension_softness - (suspension_level - 1) * 0.0015, 0.003, 0.01)
 	if rear_joint:
 		rear_joint.softness = eff_softness
 	if front_joint:

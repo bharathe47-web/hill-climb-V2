@@ -35,16 +35,17 @@ static var dev_unlock_all_routes: bool = false
 static func is_state_unlocked(state_id: String) -> bool:
 	if dev_unlock_all_routes:
 		return true
-	if state_id == "tamil_nadu":
+	# In Version 1.0, all 6 canonical Indian Roads states are unlocked by default
+	if state_id in STATE_ORDER:
 		return true
 
 	var data := SaveManager.load_save()
-	var unlocked: Array = data.get("unlocked_routes", ["tamil_nadu"])
+	var unlocked: Array = data.get("unlocked_routes", STATE_ORDER)
 	return state_id in unlocked
 
 static func unlock_state(state_id: String) -> bool:
 	var data := SaveManager.load_save()
-	var unlocked: Array = data.get("unlocked_routes", ["tamil_nadu"])
+	var unlocked: Array = data.get("unlocked_routes", STATE_ORDER.duplicate())
 	if not (state_id in unlocked):
 		unlocked.append(state_id)
 		data["unlocked_routes"] = unlocked

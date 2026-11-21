@@ -15,6 +15,7 @@ const DEFAULT_SAVE_DATA: Dictionary = {
 	"music_volume": 1.0,
 	"selected_vehicle_id": "blue_flame_truck",
 	"unlocked_vehicles": ["blue_flame_truck"],
+	"unlocked_routes": ["tamil_nadu", "goa", "kerala", "rajasthan", "gujarat", "telangana"],
 	"completed_routes": [],
 	"discovered_landmarks": [],
 	"upgrades": {
@@ -62,6 +63,18 @@ static func load_save() -> Dictionary:
 	var merged := DEFAULT_SAVE_DATA.duplicate(true)
 	for key in json_data.keys():
 		merged[key] = json_data[key]
+
+	# Safe Migration: Ensure all 6 Version 1.0 routes are present in unlocked_routes without altering player progression
+	var unlocked_list: Array = merged.get("unlocked_routes", [])
+	var default_routes: Array = DEFAULT_SAVE_DATA["unlocked_routes"]
+	var migrated: bool = false
+	for r_id in default_routes:
+		if not (r_id in unlocked_list):
+			unlocked_list.append(r_id)
+			migrated = true
+	merged["unlocked_routes"] = unlocked_list
+	if migrated:
+		save_game(merged)
 		
 	return merged
 
@@ -194,6 +207,20 @@ static func upgrade_vehicle_stat(vehicle_id: String, stat_key: String) -> bool:
 		data["upgrades"] = {}
 	data["upgrades"][stat_key] = current_lvl + 1
 	return save_game(data)
+
+static func is_route_unlocked(state_id: String) -> bool:
+	var data := load_save()
+	var list: Array = data.get("unlocked_routes", DEFAULT_SAVE_DATA["unlocked_routes"])
+	return state_id in list
+
+static func unlock_route(state_id: String) -> bool:
+	var data := load_save()
+	var list: Array = data.get("unlocked_routes", DEFAULT_SAVE_DATA["unlocked_routes"])
+	if not (state_id in list):
+		list.append(state_id)
+		data["unlocked_routes"] = list
+		return save_game(data)
+	return true
 
 static func mark_route_completed(state_id: String) -> bool:
 	var data := load_save()

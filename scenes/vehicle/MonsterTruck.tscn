@@ -43,7 +43,7 @@ script = ExtResource("1_controller")
 base_motor_torque = 135000.0
 base_brake_torque = 80000.0
 base_wheel_friction = 1.85
-base_suspension_softness = 0.05
+base_suspension_softness = 0.01
 motor_torque = 135000.0
 brake_torque = 80000.0
 air_tilt_torque = 32000.0
@@ -216,10 +216,10 @@ texture = ExtResource("12_rim")
 position = Vector2(-42, 22)
 node_a = NodePath("..")
 node_b = NodePath("../RearWheel")
-softness = 0.05
+softness = 0.01
 
 [node name="FrontJoint" type="PinJoint2D" parent="."]
 position = Vector2(47, 22)
 node_a = NodePath("..")
 node_b = NodePath("../FrontWheel")
-softness = 0.05
+softness = 0.01
