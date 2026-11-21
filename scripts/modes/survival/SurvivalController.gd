@@ -284,8 +284,14 @@ func _setup_vehicle() -> void:
 
 	if is_instance_valid(veh):
 		veh.name = "Vehicle"
-		var spawn_surface_y := get_terrain_surface_y(0.0)
-		veh.global_position = Vector2(0.0, spawn_surface_y - 38.0)
+		if is_instance_valid(terrain_generator):
+			var spawn_surface_y := get_terrain_surface_y(0.0)
+			veh.global_position = Vector2(0.0, spawn_surface_y - 38.0)
+		else:
+			var spawn_pos := Vector2(0.0, 382.0)
+			if veh.has_method("get_wheel_bottom_offset"):
+				spawn_pos.y = 420.0 - veh.get_wheel_bottom_offset()
+			veh.global_position = spawn_pos
 		vehicle_slot.add_child(veh)
 		vehicle = veh
 		_start_x = veh.global_position.x
@@ -327,10 +333,11 @@ func _setup_ui() -> void:
 			hud.bind_vehicle(vehicle)
 
 	if is_instance_valid(pause_menu):
-		pause_menu.bind_game_manager(self)
-		if not pause_menu.menu_requested.is_connected(_on_menu_pressed):
+		pause_menu.visible = false
+		if pause_menu.has_method("bind_game_manager"):
+			pause_menu.bind_game_manager(self)
+		if pause_menu.has_signal("menu_requested") and not pause_menu.menu_requested.is_connected(_on_menu_pressed):
 			pause_menu.menu_requested.connect(_on_menu_pressed)
-
 	_update_heart_display()
 
 func start_run() -> void:

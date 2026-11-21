@@ -23,7 +23,7 @@ position = Vector2(0, 382)
 
 [node name="FollowCamera" type="Camera2D" parent="." node_paths=PackedStringArray("target")]
 position = Vector2(180, 332)
-zoom = Vector2(1.1, 1.1)
+zoom = Vector2(1.35, 1.35)
 script = ExtResource("5_follow_cam")
 target = NodePath("../Vehicle")
 

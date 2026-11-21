@@ -21,11 +21,11 @@ const HEART_EMPTY_TEX = preload("res://assets/ui/hud/hearts/hud_heart_empty.png"
 @onready var top_stats_panel: PanelContainer = get_node_or_null("%TopStatsPanel")
 @onready var distance_label: Label = get_node_or_null("%DistanceLabel")
 @onready var best_distance_label: Label = get_node_or_null("%BestDistanceLabel")
-@onready var fuel_section: VBoxContainer = get_node_or_null("%FuelSection")
+@onready var fuel_section: Control = get_node_or_null("%FuelSection")
 @onready var fuel_bar: ProgressBar = get_node_or_null("%FuelBar")
 @onready var fuel_percentage_label: Label = get_node_or_null("%FuelPercentageLabel")
 @onready var low_fuel_indicator: Label = get_node_or_null("%LowFuelIndicator")
-@onready var nitro_section: VBoxContainer = get_node_or_null("%NitroSection")
+@onready var nitro_section: Control = get_node_or_null("%NitroSection")
 @onready var nitro_bar: ProgressBar = get_node_or_null("%NitroBar")
 @onready var nitro_percentage_label: Label = get_node_or_null("%NitroPercentageLabel")
 
@@ -91,6 +91,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_init_fuel_styles()
 	_init_toast_panel()
+	_setup_nitro_ticks()
 	
 	if message_banner:
 		message_banner.visible = false
@@ -136,22 +137,45 @@ func _auto_discover_bindings() -> void:
 
 func _init_fuel_styles() -> void:
 	_fuel_style_healthy = StyleBoxFlat.new()
-	_fuel_style_healthy.bg_color = Color(0.22, 0.82, 0.36, 1.0)
+	_fuel_style_healthy.bg_color = Color(1.0, 0.60, 0.10, 1.0) # Garage warm orange
 	_fuel_style_healthy.border_width_top = 1
-	_fuel_style_healthy.border_color = Color(0.5, 0.95, 0.6, 0.8)
-	_fuel_style_healthy.set_corner_radius_all(5)
+	_fuel_style_healthy.border_color = Color(1.0, 0.80, 0.30, 0.8)
+	_fuel_style_healthy.set_corner_radius_all(3)
 	
 	_fuel_style_warning = StyleBoxFlat.new()
 	_fuel_style_warning.bg_color = Color(0.98, 0.72, 0.16, 1.0)
 	_fuel_style_warning.border_width_top = 1
 	_fuel_style_warning.border_color = Color(1.0, 0.88, 0.45, 0.8)
-	_fuel_style_warning.set_corner_radius_all(5)
+	_fuel_style_warning.set_corner_radius_all(3)
 	
 	_fuel_style_critical = StyleBoxFlat.new()
 	_fuel_style_critical.bg_color = Color(0.95, 0.22, 0.18, 1.0)
 	_fuel_style_critical.border_width_top = 1
 	_fuel_style_critical.border_color = Color(1.0, 0.55, 0.5, 0.8)
-	_fuel_style_critical.set_corner_radius_all(5)
+	_fuel_style_critical.set_corner_radius_all(3)
+
+func _setup_nitro_ticks() -> void:
+	if not is_instance_valid(nitro_bar):
+		return
+	var existing = nitro_bar.get_node_or_null("NitroTickOverlay")
+	if not existing:
+		var overlay := Control.new()
+		overlay.name = "NitroTickOverlay"
+		overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+		overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		nitro_bar.add_child(overlay)
+		overlay.draw.connect(func():
+			var w: float = overlay.size.x
+			var h: float = overlay.size.y
+			var tick_dark := Color(0.0, 0.0, 0.0, 0.85)
+			var tick_light := Color(1.0, 1.0, 1.0, 0.70)
+			for fraction in [0.25, 0.50, 0.75]:
+				var x: float = roundf(w * fraction)
+				overlay.draw_line(Vector2(x - 0.5, 0.0), Vector2(x - 0.5, h), tick_dark, 1.5)
+				overlay.draw_line(Vector2(x + 0.5, 0.0), Vector2(x + 0.5, h), tick_light, 1.0)
+		)
+		if not nitro_bar.resized.is_connected(overlay.queue_redraw):
+			nitro_bar.resized.connect(overlay.queue_redraw)
 
 func _process(delta: float) -> void:
 	# Smoothly animate fuel bar towards target level during driving
@@ -465,6 +489,9 @@ func bind_vehicle(vehicle: Node) -> void:
 		vehicle.nitro_state_changed.connect(_on_nitro_state_changed)
 	if vehicle.has_signal("pothole_assist_hint") and not vehicle.pothole_assist_hint.is_connected(_on_pothole_assist_hint):
 		vehicle.pothole_assist_hint.connect(_on_pothole_assist_hint)
+	if vehicle.has_signal("monster_surge_state_changed") and not vehicle.monster_surge_state_changed.is_connected(_on_monster_surge_state_changed):
+		vehicle.monster_surge_state_changed.connect(_on_monster_surge_state_changed)
+	_ensure_monster_surge_tag()
 	
 	if "current_nitro" in vehicle and "max_nitro" in vehicle:
 		_on_nitro_updated(vehicle.current_nitro, vehicle.max_nitro)
@@ -488,6 +515,8 @@ func unbind_vehicle() -> void:
 			_vehicle_ref.nitro_changed.disconnect(_on_nitro_updated)
 		if _vehicle_ref.has_signal("nitro_state_changed") and _vehicle_ref.nitro_state_changed.is_connected(_on_nitro_state_changed):
 			_vehicle_ref.nitro_state_changed.disconnect(_on_nitro_state_changed)
+		if _vehicle_ref.has_signal("monster_surge_state_changed") and _vehicle_ref.monster_surge_state_changed.is_connected(_on_monster_surge_state_changed):
+			_vehicle_ref.monster_surge_state_changed.disconnect(_on_monster_surge_state_changed)
 		if _vehicle_ref.has_signal("pothole_assist_hint") and _vehicle_ref.pothole_assist_hint.is_connected(_on_pothole_assist_hint):
 			_vehicle_ref.pothole_assist_hint.disconnect(_on_pothole_assist_hint)
 	_vehicle_ref = null
@@ -638,6 +667,40 @@ func _on_nitro_state_changed(is_boosting: bool) -> void:
 		else:
 			nitro_bar.modulate = Color.WHITE
 
+var monster_surge_tag: Label = null
+
+func _ensure_monster_surge_tag() -> void:
+	if is_instance_valid(monster_surge_tag):
+		return
+	monster_surge_tag = get_node_or_null("%MonsterSurgeTag")
+	if not monster_surge_tag:
+		var tag := Label.new()
+		tag.name = "MonsterSurgeTag"
+		tag.unique_name_in_owner = true
+		tag.text = "MONSTER SURGE"
+		tag.visible = false
+		tag.add_theme_font_size_override("font_size", 10)
+		tag.add_theme_color_override("font_color", Color(1.0, 0.65, 0.1))
+		tag.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.0, 0.9))
+		tag.add_theme_constant_override("outline_size", 3)
+		var nitro_sec = get_node_or_null("%NitroSection")
+		if not nitro_sec:
+			nitro_sec = get_node_or_null("TopStatsPanel/Margin/VBox/NitroSection")
+		if nitro_sec:
+			var hdr = nitro_sec.get_node_or_null("NitroHeader")
+			if hdr:
+				hdr.add_child(tag)
+			else:
+				nitro_sec.add_child(tag)
+		else:
+			add_child(tag)
+		monster_surge_tag = tag
+
+func _on_monster_surge_state_changed(is_surging: bool) -> void:
+	_ensure_monster_surge_tag()
+	if is_instance_valid(monster_surge_tag):
+		monster_surge_tag.visible = is_surging
+
 func _on_pothole_assist_hint(should_hint: bool) -> void:
 	_pothole_pulse_active = should_hint
 	if not should_hint and nitro_button:
@@ -661,6 +724,14 @@ func _on_coins_updated(count: int) -> void:
 func _on_run_paused(is_paused: bool) -> void:
 	if pause_banner:
 		pause_banner.visible = is_paused
+	if is_paused:
+		Input.action_release("accelerate")
+		Input.action_release("brake_reverse")
+		Input.action_release("nitro")
+		Input.action_release("tilt_left")
+		Input.action_release("tilt_right")
+		if is_instance_valid(_vehicle_ref) and _vehicle_ref.has_method("set_nitro_active"):
+			_vehicle_ref.set_nitro_active(false)
 
 func _on_run_started() -> void:
 	_is_low_fuel = false

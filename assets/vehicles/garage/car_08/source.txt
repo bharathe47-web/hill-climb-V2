@@ -1,0 +1,22 @@
+Asset ID: car_08
+Vehicle Name: Bigfoot Heavy Monster Truck
+Body File: body.png
+Body Source: https://opengameart.org/content/monster-truck-1
+Body Creator: NetAlloy / Snabisch
+Body License: CC0 1.0 Universal (Creative Commons Zero / Public Domain Dedication)
+Body License Link: https://creativecommons.org/publicdomain/zero/1.0/
+
+Wheel File: wheel.png
+Wheel Source: https://opengameart.org/content/hill-climb-racing-car-sprites
+Wheel Asset: png/separate/truck/Wheel (1).png
+Wheel Creator: pzUH
+Wheel License: CC0 1.0 Universal (Creative Commons Zero / Public Domain Dedication)
+Wheel License Link: https://creativecommons.org/publicdomain/zero/1.0/
+
+Composite File: car_08.png (Composited from body.png and wheel.png)
+Burnt Body File: body_burnt.png (Charred soot and heat discoloration effect with identical circular wheel arch cut-outs)
+Burnt Wheel File: wheel_burnt.png (Charred rubber texture, rim heat damage, and scuffs)
+Commercial use allowed? Yes
+Modification allowed? Yes
+Attribution required? No (CC0 1.0 Universal Public Domain Dedication)
+Notes: Truck body flipped horizontally to face right (+X direction of gameplay motion). Clean circular cut-outs created at wheel axle positions (R=315px, with anti-aliasing) removing all old wheel remnants and grey arch lines. Clean transparent PNG wheel, perfectly round (512x512, centered at 256, 256), free of cut edges, dark boxes, and stray lines. Burnt variants match exact dimensions, cut-outs, and centers for seamless transitions on engine burst / crash.
