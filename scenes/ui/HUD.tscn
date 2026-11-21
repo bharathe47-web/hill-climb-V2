@@ -25,6 +25,43 @@
 [ext_resource type="Texture2D" path="res://assets/ui/speedometer/speedometer_needle_centered.png" id="23_speedo_needle"]
 [ext_resource type="Texture2D" path="res://assets/ui/hud/hearts/hud_heart_full.png" id="24_heart_full"]
 [ext_resource type="Texture2D" path="res://assets/ui/hud/hearts/hud_heart_empty.png" id="25_heart_empty"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slim_hud"]
+bg_color = Color(0.08, 0.08, 0.1, 0.5)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.55, 0.1, 0.4)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_bg"]
+bg_color = Color(0.04, 0.04, 0.06, 0.65)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.25, 0.3, 0.5)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fuel_fill"]
+bg_color = Color(1, 0.6, 0.1, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nitro_fill_slim"]
+bg_color = Color(0.15, 0.75, 1, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_glass"]
 bg_color = Color(0.06, 0.09, 0.15, 0.88)
@@ -128,163 +165,145 @@ script = ExtResource("1_hud_controller")
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 0
-offset_left = 20.0
-offset_top = 18.0
-offset_right = 350.0
-offset_bottom = 228.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_hud_glass")
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 276.0
+offset_bottom = 98.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_slim_hud")
 
 [node name="Margin" type="MarginContainer" parent="TopStatsPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 5
 
 [node name="VBox" type="VBoxContainer" parent="TopStatsPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 
 [node name="DistanceRow" type="HBoxContainer" parent="TopStatsPanel/Margin/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 4
 
-[node name="DistanceBadge" type="VBoxContainer" parent="TopStatsPanel/Margin/VBox/DistanceRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 1
-
-[node name="DistanceTitle" type="Label" parent="TopStatsPanel/Margin/VBox/DistanceRow/DistanceBadge"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.78, 0.92, 1)
-theme_override_fonts/font = ExtResource("4_font_narrow")
-theme_override_font_sizes/font_size = 12
-text = "DISTANCE"
-
-[node name="DistanceLabel" type="Label" parent="TopStatsPanel/Margin/VBox/DistanceRow/DistanceBadge"]
+[node name="DistanceLabel" type="Label" parent="TopStatsPanel/Margin/VBox/DistanceRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
+theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("2_font_bold")
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 14
 text = "0 m"
 
-[node name="BestDistanceRow" type="VBoxContainer" parent="TopStatsPanel/Margin/VBox/DistanceRow"]
+[node name="Spacer" type="Control" parent="TopStatsPanel/Margin/VBox/DistanceRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 1
 
-[node name="BestDistanceLabel" type="Label" parent="TopStatsPanel/Margin/VBox/DistanceRow/BestDistanceRow"]
+[node name="BestDistanceLabel" type="Label" parent="TopStatsPanel/Margin/VBox/DistanceRow"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.82, 0.92, 0.9)
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 0.95)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
+theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("4_font_narrow")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = "Best: 0 m"
 horizontal_alignment = 2
 
-[node name="HSeparator" type="HSeparator" parent="TopStatsPanel/Margin/VBox"]
-layout_mode = 2
-
-[node name="FuelSection" type="VBoxContainer" parent="TopStatsPanel/Margin/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 5
-
-[node name="FuelHeader" type="HBoxContainer" parent="TopStatsPanel/Margin/VBox/FuelSection"]
-layout_mode = 2
-
-[node name="FuelIconRoot" type="Control" parent="TopStatsPanel/Margin/VBox/FuelSection/FuelHeader"]
-custom_minimum_size = Vector2(20, 20)
-layout_mode = 2
-
-[node name="FuelIconTexture" type="TextureRect" parent="TopStatsPanel/Margin/VBox/FuelSection/FuelHeader/FuelIconRoot"]
-layout_mode = 0
-offset_left = -2.0
-offset_top = -2.0
-offset_right = 22.0
-offset_bottom = 24.0
-texture = ExtResource("5_fuel_icon")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="FuelTitle" type="Label" parent="TopStatsPanel/Margin/VBox/FuelSection/FuelHeader"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 1)
-theme_override_fonts/font = ExtResource("4_font_narrow")
-theme_override_font_sizes/font_size = 13
-text = "FUEL"
-
-[node name="LowFuelIndicator" type="Label" parent="TopStatsPanel/Margin/VBox/FuelSection/FuelHeader"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.25, 0.2, 1)
-theme_override_fonts/font = ExtResource("3_font_future")
-theme_override_font_sizes/font_size = 11
-text = "⚠️ LOW FUEL"
-horizontal_alignment = 1
-
-[node name="FuelPercentageLabel" type="Label" parent="TopStatsPanel/Margin/VBox/FuelSection/FuelHeader"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.88, 0.94, 1, 1)
-theme_override_fonts/font = ExtResource("2_font_bold")
-theme_override_font_sizes/font_size = 13
-text = "100%"
-horizontal_alignment = 2
-
-[node name="FuelBar" type="ProgressBar" parent="TopStatsPanel/Margin/VBox/FuelSection"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(280, 18)
-layout_mode = 2
-theme_override_styles/background = SubResource("StyleBoxTexture_fuel_bg")
-theme_override_styles/fill = SubResource("StyleBoxTexture_fuel_fill")
-value = 100.0
-show_percentage = false
-
-[node name="NitroSection" type="VBoxContainer" parent="TopStatsPanel/Margin/VBox"]
+[node name="FuelSection" type="HBoxContainer" parent="TopStatsPanel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="NitroHeader" type="HBoxContainer" parent="TopStatsPanel/Margin/VBox/NitroSection"]
+[node name="FuelIconTexture" type="TextureRect" parent="TopStatsPanel/Margin/VBox/FuelSection"]
+custom_minimum_size = Vector2(14, 14)
 layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("5_fuel_icon")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="NitroBottleIcon" type="TextureRect" parent="TopStatsPanel/Margin/VBox/NitroSection/NitroHeader"]
-custom_minimum_size = Vector2(16, 16)
+[node name="FuelBar" type="ProgressBar" parent="TopStatsPanel/Margin/VBox/FuelSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 10)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_fuel_fill")
+value = 100.0
+show_percentage = false
+
+[node name="LowFuelIndicator" type="Label" parent="TopStatsPanel/Margin/VBox/FuelSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.25, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_font_bold")
+theme_override_font_sizes/font_size = 10
+text = "LOW"
+
+[node name="FuelPercentageLabel" type="Label" parent="TopStatsPanel/Margin/VBox/FuelSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(34, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_font_bold")
+theme_override_font_sizes/font_size = 11
+text = "100%"
+horizontal_alignment = 2
+
+[node name="NitroSection" type="HBoxContainer" parent="TopStatsPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="NitroBottleIcon" type="TextureRect" parent="TopStatsPanel/Margin/VBox/NitroSection"]
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+size_flags_vertical = 4
 texture = ExtResource("20_nitro_bottle")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="NitroTitle" type="Label" parent="TopStatsPanel/Margin/VBox/NitroSection/NitroHeader"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.25, 0.88, 1, 1)
-theme_override_fonts/font = ExtResource("4_font_narrow")
-theme_override_font_sizes/font_size = 13
-text = "⚡ NITRO"
-
-[node name="NitroPercentageLabel" type="Label" parent="TopStatsPanel/Margin/VBox/NitroSection/NitroHeader"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.75, 0.94, 1, 1)
-theme_override_fonts/font = ExtResource("2_font_bold")
-theme_override_font_sizes/font_size = 13
-text = "100%"
-horizontal_alignment = 2
-
 [node name="NitroBar" type="ProgressBar" parent="TopStatsPanel/Margin/VBox/NitroSection"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(280, 14)
+custom_minimum_size = Vector2(160, 10)
 layout_mode = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_nitro_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_nitro_fill")
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_nitro_fill_slim")
 value = 100.0
 show_percentage = false
+
+[node name="MonsterSurgeTag" type="Label" parent="TopStatsPanel/Margin/VBox/NitroSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.65, 0.1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_font_bold")
+theme_override_font_sizes/font_size = 10
+text = "MONSTER SURGE"
+
+[node name="NitroPercentageLabel" type="Label" parent="TopStatsPanel/Margin/VBox/NitroSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(34, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_font_bold")
+theme_override_font_sizes/font_size = 11
+text = "100%"
+horizontal_alignment = 2
 
 [node name="CoinsPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true

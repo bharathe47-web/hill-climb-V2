@@ -17,11 +17,9 @@
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_truck_chassis"]
 friction = 0.6
-bounce = 0.08
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_truck_wheel"]
 friction = 1.85
-bounce = 0.2
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_monster_wheel"]
 radius = 28.0
@@ -43,7 +41,7 @@ script = ExtResource("1_controller")
 base_motor_torque = 135000.0
 base_brake_torque = 80000.0
 base_wheel_friction = 1.85
-base_suspension_softness = 0.75
+base_suspension_softness = 0.25
 motor_torque = 135000.0
 brake_torque = 80000.0
 air_tilt_torque = 32000.0
@@ -65,28 +63,33 @@ position = Vector2(-42, 6)
 position = Vector2(47, 6)
 
 [node name="RearStrutVisual" type="Line2D" parent="."]
+visible = false
 points = PackedVector2Array(-42, 6, -42, 22)
 width = 5.0
 default_color = Color(0.85, 0.45, 0.1, 1)
 
 [node name="FrontStrutVisual" type="Line2D" parent="."]
+visible = false
 points = PackedVector2Array(47, 6, 47, 22)
 width = 5.0
 default_color = Color(0.85, 0.45, 0.1, 1)
 
 [node name="RearShock" type="Sprite2D" parent="."]
+visible = false
 z_index = -1
 position = Vector2(-42, 14)
 scale = Vector2(0.14, 0.16)
 texture = ExtResource("7_shock")
 
 [node name="FrontShock" type="Sprite2D" parent="."]
+visible = false
 z_index = -1
 position = Vector2(47, 14)
 scale = Vector2(0.14, 0.16)
 texture = ExtResource("7_shock")
 
 [node name="DriverSprite" type="Sprite2D" parent="."]
+visible = false
 z_index = -1
 position = Vector2(-4, -28)
 scale = Vector2(0.15, 0.15)
@@ -105,17 +108,17 @@ texture = ExtResource("9_body")
 [node name="ExhaustParticles" type="CPUParticles2D" parent="."]
 position = Vector2(-86, 14)
 emitting = false
-amount = 16
-lifetime = 0.7
+amount = 5
+lifetime = 0.4
 texture = ExtResource("2_smoke")
 direction = Vector2(-1, -0.4)
 spread = 22.0
 gravity = Vector2(0, -60)
 initial_velocity_min = 50.0
 initial_velocity_max = 110.0
-scale_amount_min = 0.05
-scale_amount_max = 0.1
-color = Color(0.8, 0.8, 0.8, 0.7)
+scale_amount_min = 0.012
+scale_amount_max = 0.035
+color = Color(0.92, 0.92, 0.92, 0.25)
 
 [node name="BoostParticles" type="CPUParticles2D" parent="."]
 position = Vector2(-86, 14)

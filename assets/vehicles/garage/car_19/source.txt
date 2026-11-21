@@ -1,0 +1,11 @@
+Asset ID: car_19
+Asset file: car_19.png
+Original source page/link: https://opengameart.org/content/hill-climb-racing-car-sprites
+Creator/author: pzUH
+License name: CC0 1.0 Universal (Creative Commons Zero / Public Domain Dedication)
+License link: https://creativecommons.org/publicdomain/zero/1.0/
+Commercial use allowed? Yes
+Modification allowed? Yes
+Attribution required? No
+Notes: 2D side-view Off-Road Beast Buggy with aggressive spiked exhaust and rugged all-terrain wheels, facing right. Transparent background (RGBA PNG, 636x300). Dedicated to public domain (CC0).
+Review status: Ready for Bharath's review
