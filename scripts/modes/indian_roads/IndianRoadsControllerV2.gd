@@ -72,21 +72,31 @@ func _setup_parallax_textures() -> void:
 			sky_path = active_route.sky_texture_path
 			bg_path = active_route.parallax_bg_path
 
-	# 1. Sky Plane (motion_scale 0.02, centered at 960, 360)
+	# 1. Sky Plane (motion_scale 0.02, centered at w * 0.5, h * 0.5)
 	var sky_layer: ParallaxLayer = parallax_bg.get_node_or_null("SkyLayer")
 	if is_instance_valid(sky_layer):
 		sky_layer.motion_scale = Vector2(0.02, 0)
 	if is_instance_valid(parallax_sky_sprite) and ResourceLoader.exists(sky_path):
-		parallax_sky_sprite.texture = load(sky_path)
-		parallax_sky_sprite.position = Vector2(960, 360)
+		var sky_tex: Texture2D = load(sky_path)
+		parallax_sky_sprite.texture = sky_tex
+		var w: float = float(sky_tex.get_width())
+		var h: float = float(sky_tex.get_height())
+		parallax_sky_sprite.position = Vector2(w * 0.5, h * 0.5)
+		if is_instance_valid(sky_layer):
+			sky_layer.motion_mirroring = Vector2(w, 0)
 
-	# 2. Distant Horizon Plane (motion_scale 0.12, centered at 960, 360)
+	# 2. Distant Horizon Plane (motion_scale 0.12, centered at w * 0.5, h * 0.5)
 	var plains_layer: ParallaxLayer = parallax_bg.get_node_or_null("PlainsLayer")
 	if is_instance_valid(plains_layer):
 		plains_layer.motion_scale = Vector2(0.12, 0)
 	if is_instance_valid(parallax_plains_sprite) and ResourceLoader.exists(bg_path):
-		parallax_plains_sprite.texture = load(bg_path)
-		parallax_plains_sprite.position = Vector2(960, 360)
+		var bg_tex: Texture2D = load(bg_path)
+		parallax_plains_sprite.texture = bg_tex
+		var w: float = float(bg_tex.get_width())
+		var h: float = float(bg_tex.get_height())
+		parallax_plains_sprite.position = Vector2(w * 0.5, h * 0.5)
+		if is_instance_valid(plains_layer):
+			plains_layer.motion_mirroring = Vector2(w, 0)
 
 	# 3. Stylized Natural Clouds Layer (motion_scale 0.06)
 	_setup_clouds_layer(cloud_path)
@@ -105,23 +115,27 @@ func _setup_clouds_layer(cloud_path: String) -> void:
 
 	var cloud_layer: ParallaxLayer = parallax_bg.get_node_or_null("CloudsLayer")
 	if cloud_path != "" and ResourceLoader.exists(cloud_path):
+		var tex: Texture2D = load(cloud_path)
+		var w: float = float(tex.get_width())
+		var h: float = float(tex.get_height())
 		if cloud_layer == null:
 			cloud_layer = ParallaxLayer.new()
 			cloud_layer.name = "CloudsLayer"
 			cloud_layer.motion_scale = Vector2(0.06, 0)
-			cloud_layer.motion_mirroring = Vector2(1920, 0)
+			cloud_layer.motion_mirroring = Vector2(w, 0)
 
 			var spr := Sprite2D.new()
 			spr.name = "CloudsSprite"
-			spr.position = Vector2(960, 225)
+			spr.position = Vector2(w * 0.5, h * 0.5)
 			cloud_layer.add_child(spr)
 			parallax_bg.add_child(cloud_layer)
 			parallax_bg.move_child(cloud_layer, 1)
 
+		cloud_layer.motion_mirroring = Vector2(w, 0)
 		var spr: Sprite2D = cloud_layer.get_node_or_null("CloudsSprite")
 		if is_instance_valid(spr):
-			spr.texture = load(cloud_path)
-			spr.position = Vector2(960, 225)
+			spr.texture = tex
+			spr.position = Vector2(w * 0.5, h * 0.5)
 			spr.modulate = Color(1.0, 1.0, 1.0, 0.85)
 		cloud_layer.visible = true
 	else:
@@ -134,22 +148,26 @@ func _setup_midground_layer(mid_path: String) -> void:
 
 	var mid_layer: ParallaxLayer = parallax_bg.get_node_or_null("MidgroundLayer")
 	if mid_path != "" and ResourceLoader.exists(mid_path):
+		var tex: Texture2D = load(mid_path)
+		var w: float = float(tex.get_width())
+		var h: float = float(tex.get_height())
 		if mid_layer == null:
 			mid_layer = ParallaxLayer.new()
 			mid_layer.name = "MidgroundLayer"
 			mid_layer.motion_scale = Vector2(0.25, 0)
-			mid_layer.motion_mirroring = Vector2(1920, 0)
+			mid_layer.motion_mirroring = Vector2(w, 0)
 
 			var spr := Sprite2D.new()
 			spr.name = "MidgroundSprite"
-			spr.position = Vector2(960, 360)
+			spr.position = Vector2(w * 0.5, h * 0.5)
 			mid_layer.add_child(spr)
 			parallax_bg.add_child(mid_layer)
 
+		mid_layer.motion_mirroring = Vector2(w, 0)
 		var spr: Sprite2D = mid_layer.get_node_or_null("MidgroundSprite")
 		if is_instance_valid(spr):
-			spr.texture = load(mid_path)
-			spr.position = Vector2(960, 360)
+			spr.texture = tex
+			spr.position = Vector2(w * 0.5, h * 0.5)
 		mid_layer.visible = true
 	else:
 		if is_instance_valid(mid_layer):

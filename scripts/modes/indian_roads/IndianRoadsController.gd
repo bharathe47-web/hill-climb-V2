@@ -119,10 +119,22 @@ func start_route(route: RouteData) -> void:
 func _setup_parallax_textures() -> void:
 	if active_route == null:
 		return
+	var sky_layer: ParallaxLayer = parallax_bg.get_node_or_null("SkyLayer") if is_instance_valid(parallax_bg) else null
+	var plains_layer: ParallaxLayer = parallax_bg.get_node_or_null("PlainsLayer") if is_instance_valid(parallax_bg) else null
+
 	if is_instance_valid(parallax_sky_sprite) and active_route.sky_texture_path != "" and ResourceLoader.exists(active_route.sky_texture_path):
-		parallax_sky_sprite.texture = load(active_route.sky_texture_path)
+		var tex: Texture2D = load(active_route.sky_texture_path)
+		parallax_sky_sprite.texture = tex
+		if is_instance_valid(sky_layer):
+			sky_layer.motion_mirroring = Vector2(tex.get_width(), 0)
+			parallax_sky_sprite.position = Vector2(tex.get_width() * 0.5, tex.get_height() * 0.5)
+
 	if is_instance_valid(parallax_plains_sprite) and active_route.parallax_bg_path != "" and ResourceLoader.exists(active_route.parallax_bg_path):
-		parallax_plains_sprite.texture = load(active_route.parallax_bg_path)
+		var tex: Texture2D = load(active_route.parallax_bg_path)
+		parallax_plains_sprite.texture = tex
+		if is_instance_valid(plains_layer):
+			plains_layer.motion_mirroring = Vector2(tex.get_width(), 0)
+			parallax_plains_sprite.position = Vector2(tex.get_width() * 0.5, tex.get_height() * 0.5)
 
 func _setup_terrain() -> void:
 	if not is_instance_valid(terrain_slot):
