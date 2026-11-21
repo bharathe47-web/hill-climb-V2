@@ -25,9 +25,8 @@ func _init() -> void:
 	var tex_path: String = thiru_data.get("asset", "")
 	assert(ResourceLoader.exists(tex_path), "Statue texture file must exist: " + tex_path)
 	
-	var img := Image.new()
-	var err := img.load(tex_path)
-	assert(err == OK, "Failed to load statue image: " + tex_path)
+	var img := Image.load_from_file(ProjectSettings.globalize_path(tex_path))
+	assert(img != null, "Failed to load statue image: " + tex_path)
 	print("  ✓ Loaded texture: %s (Size: %s, Format: %d)" % [tex_path, img.get_size(), img.get_format()])
 	
 	# Verify authentic dimensions (1218x1500) and stone detailing
