@@ -75,11 +75,31 @@ func _on_distance_updated(distance_m: float) -> void:
 	if activation_interval <= 0.0:
 		return
 	
+	if _is_outside_normal_land():
+		if is_snowing:
+			stop_snowfall_immediate()
+		return
+	
 	# Detect crossed 200m milestones (e.g., 200m -> 1, 400m -> 2, etc.)
 	var current_milestone := int(floor(distance_m / activation_interval))
 	if current_milestone > last_milestone:
 		last_milestone = current_milestone
 		start_snowfall(last_milestone)
+
+func _is_outside_normal_land() -> bool:
+	var tree := get_tree()
+	if not tree or not tree.root:
+		return false
+	var host: Node = tree.root.find_child("BiomeEnvironmentHost", true, false)
+	if is_instance_valid(host) and "current_biome" in host:
+		if host.current_biome != 0: # 0 is NORMAL_LAND
+			return true
+	var prog: Node = tree.root.find_child("BiomeProgressionController", true, false)
+	if is_instance_valid(prog) and "current_state" in prog:
+		var state: int = prog.current_state
+		if state in [1, 2, 3, 5, 6, 7, 11, 12, 13, 14, 15]:
+			return true
+	return false
 
 func _on_run_started() -> void:
 	last_milestone = 0
@@ -89,6 +109,8 @@ func _on_run_finished(_dist: float = 0.0, _coins: int = 0, _reason: String = "")
 	stop_snowfall()
 
 func start_snowfall(milestone: int = -1) -> void:
+	if _is_outside_normal_land():
+		return
 	is_snowing = true
 	_active_timer = snowfall_duration
 	snowfall_started.emit(milestone if milestone >= 0 else last_milestone)

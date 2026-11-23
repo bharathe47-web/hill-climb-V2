@@ -16,7 +16,11 @@ enum SegmentType {
 	PLATEAU_DROP,
 	BUMPY_WASHBOARD,
 	DOUBLE_CREST,
-	CUSTOM
+	CUSTOM,
+	RAMP_NORMAL_TO_HEAVEN,
+	RAMP_HEAVEN_TO_NORMAL,
+	RAMP_NORMAL_TO_HELL,
+	RAMP_HELL_TO_NORMAL
 }
 
 enum TerrainTheme {
@@ -85,11 +89,19 @@ enum TerrainTheme {
 			rebuild_segment()
 
 @export_group("Visual Styling")
+@export var terrain_profile: Resource = null:
+	set(val):
+		terrain_profile = val
+		if val != null and "surface_friction" in val:
+			surface_friction = val.get("surface_friction")
+			_update_physics_material()
+		if Engine.is_editor_hint():
+			rebuild_segment()
 @export var ground_color: Color = Color(0.28, 0.19, 0.13, 1.0)
 @export var subsoil_color: Color = Color(0.18, 0.12, 0.08, 1.0)
 @export var grass_color: Color = Color(0.30, 0.68, 0.22, 1.0)
 @export var grass_highlight_color: Color = Color(0.46, 0.82, 0.30, 1.0)
-@export var grass_thickness: float = 12.0
+@export var grass_thickness: float = 8.0
 @export var add_decorations: bool = true
 
 @export_group("Physics")
@@ -98,8 +110,51 @@ enum TerrainTheme {
 		surface_friction = val
 		_update_physics_material()
 
+@export_group("Biome Identity")
+@export var biome_type: int = 0: # WorldCycleSchedule.BiomeType.NORMAL_LAND
+	set(val):
+		biome_type = val
+		_update_biome_group()
+@export var start_world_x: float = 0.0
+@export var end_world_x: float = 0.0
+@export var start_distance_m: float = 0.0
+@export var end_distance_m: float = 0.0
+@export var decoration_profile: Resource = null
+
+func _update_biome_group() -> void:
+	remove_from_group("biome_normal_segment")
+	remove_from_group("biome_heaven_segment")
+	remove_from_group("biome_hell_segment")
+	match biome_type:
+		1: # HEAVEN
+			add_to_group("biome_heaven_segment")
+		2: # HELL
+			add_to_group("biome_hell_segment")
+		_: # NORMAL_LAND
+			add_to_group("biome_normal_segment")
+
+func set_decorations_visible(val: bool) -> void:
+	if decorations_root and is_instance_valid(decorations_root):
+		decorations_root.visible = val
+
+@export_group("Platform Mode")
+@export var is_floating_platform: bool = false:
+	set(val):
+		is_floating_platform = val
+		if Engine.is_editor_hint():
+			rebuild_segment()
+
+@export var platform_thickness: float = 120.0:
+	set(val):
+		platform_thickness = maxf(20.0, val)
+		if Engine.is_editor_hint():
+			rebuild_segment()
+
 var custom_surface_points: PackedVector2Array = PackedVector2Array()
 var generated_surface_points: PackedVector2Array = PackedVector2Array()
+
+## Runtime depth of the visible top crust; collision remains full-depth.
+var visual_surface_band_depth: float = 0.0
 
 @onready var collision_polygon: CollisionPolygon2D = $CollisionPolygon2D
 @onready var ground_polygon: Polygon2D = $GroundPolygon
@@ -107,6 +162,18 @@ var generated_surface_points: PackedVector2Array = PackedVector2Array()
 @onready var grass_line: Line2D = $GrassLine
 @onready var grass_highlight_line: Line2D = get_node_or_null("GrassHighlightLine")
 @onready var decorations_root: Node2D = get_node_or_null("DecorationsRoot")
+@onready var bridge_facade_root: Node2D = get_node_or_null("BridgeFacade")
+
+func _get_or_create_bridge_facade() -> Node2D:
+	if not bridge_facade_root or not is_instance_valid(bridge_facade_root):
+		bridge_facade_root = get_node_or_null("BridgeFacade")
+		if not bridge_facade_root:
+			bridge_facade_root = Node2D.new()
+			bridge_facade_root.name = "BridgeFacade"
+			add_child(bridge_facade_root)
+			if ground_polygon:
+				move_child(bridge_facade_root, ground_polygon.get_index())
+	return bridge_facade_root
 
 func _ready() -> void:
 	collision_layer = 1
@@ -115,10 +182,14 @@ func _ready() -> void:
 	rebuild_segment()
 
 func _update_physics_material() -> void:
-	var phys_mat := PhysicsMaterial.new()
-	phys_mat.friction = surface_friction
-	phys_mat.rough = true
-	physics_material_override = phys_mat
+	if physics_material_override:
+		physics_material_override.friction = surface_friction
+		physics_material_override.rough = true
+	else:
+		var phys_mat := PhysicsMaterial.new()
+		phys_mat.friction = surface_friction
+		phys_mat.rough = true
+		physics_material_override = phys_mat
 
 ## Returns the starting surface point of this segment in local coordinates
 func get_entry_point() -> Vector2:
@@ -154,13 +225,13 @@ func get_surface_y_at(local_x: float) -> float:
 		return first_pt.y
 	if local_x >= last_pt.x:
 		return last_pt.y
-	
+
 	var idx := 0
 	for i in range(generated_surface_points.size() - 1):
 		if generated_surface_points[i + 1].x >= local_x:
 			idx = i
 			break
-	
+
 	var p1 := generated_surface_points[idx]
 	var p2 := generated_surface_points[mini(idx + 1, generated_surface_points.size() - 1)]
 	var span_x := p2.x - p1.x
@@ -173,7 +244,7 @@ func get_surface_y_at(local_x: float) -> float:
 func get_surface_point_and_normal_at(local_x: float) -> Dictionary:
 	if generated_surface_points.is_empty():
 		return {"point": Vector2(local_x, 0.0), "normal": Vector2.UP}
-	
+
 	var first_pt := generated_surface_points[0]
 	var last_pt := generated_surface_points[generated_surface_points.size() - 1]
 	var clamped_x := clampf(local_x, first_pt.x, last_pt.x)
@@ -182,7 +253,7 @@ func get_surface_point_and_normal_at(local_x: float) -> Dictionary:
 		if generated_surface_points[i + 1].x >= clamped_x:
 			idx = i
 			break
-	
+
 	var p1 := generated_surface_points[idx]
 	var p2 := generated_surface_points[mini(idx + 1, generated_surface_points.size() - 1)]
 	var span_x := p2.x - p1.x
@@ -196,7 +267,10 @@ func get_surface_point_and_normal_at(local_x: float) -> Dictionary:
 
 ## Rebuilds the surface geometry and synchronizes collision + visual polygons
 func rebuild_segment() -> void:
+	if terrain_profile != null and "surface_friction" in terrain_profile:
+		surface_friction = terrain_profile.get("surface_friction")
 	_ensure_child_nodes()
+	_update_physics_material()
 	_generate_surface_points()
 	_apply_geometry()
 
@@ -207,121 +281,152 @@ func set_custom_points(points: PackedVector2Array) -> void:
 
 func _ensure_child_nodes() -> void:
 	if not collision_polygon:
-		collision_polygon = CollisionPolygon2D.new()
-		collision_polygon.name = "CollisionPolygon2D"
-		add_child(collision_polygon)
-	
+		collision_polygon = get_node_or_null("CollisionPolygon2D")
+		if not collision_polygon:
+			collision_polygon = CollisionPolygon2D.new()
+			collision_polygon.name = "CollisionPolygon2D"
+			add_child(collision_polygon)
+
 	if not ground_polygon:
-		ground_polygon = Polygon2D.new()
-		ground_polygon.name = "GroundPolygon"
-		add_child(ground_polygon)
-	
+		ground_polygon = get_node_or_null("GroundPolygon")
+		if not ground_polygon:
+			ground_polygon = Polygon2D.new()
+			ground_polygon.name = "GroundPolygon"
+			add_child(ground_polygon)
+
 	if not subsoil_polygon:
-		subsoil_polygon = Polygon2D.new()
-		subsoil_polygon.name = "SubsoilPolygon"
-		add_child(subsoil_polygon)
-		move_child(subsoil_polygon, 0) # Base under ground
-		
+		subsoil_polygon = get_node_or_null("SubsoilPolygon")
+		if not subsoil_polygon:
+			subsoil_polygon = Polygon2D.new()
+			subsoil_polygon.name = "SubsoilPolygon"
+			add_child(subsoil_polygon)
+			move_child(subsoil_polygon, 0) # Base under ground
+
 	if not grass_line:
-		grass_line = Line2D.new()
-		grass_line.name = "GrassLine"
-		grass_line.visible = false
-		add_child(grass_line)
-	else:
-		grass_line.visible = false
-	
+		grass_line = get_node_or_null("GrassLine")
+		if not grass_line:
+			grass_line = Line2D.new()
+			grass_line.name = "GrassLine"
+			grass_line.visible = false
+			add_child(grass_line)
+		else:
+			grass_line.visible = false
+
 	if not grass_highlight_line:
-		grass_highlight_line = Line2D.new()
-		grass_highlight_line.name = "GrassHighlightLine"
-		grass_highlight_line.visible = false
-		add_child(grass_highlight_line)
-	else:
-		grass_highlight_line.visible = false
-		
+		grass_highlight_line = get_node_or_null("GrassHighlightLine")
+		if not grass_highlight_line:
+			grass_highlight_line = Line2D.new()
+			grass_highlight_line.name = "GrassHighlightLine"
+			grass_highlight_line.visible = false
+			add_child(grass_highlight_line)
+		else:
+			grass_highlight_line.visible = false
+
 	if not decorations_root:
-		decorations_root = Node2D.new()
-		decorations_root.name = "DecorationsRoot"
-		add_child(decorations_root)
+		decorations_root = get_node_or_null("DecorationsRoot")
+		if not decorations_root:
+			decorations_root = Node2D.new()
+			decorations_root.name = "DecorationsRoot"
+			add_child(decorations_root)
 
 func _generate_surface_points() -> void:
 	generated_surface_points.clear()
-	
+
 	if segment_type == SegmentType.CUSTOM and not custom_surface_points.is_empty():
 		generated_surface_points = custom_surface_points.duplicate()
 		return
-	
+
 	var pts := PackedVector2Array()
-	
+
 	for i in range(samples_count + 1):
 		var t := float(i) / float(samples_count) # 0.0 to 1.0
 		var x := t * segment_length
 		var y := 0.0
-		
+
 		# Hermite cubic spline baseline matching start_height, start_slope, end_height, end_slope
 		var h00 := 2.0 * t * t * t - 3.0 * t * t + 1.0
 		var h10 := t * t * t - 2.0 * t * t + t
 		var h01 := -2.0 * t * t * t + 3.0 * t * t
 		var h11 := t * t * t - t * t
 		var base_y := h00 * start_height + h10 * segment_length * start_slope + h01 * end_height + h11 * segment_length * end_slope
-		
+
 		# Hann-squared window guarantees zero first-derivative at t=0 and t=1, preserving exact C1 slope joins
 		var window_hann := sin(t * PI)
 		var window_hann_sq := window_hann * window_hann
-		
+
 		match segment_type:
 			SegmentType.FLAT:
 				y = base_y
-				
+
 			SegmentType.GENTLE_HILLS:
 				# Smooth sine wave hill with Hann-squared window
 				var wave := sin(t * TAU) * window_hann_sq * amplitude
 				y = base_y - wave
-				
+
 			SegmentType.STEEP_CLIMB:
 				# Steeper climb with subtle natural terrain ripple
 				var ripple := sin(t * TAU * 1.5) * window_hann_sq * (amplitude * 0.25)
 				y = base_y - ripple
-				
+
 			SegmentType.VALLEY_DIP:
 				# Smooth rounded dip in the middle
 				var dip := window_hann_sq * amplitude
 				y = base_y + dip
-				
+
 			SegmentType.JUMP_RAMP:
 				# Smooth launch crest with continuous slope
 				var crest := sin(t * PI) * window_hann_sq * (amplitude * 1.1)
 				y = base_y - crest
-				
+
 			SegmentType.ROLLING_WAVES:
 				# Multiple rolling hills with seamless boundary tangency
 				var wave1 := sin(t * TAU * 1.5) * 0.65
 				var wave2 := sin(t * TAU * 3.0) * 0.35
 				var wave_val := (wave1 + wave2) * window_hann_sq * amplitude
 				y = base_y - wave_val
-				
+
 			SegmentType.PLATEAU_DROP:
 				# Natural rounded mesa / rolling ridge (never a rectangular box or sharp cliff)
 				var ridge := sin(t * PI) * window_hann_sq * (amplitude * 0.8)
 				y = base_y - ridge
-				
+
 			SegmentType.BUMPY_WASHBOARD:
 				# Small rhythmic ripples to exercise suspension
 				var bumps := sin(t * TAU * 4.0) * window_hann_sq * (amplitude * 0.22)
 				y = base_y - bumps
-				
+
 			SegmentType.DOUBLE_CREST:
 				# Two rounded peaks with smooth saddle dip in between
 				var crests := sin(t * TAU * 2.0) * window_hann_sq * (amplitude * 0.6)
 				y = base_y - crests
-				
+
+			SegmentType.RAMP_NORMAL_TO_HEAVEN:
+				# Ascending launch curve with parabolic crest
+				var launch_shape := (sin(t * PI * 0.5) * 0.75 + sin(t * PI) * 0.25) * window_hann_sq * (amplitude * 1.25)
+				y = base_y - launch_shape
+
+			SegmentType.RAMP_HEAVEN_TO_NORMAL:
+				# Smooth return descent slide banking gently to base
+				var slide_shape := (sin(t * PI) * 0.7 + sin(t * TAU) * 0.2) * window_hann_sq * (amplitude * 0.95)
+				y = base_y - slide_shape
+
+			SegmentType.RAMP_NORMAL_TO_HELL:
+				# Dramatic volcanic chasm plunge trough with parabolic catch
+				var plunge_depth := window_hann_sq * (amplitude * 1.4)
+				y = base_y + plunge_depth
+
+			SegmentType.RAMP_HELL_TO_NORMAL:
+				# High-velocity magma geyser escape ramp
+				var kick := sin(t * PI) * window_hann_sq * (amplitude * 1.3)
+				y = base_y - kick
+
 		pts.append(Vector2(x, y))
-	
+
 	generated_surface_points = pts
 
 # Preloaded ground and subsurface textures
-const TEX_SOIL_SUBSURFACE: Texture2D = preload("res://assets/terrain/surfaces/brown_soil_subsurface.png")
-const TEX_DIRT_STRATA: Texture2D = preload("res://assets/terrain/transitions/dirt_pattern_01.png")
-const TEX_GRASS_EDGE: Texture2D = preload("res://assets/terrain/surfaces/grass_top_edge.png")
+const TEX_SOIL_SUBSURFACE: Texture2D = preload("res://assets/terrain/surfaces/countryside_earth_strata.png")
+const TEX_GRASS_EDGE: Texture2D = preload("res://assets/terrain/surfaces/countryside_grass_top.png")
 
 # Preloaded Destroyed City terrain textures
 const TEX_SURVIVAL_GROUND: Texture2D = preload("res://assets/environment/survival/destroyed_city/terrain/dusty_ground/apocalyptic_ground_seamless.png")
@@ -330,30 +435,52 @@ const TEX_SURVIVAL_ROAD_RIBBON: Texture2D = preload("res://assets/environment/su
 
 # Preloaded countryside scenery textures
 const TEX_BUSHES: Array = [
-	preload("res://assets/environment/countryside/bushes/bush_round_green.png"),
-	preload("res://assets/environment/countryside/bushes/bush_shrub_01.png"),
-	preload("res://assets/environment/countryside/bushes/bush_shrub_02.png"),
-	preload("res://assets/environment/countryside/bushes/bush_shrub_03.png")
+	preload("res://assets/environment/countryside/bushes/bush_cozy_green.png"),
+	preload("res://assets/environment/countryside/bushes/bush_berry.png"),
+	preload("res://assets/environment/countryside/bushes/bush_lavender.png"),
+	preload("res://assets/environment/countryside/bushes/bush_round_green.png")
 ]
 const TEX_FLOWERS: Array = [
+	preload("res://assets/environment/countryside/plants/fern_wild.png"),
+	preload("res://assets/environment/countryside/plants/grass_clump_dense.png"),
 	preload("res://assets/environment/countryside/plants/flower_yellow.png"),
 	preload("res://assets/environment/countryside/plants/flower_purple.png"),
-	preload("res://assets/environment/countryside/plants/grass_tuft_01.png"),
-	preload("res://assets/environment/countryside/plants/mushroom_red.png"),
-	preload("res://assets/environment/countryside/plants/mushroom_brown.png")
+	preload("res://assets/environment/countryside/plants/grass_tuft_01.png")
 ]
+const TEX_HEAVEN_FLOWERS: Array = [
+	preload("res://assets/environments/heaven/decorations/flowers/flower_01.png"),
+	preload("res://assets/environments/heaven/decorations/flowers/flower_02.png"),
+	preload("res://assets/environments/heaven/decorations/flowers/flower_03.png"),
+	preload("res://assets/environments/heaven/decorations/flowers/flower_04.png"),
+	preload("res://assets/environments/heaven/decorations/flowers/flower_05.png"),
+	preload("res://assets/environments/heaven/decorations/flowers/flower_06.png"),
+	preload("res://assets/environments/heaven/decorations/flowers/flower_07.png"),
+	preload("res://assets/environments/heaven/decorations/flowers/flower_08.png")
+]
+const TEX_HEAVEN_GARDEN_BED: Texture2D = preload("res://assets/environments/heaven/decorations/celestial_garden_bed.png")
+const TEX_HEAVEN_PLANTER: Texture2D = preload("res://assets/environments/heaven/decorations/celestial_planter_urn.png")
+const TEX_HEAVEN_BRIDGE_ARCH: Texture2D = preload("res://assets/environments/heaven/architecture/heaven_viaduct_arch_cutout.png")
+var TEX_HELL_BRIDGE_ARCH: Texture2D = load("res://assets/environments/hell/architecture/hell_bridge/hell_volcanic_bridge_arch.png")
+var FRAMES_HELL_TORCH: SpriteFrames = load("res://assets/environments/hell/architecture/torches/torch_burn.tres")
+const TEX_HEAVEN_BALUSTRADE: Texture2D = preload("res://assets/environments/heaven/architecture/heaven_marble_balustrade.png")
+const TEX_HEAVEN_DECK: Texture2D = preload("res://assets/environments/heaven/architecture/heaven_marble_deck_inlaid.png")
 const TEX_ROCKS: Array = [
 	preload("res://assets/terrain/rocks/small_stones_pebbles.png"),
-	preload("res://assets/terrain/rocks/large_rock_boulder_01.png"),
-	preload("res://assets/terrain/rocks/rock_hill_slope_left.png"),
-	preload("res://assets/terrain/rocks/rock_hill_slope_right.png")
+	preload("res://assets/terrain/rocks/large_rock_boulder_01.png")
 ]
+const TEX_HELL_ROCKS: Array = [
+	preload("res://assets/environments/hell/foreground/skulls/skulls_cluster_prop.png"),
+	preload("res://assets/environments/hell/foreground/skeletons/skeleton_remains_prop.png")
+]
+const TEX_HELL_OBSIDIAN_SPIKES: Texture2D = null
 const TEX_PROPS: Array = [
 	preload("res://assets/environment/countryside/fences/wooden_fence_01.png"),
 	preload("res://assets/environment/countryside/fences/wooden_fence_broken.png"),
 	preload("res://assets/environment/countryside/props/fallen_log_01.png"),
-	preload("res://assets/environment/countryside/signs/wooden_signpost.png"),
-	preload("res://assets/environment/countryside/signs/wooden_sign_arrow_right.png")
+	preload("res://assets/environment/countryside/props/tree_stump_mossy.png"),
+	preload("res://assets/environment/countryside/props/stone_cluster_small.png"),
+	preload("res://assets/environment/countryside/props/hay_bale_round.png"),
+	preload("res://assets/environment/countryside/signs/wooden_signpost.png")
 ]
 
 # Preloaded Destroyed City decorations (Authentic apocalyptic rubble & props only)
@@ -381,10 +508,10 @@ const TEX_CITY_ROADS: Array = [
 func _apply_geometry() -> void:
 	if generated_surface_points.size() < 2:
 		return
-	
+
 	var first_pt := generated_surface_points[0]
 	var last_pt := generated_surface_points[generated_surface_points.size() - 1]
-	
+
 	const GLOBAL_DEEP_BOTTOM_Y: float = 3500.0
 	var local_bottom_y: float = GLOBAL_DEEP_BOTTOM_Y - global_position.y
 	var max_surf_y: float = first_pt.y
@@ -392,27 +519,300 @@ func _apply_geometry() -> void:
 		if pt.y > max_surf_y:
 			max_surf_y = pt.y
 	local_bottom_y = maxf(local_bottom_y, max_surf_y + ground_depth)
-	
-	# 1. Build ground polygon closed at deep bottom
+
+	# 1. Build ground polygon closed at constant global bottom (or finite platform thickness in platform mode)
 	var poly_pts := PackedVector2Array()
-	for pt in generated_surface_points:
-		poly_pts.append(pt)
-	
-	poly_pts.append(Vector2(last_pt.x, local_bottom_y))
-	poly_pts.append(Vector2(first_pt.x, local_bottom_y))
-	
+	if is_floating_platform:
+		for pt in generated_surface_points:
+			poly_pts.append(pt)
+		for i in range(generated_surface_points.size() - 1, -1, -1):
+			var pt := generated_surface_points[i]
+			poly_pts.append(Vector2(pt.x, pt.y + platform_thickness))
+	else:
+		for pt in generated_surface_points:
+			poly_pts.append(pt)
+		poly_pts.append(Vector2(last_pt.x, local_bottom_y))
+		poly_pts.append(Vector2(first_pt.x, local_bottom_y))
+
 	# Synchronize visual polygon and collision polygon exactly
 	if collision_polygon:
 		collision_polygon.polygon = poly_pts
-	
-	if ground_polygon:
-		ground_polygon.polygon = poly_pts
-		if theme == TerrainTheme.DESTROYED_CITY:
-			ground_polygon.color = Color(0.70, 0.58, 0.46, 1.0)
-			ground_polygon.texture = TEX_SURVIVAL_GROUND
+
+	# Default colors (Normal Land countryside)
+	var active_ground_col: Color = Color(1.0, 1.0, 1.0, 1.0) # Natural warm countryside meadow
+	var active_subsoil_col: Color = Color(1.0, 1.0, 1.0, 1.0) # 3 distinct strata: loam, compacted earth, bedrock
+	var active_grass_col: Color = Color(0.44, 0.78, 0.28, 0.95) # Natural fresh meadow grass
+	var active_grass_hl: Color = Color(0.70, 0.92, 0.45, 0.65) # Subtle sunlit grass crest
+	var active_ground_tex: Texture2D = TEX_GRASS_EDGE
+	var active_subsoil_tex: Texture2D = TEX_SOIL_SUBSURFACE
+	var active_ground_tex_scale: Vector2 = Vector2(0.5, 0.5)
+	var active_grass_width: float = 3.2
+	var active_grass_hl_width: float = 1.6
+
+	var prof_name: String = str(terrain_profile.get("profile_name")) if terrain_profile else ""
+	var is_heaven := (biome_type == 1) or prof_name.begins_with("Heaven")
+	var is_hell := (biome_type == 2) or prof_name.begins_with("Hell")
+
+	if is_heaven:
+		# Pure polished ivory marble road with fine champagne gold edging
+		is_floating_platform = true
+		platform_thickness = 120.0
+		active_ground_col = Color(1.0, 1.0, 1.0, 1.0)
+		active_subsoil_col = Color(1.0, 1.0, 1.0, 1.0)
+		active_grass_col = Color(0.95, 0.85, 0.45, 0.90) # Fine celestial champagne gold rim
+		active_grass_hl = Color(1.0, 0.96, 0.70, 0.95)
+		active_grass_width = 2.4
+		active_grass_hl_width = 1.2
+		active_ground_tex_scale = Vector2(1.0, 1.0)
+		if terrain_profile and "ground_texture" in terrain_profile and terrain_profile.ground_texture:
+			active_ground_tex = terrain_profile.ground_texture
 		else:
-			ground_polygon.color = Color(1, 1, 1, 1)
-			ground_polygon.texture = TEX_SOIL_SUBSURFACE
+			active_ground_tex = TEX_HEAVEN_DECK
+		if terrain_profile and "subsoil_texture" in terrain_profile and terrain_profile.subsoil_texture:
+			active_subsoil_tex = terrain_profile.subsoil_texture
+		else:
+			active_subsoil_tex = preload("res://assets/environments/heaven/architecture/heaven_cloud_underside.png")
+	elif is_hell:
+		# Dark volcanic stone bricks over glowing volcanic masonry with radiant molten rim
+		active_ground_col = Color(1.0, 1.0, 1.0, 1.0)
+		active_subsoil_col = Color(0.88, 0.82, 0.80, 1.0)
+		active_grass_col = Color(1.0, 0.52, 0.10, 1.0) # Radiant molten crust rim
+		active_grass_hl = Color(1.0, 0.75, 0.25, 0.95)
+		active_grass_width = 3.0
+		active_grass_hl_width = 1.5
+		active_ground_tex_scale = Vector2(0.5, 0.75)
+		if terrain_profile and "ground_texture" in terrain_profile and terrain_profile.ground_texture:
+			active_ground_tex = terrain_profile.ground_texture
+		if terrain_profile and "subsoil_texture" in terrain_profile and terrain_profile.subsoil_texture:
+			active_subsoil_tex = terrain_profile.subsoil_texture
+	elif terrain_profile:
+		if "ground_texture" in terrain_profile and terrain_profile.ground_texture:
+			active_ground_tex = terrain_profile.ground_texture
+		if "subsoil_texture" in terrain_profile and terrain_profile.subsoil_texture:
+			active_subsoil_tex = terrain_profile.subsoil_texture
+			if "ground_color" in terrain_profile and terrain_profile.ground_color != Color.WHITE:
+				active_ground_col = terrain_profile.ground_color
+			if "subsoil_color" in terrain_profile and terrain_profile.subsoil_color != Color(0.9, 0.9, 0.9, 1.0):
+				active_subsoil_col = terrain_profile.subsoil_color
+
+	# Keep the biome texture on a shallow, readable surface crust. The old code
+	# assigned the full 900px-deep collision polygon to GroundPolygon and then
+	# drew it after SubsoilPolygon, hiding almost the entire underground layer.
+	# The Heaven/Hell 1920x99 strips were consequently repeated down the whole
+	# world depth, creating the giant flat slab visible in the supplied captures.
+	var texture_height := active_ground_tex.get_height() if active_ground_tex else 70
+	if is_heaven:
+		# Sleek royal ivory marble roadway deck (68px depth) with gold diamond inlays
+		visual_surface_band_depth = 68.0
+	elif is_hell:
+		visual_surface_band_depth = 56.0
+	else:
+		# Clean, slim countryside grass crest (38px depth) seamlessly transitioning to the earth body
+		visual_surface_band_depth = 38.0
+	if is_floating_platform and not is_heaven:
+		visual_surface_band_depth = minf(visual_surface_band_depth, platform_thickness * 0.42)
+
+	if theme == TerrainTheme.DESTROYED_CITY and not is_heaven and not is_hell:
+		_apply_destroyed_city_geometry(poly_pts, first_pt, last_pt, local_bottom_y)
+		return
+
+	var ground_band_pts := PackedVector2Array()
+	for pt in generated_surface_points:
+		ground_band_pts.append(pt)
+	for i in range(generated_surface_points.size() - 1, -1, -1):
+		var pt := generated_surface_points[i]
+		ground_band_pts.append(Vector2(pt.x, pt.y + visual_surface_band_depth))
+
+	if ground_polygon:
+		ground_polygon.polygon = ground_band_pts
+		ground_polygon.color = active_ground_col
+		ground_polygon.texture = active_ground_tex
+		ground_polygon.texture_scale = Vector2(1.0, 1.0)
+		ground_polygon.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+		ground_polygon.z_index = 0
+
+		# Explicit UV mapping guarantees grass blades exist ONLY along the top surface,
+		# pointing upward into the air, with pure soil at the bottom (zero downward/internal grass).
+		var ground_uv := PackedVector2Array()
+		var g_tex_h: float = float(active_ground_tex.get_height()) if active_ground_tex else 128.0
+		for pt in generated_surface_points:
+			ground_uv.append(Vector2((position.x + pt.x) * active_ground_tex_scale.x, 0.0))
+		for i in range(generated_surface_points.size() - 1, -1, -1):
+			var pt := generated_surface_points[i]
+			ground_uv.append(Vector2((position.x + pt.x) * active_ground_tex_scale.x, g_tex_h))
+		ground_polygon.uv = ground_uv
+
+	# 2. Build the visible underground body below the top crust. Collision stays
+	# on poly_pts above, so visual material changes cannot alter vehicle physics.
+	if subsoil_polygon:
+		var subsoil_pts := PackedVector2Array()
+		for pt in generated_surface_points:
+			subsoil_pts.append(Vector2(pt.x, pt.y + visual_surface_band_depth))
+		if is_floating_platform:
+			for i in range(generated_surface_points.size() - 1, -1, -1):
+				var pt := generated_surface_points[i]
+				subsoil_pts.append(Vector2(pt.x, pt.y + platform_thickness))
+		else:
+			subsoil_pts.append(Vector2(last_pt.x, local_bottom_y))
+			subsoil_pts.append(Vector2(first_pt.x, local_bottom_y))
+		subsoil_polygon.polygon = subsoil_pts
+		subsoil_polygon.color = active_subsoil_col
+		subsoil_polygon.texture = active_subsoil_tex
+		subsoil_polygon.texture_scale = Vector2(1.0, 1.0)
+		subsoil_polygon.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+		subsoil_polygon.z_index = 0
+		subsoil_polygon.visible = not is_heaven # In Heaven, viaduct arches reveal the cloud ocean behind
+
+		# Planar world-space UV mapping guarantees zero fan distortion, zero shearing,
+		# and 100% continuous earth texture across all hills, valleys and segment seams.
+		var subsoil_uv := PackedVector2Array()
+		var subsoil_colors := PackedColorArray()
+		for v in subsoil_pts:
+			var world_x: float = position.x + v.x
+			var world_y: float = position.y + v.y
+			if is_hell:
+				subsoil_uv.append(Vector2(world_x, world_y))
+				subsoil_colors.append(Color.WHITE)
+			else:
+				subsoil_uv.append(Vector2(world_x, world_y))
+				var depth: float = clampf((v.y - visual_surface_band_depth) / 1600.0, 0.0, 1.0)
+				var shade: float = lerpf(1.0, 0.68, depth)
+				subsoil_colors.append(Color(shade, shade, shade, 1.0))
+		subsoil_polygon.uv = subsoil_uv
+		subsoil_polygon.vertex_colors = subsoil_colors
+
+	# Modular Pale Stone Bridge Facade with Rounded Arches (P0 Heaven Requirement)
+	var facade := _get_or_create_bridge_facade()
+	if facade:
+		for c in facade.get_children():
+			c.queue_free()
+		if (is_heaven or is_hell) and generated_surface_points.size() >= 2:
+			facade.visible = true
+			var total_len: float = last_pt.x - first_pt.x
+			var nominal_w: float = 540.0
+			var arch_count: int = maxi(1, int(round(total_len / nominal_w)))
+			var arch_span_w: float = total_len / float(arch_count)
+
+			# 1. Continuous Connecting Fascia Band following exact curved road underside
+			var fascia_line := Line2D.new()
+			fascia_line.name = "ConnectingFascia"
+			var fascia_pts := PackedVector2Array()
+			for pt in generated_surface_points:
+				fascia_pts.append(Vector2(pt.x, pt.y + visual_surface_band_depth - 4.0))
+			fascia_line.points = fascia_pts
+			fascia_line.width = 16.0
+			fascia_line.default_color = Color(0.96, 0.94, 0.90, 1.0) if is_heaven else Color(0.22, 0.14, 0.14, 1.0) # Ivory marble or dark basalt
+			fascia_line.joint_mode = Line2D.LINE_JOINT_ROUND
+			fascia_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+			fascia_line.end_cap_mode = Line2D.LINE_CAP_ROUND
+			fascia_line.z_index = -3
+			facade.add_child(fascia_line)
+
+			# 2. Seamless Viaduct Arch Modules attached directly to bridge underside
+			for ai in range(arch_count):
+				var x0 := first_pt.x + float(ai) * arch_span_w
+				var x1 := first_pt.x + float(ai + 1) * arch_span_w
+				var y0 := get_surface_y_at(x0) + visual_surface_band_depth
+				var y1 := get_surface_y_at(x1) + visual_surface_band_depth
+				var dx := x1 - x0
+				var dy := y1 - y0
+				var chord_len := sqrt(dx * dx + dy * dy)
+				var chord_angle := atan2(dy, dx)
+				var mid_under := Vector2((x0 + x1) * 0.5, (y0 + y1) * 0.5)
+				# True upward normal in 2D screen coordinates (-Y is UP)
+				var norm_up := Vector2(sin(chord_angle), -cos(chord_angle))
+
+				# Open Viaduct Cutout Arch attached directly to the underside of the roadway
+				var arch_spr := Sprite2D.new()
+				arch_spr.name = "ViaductArch_%d" % ai
+				arch_spr.texture = TEX_HEAVEN_BRIDGE_ARCH if is_heaven else TEX_HELL_BRIDGE_ARCH
+				arch_spr.offset = Vector2(0.0, 140.0) # Anchor top-center at local (0, 0)
+				arch_spr.position = mid_under + norm_up * 8.0 # Tuck 8px into fascia for guaranteed seamless connection
+				arch_spr.rotation = chord_angle # Follow local bridge underside tangent
+				arch_spr.scale = Vector2(chord_len / 640.0, 1.0) # Exact span fit: zero gaps, zero overlaps
+				arch_spr.z_index = -2 # Below road deck and vehicle
+				facade.add_child(arch_spr)
+
+				# 3. Decorative Stone Pier Cap at each support position
+				var pier_cap := Line2D.new()
+				pier_cap.name = "PierCap_%d" % ai
+				var cap_dir := Vector2(cos(chord_angle), sin(chord_angle))
+				pier_cap.points = PackedVector2Array([
+					Vector2(x0, y0) - cap_dir * 28.0,
+					Vector2(x0, y0) + cap_dir * 28.0
+				])
+				pier_cap.width = 12.0
+				pier_cap.default_color = Color(0.92, 0.76, 0.28, 0.95) if is_heaven else Color(0.95, 0.40, 0.10, 0.95) # Gold or molten orange rim
+				pier_cap.joint_mode = Line2D.LINE_JOINT_ROUND
+				pier_cap.begin_cap_mode = Line2D.LINE_CAP_BOX
+				pier_cap.end_cap_mode = Line2D.LINE_CAP_BOX
+				pier_cap.z_index = -1
+				facade.add_child(pier_cap)
+
+				# In Hell, place burning bridge torches along pier posts
+				if is_hell and FRAMES_HELL_TORCH:
+					var torch_anim := AnimatedSprite2D.new()
+					torch_anim.name = "BridgeTorch_%d" % ai
+					torch_anim.sprite_frames = FRAMES_HELL_TORCH
+					torch_anim.animation = &"burn"
+					torch_anim.autoplay = "burn"
+					torch_anim.position = Vector2(x0, y0 - 36.0)
+					torch_anim.scale = Vector2(0.32, 0.32)
+					torch_anim.z_index = -1
+					facade.add_child(torch_anim)
+
+			# Last pier cap at segment exit boundary
+			var last_y := get_surface_y_at(last_pt.x) + visual_surface_band_depth
+			var exit_cap := Line2D.new()
+			exit_cap.name = "PierCap_Exit"
+			exit_cap.points = PackedVector2Array([
+				Vector2(last_pt.x - 28.0, last_y),
+				Vector2(last_pt.x + 28.0, last_y)
+			])
+			exit_cap.width = 12.0
+			exit_cap.default_color = Color(0.92, 0.76, 0.28, 0.95) if is_heaven else Color(0.95, 0.40, 0.10, 0.95)
+			exit_cap.joint_mode = Line2D.LINE_JOINT_ROUND
+			exit_cap.begin_cap_mode = Line2D.LINE_CAP_BOX
+			exit_cap.end_cap_mode = Line2D.LINE_CAP_BOX
+			exit_cap.z_index = -1
+			facade.add_child(exit_cap)
+		else:
+			facade.visible = false
+
+	# 3. Grass contour line following collision surface exactly
+	if grass_line:
+		grass_line.visible = true
+		grass_line.points = generated_surface_points
+		grass_line.width = 2.0
+		grass_line.default_color = active_grass_col
+		grass_line.joint_mode = Line2D.LINE_JOINT_ROUND
+		grass_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+		grass_line.end_cap_mode = Line2D.LINE_CAP_ROUND
+		grass_line.antialiased = true
+		grass_line.z_index = 2
+
+	if grass_highlight_line:
+		grass_highlight_line.visible = false
+
+	# 4. Optional procedural surface details (props, flora, rocks)
+	if decorations_root:
+		_build_decorations()
+
+func _surface_slope_angle_from_normal(normal: Vector2) -> float:
+	# Surface normals point upward in Godot's +Y-down world coordinates.
+	# This returns 0 radians for level terrain and the tangent angle on slopes.
+	return atan2(normal.x, -normal.y)
+
+## Survival (Destroyed City) theme keeps its own full-depth textured ground look.
+func _apply_destroyed_city_geometry(poly_pts: PackedVector2Array, first_pt: Vector2, last_pt: Vector2, local_bottom_y: float) -> void:
+	var facade := _get_or_create_bridge_facade()
+	if facade:
+		facade.visible = false
+	if ground_polygon:
+		ground_polygon.uv = PackedVector2Array()
+		ground_polygon.polygon = poly_pts
+		ground_polygon.color = Color(0.70, 0.58, 0.46, 1.0)
+		ground_polygon.texture = TEX_SURVIVAL_GROUND
 		ground_polygon.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	
 	# 2. Build subsoil polygon starting directly at the surface (pt.y) for 100% solid, gap-free bedrock
@@ -423,12 +823,11 @@ func _apply_geometry() -> void:
 		subsoil_pts.append(Vector2(last_pt.x, local_bottom_y))
 		subsoil_pts.append(Vector2(first_pt.x, local_bottom_y))
 		subsoil_polygon.polygon = subsoil_pts
-		if theme == TerrainTheme.DESTROYED_CITY:
-			subsoil_polygon.color = Color(0.48, 0.38, 0.28, 1.0)
-			subsoil_polygon.texture = TEX_SURVIVAL_SUBSOIL
-		else:
-			subsoil_polygon.color = Color(0.9, 0.9, 0.9, 1)
-			subsoil_polygon.texture = TEX_DIRT_STRATA
+		subsoil_polygon.uv = PackedVector2Array()
+		subsoil_polygon.vertex_colors = PackedColorArray()
+		subsoil_polygon.visible = true
+		subsoil_polygon.color = Color(0.48, 0.38, 0.28, 1.0)
+		subsoil_polygon.texture = TEX_SURVIVAL_SUBSOIL
 		subsoil_polygon.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	
 	# 3. Surface Road Ribbon & Driving Boundary
@@ -445,31 +844,12 @@ func _apply_geometry() -> void:
 	if decorations_root:
 		_build_decorations()
 
-## Re-aligns the bottom polygon points to an absolute global depth so all segments share the exact same bottom Y
-func align_bottom_to_global_depth(global_bottom: float = 3500.0) -> void:
-	if generated_surface_points.size() < 2:
+## Re-aligns the bottom to an absolute global depth once the segment has its final position,
+## so all ground segments share the exact same bottom Y. Floating platforms keep their thickness.
+func align_bottom_to_global_depth(_global_bottom: float = 3500.0) -> void:
+	if generated_surface_points.size() < 2 or is_floating_platform:
 		return
-	var first_pt := generated_surface_points[0]
-	var last_pt := generated_surface_points[generated_surface_points.size() - 1]
-	var local_bottom_y: float = global_bottom - global_position.y
-	var max_surf_y: float = first_pt.y
-	for pt in generated_surface_points:
-		if pt.y > max_surf_y:
-			max_surf_y = pt.y
-	local_bottom_y = maxf(local_bottom_y, max_surf_y + ground_depth)
-	
-	var pts := PackedVector2Array()
-	for pt in generated_surface_points:
-		pts.append(pt)
-	pts.append(Vector2(last_pt.x, local_bottom_y))
-	pts.append(Vector2(first_pt.x, local_bottom_y))
-	
-	if collision_polygon:
-		collision_polygon.polygon = pts
-	if ground_polygon:
-		ground_polygon.polygon = pts
-	if subsoil_polygon:
-		subsoil_polygon.polygon = pts
+	_apply_geometry()
 
 func _build_decorations() -> void:
 	if not decorations_root:
@@ -477,55 +857,173 @@ func _build_decorations() -> void:
 	for c in decorations_root.get_children():
 		decorations_root.remove_child(c)
 		c.queue_free()
-	
+
 	if not add_decorations or generated_surface_points.size() < 4:
 		return
-	
-	# Seeded deterministic decoration placement based on segment position
-	var seed_val := int(absf(global_position.x) + 42)
+
+	# Transition Ramp specific iconic gateway scenery
+	if segment_type == SegmentType.RAMP_NORMAL_TO_HEAVEN:
+		var arch_idx := int(generated_surface_points.size() * 0.5)
+		var arch_pt := generated_surface_points[arch_idx]
+		var arch := Sprite2D.new()
+		arch.name = "TransitionGoldenGateway"
+		arch.texture = load("res://assets/environments/heaven/architecture/heaven_golden_archway.png")
+		arch.scale = Vector2(0.55, 0.55)
+		arch.offset = Vector2(0, -arch.texture.get_height() * 0.5)
+		arch.position = arch_pt + Vector2(0, 10)
+		arch.z_index = -3
+		decorations_root.add_child(arch)
+		return
+
+	if segment_type == SegmentType.RAMP_NORMAL_TO_HELL:
+		var skull := Sprite2D.new()
+		skull.name = "TransitionDragonSkullPortal"
+		skull.visible = false
+		skull.z_index = -3
+		decorations_root.add_child(skull)
+		return
+
+	if segment_type == SegmentType.RAMP_HEAVEN_TO_NORMAL:
+		var col_idx := int(generated_surface_points.size() * 0.3)
+		var col_pt := generated_surface_points[col_idx]
+		var col := Sprite2D.new()
+		col.name = "ReturnPalaceColumn"
+		col.texture = load("res://assets/environments/heaven/architecture/heaven_palace_column.png")
+		col.scale = Vector2(0.4, 0.4)
+		col.offset = Vector2(0, -col.texture.get_height() * 0.5)
+		col.position = col_pt + Vector2(0, 10)
+		col.z_index = -3
+		decorations_root.add_child(col)
+
+		# Visible Return Portal Gateway Arch (Phase 2.1 P0)
+		var exit_arch_idx := int(generated_surface_points.size() * 0.5)
+		var exit_pt := generated_surface_points[exit_arch_idx]
+		var exit_arch := Sprite2D.new()
+		exit_arch.name = "ReturnGoldenGateway"
+		exit_arch.texture = load("res://assets/environments/heaven/architecture/heaven_golden_archway.png")
+		exit_arch.scale = Vector2(0.55, 0.55)
+		exit_arch.offset = Vector2(0, -exit_arch.texture.get_height() * 0.5)
+		exit_arch.position = exit_pt + Vector2(0, 10)
+		exit_arch.z_index = -3
+		decorations_root.add_child(exit_arch)
+		return
+
+	if segment_type == SegmentType.RAMP_HELL_TO_NORMAL:
+		return
+
+	if terrain_profile and "decorations_enabled" in terrain_profile and not terrain_profile.decorations_enabled:
+		return
+
+	# Deterministic seeded placement anchored to segment position
+	var seed_val := int(absf(global_position.x) + 7919)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_val
-	
+
 	if theme == TerrainTheme.DESTROYED_CITY:
 		_build_destroyed_city_decorations(rng)
-	else:
-		_build_countryside_decorations(rng)
+		return
 
-func _build_countryside_decorations(rng: RandomNumberGenerator) -> void:
-	# 1. Place 1 fence / signpost / prop
-	if rng.randf() < 0.65:
-		var prop_idx := rng.randi_range(2, generated_surface_points.size() - 3)
-		var p_pt := generated_surface_points[prop_idx]
-		var p_next := generated_surface_points[prop_idx + 1]
-		var p_dir := (p_next - p_pt).normalized()
-		var prop_tex: Texture2D = TEX_PROPS[rng.randi() % TEX_PROPS.size()]
-		var prop_sprite := Sprite2D.new()
-		prop_sprite.texture = prop_tex
-		prop_sprite.z_index = -2
-		var p_scale := rng.randf_range(0.35, 0.45)
-		prop_sprite.scale = Vector2(p_scale, p_scale)
-		prop_sprite.offset = Vector2(0, -prop_tex.get_height() * 0.5)
-		prop_sprite.position = p_pt + Vector2(0, 2)
-		prop_sprite.rotation = clampf(p_dir.angle() * 0.35, -0.3, 0.3)
-		decorations_root.add_child(prop_sprite)
+	var prof_name: String = str(terrain_profile.get("profile_name")) if terrain_profile else ""
+	var is_heaven := (biome_type == 1) or prof_name.begins_with("Heaven")
+	var is_hell := (biome_type == 2) or prof_name.begins_with("Hell")
+	var vis_group := "biome_heaven_visual" if is_heaven else ("biome_hell_visual" if is_hell else "biome_normal_visual")
 
-	# 2. Place 3-5 rocks and stone formations on the soil surface
-	var num_rocks := rng.randi_range(3, 5)
-	for s in range(num_rocks):
-		var s_idx := rng.randi_range(2, generated_surface_points.size() - 3)
-		var s_pt := generated_surface_points[s_idx]
-		var s_next := generated_surface_points[s_idx + 1]
-		var s_dir := (s_next - s_pt).normalized()
-		var rock_tex: Texture2D = TEX_ROCKS[rng.randi() % TEX_ROCKS.size()]
-		var rock_sprite := Sprite2D.new()
-		rock_sprite.texture = rock_tex
-		rock_sprite.z_index = -1
-		var s_scale := rng.randf_range(0.28, 0.42)
-		rock_sprite.scale = Vector2(s_scale, s_scale)
-		rock_sprite.offset = Vector2(0, -rock_tex.get_height() * 0.5)
-		rock_sprite.position = s_pt + Vector2(0, 1)
-		rock_sprite.rotation = clampf(s_dir.angle() * 0.4, -0.35, 0.35)
-		decorations_root.add_child(rock_sprite)
+	# Five widely spaced dressing zones make the long route feel inhabited
+	# without turning the driving line into a cluttered obstacle course.
+	var slot_fractions: Array[float] = [
+		rng.randf_range(0.12, 0.19),
+		rng.randf_range(0.30, 0.38),
+		rng.randf_range(0.48, 0.56),
+		rng.randf_range(0.68, 0.76),
+		rng.randf_range(0.86, 0.94)
+	]
+
+	for frac in slot_fractions:
+		var local_x := frac * segment_length
+		var pt_info := get_surface_point_and_normal_at(local_x)
+		var pt: Vector2 = pt_info["point"]
+		var normal: Vector2 = pt_info["normal"]
+		var slope_angle := _surface_slope_angle_from_normal(normal)
+		var slope_deg := absf(rad_to_deg(slope_angle))
+
+		if is_heaven:
+			# Heaven celestial gardens & planters: restrained, manicured, clean clearance
+			if slope_deg < 16.0 and rng.randf() < 0.60:
+				var spr := Sprite2D.new()
+				spr.z_index = -1
+				spr.add_to_group(vis_group)
+				if rng.randf() < 0.5:
+					spr.texture = TEX_HEAVEN_PLANTER
+					var sc := rng.randf_range(0.24, 0.28)
+					spr.scale = Vector2(sc, sc)
+					spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 4)
+				else:
+					spr.texture = TEX_HEAVEN_GARDEN_BED
+					var sc := rng.randf_range(0.28, 0.34)
+					spr.scale = Vector2(sc, sc)
+					spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 4)
+				spr.position = pt
+				spr.rotation = clampf(slope_angle * 0.25, -0.2, 0.2)
+				decorations_root.add_child(spr)
+		elif is_hell:
+			# Dark-fantasy volcanic dressing: authentic skull/bone remains only (NO dotted obstacle blocks)
+			var hell_choice := rng.randf()
+			if hell_choice < 0.65:
+				var rock_tex: Texture2D = TEX_HELL_ROCKS[rng.randi() % TEX_HELL_ROCKS.size()]
+				var spr := Sprite2D.new()
+				spr.add_to_group(vis_group)
+				spr.texture = rock_tex
+				spr.modulate = Color(0.96, 0.91, 0.86, 1.0)
+				spr.z_index = -1 # Background decorative placement, not on top of driving road
+				var sc := rng.randf_range(0.18, 0.25)
+				spr.scale = Vector2(sc, sc)
+				spr.offset = Vector2(0, -rock_tex.get_height() * 0.5 + 3)
+				spr.position = pt
+				spr.rotation = clampf(slope_angle * 0.25, -0.22, 0.22)
+				decorations_root.add_child(spr)
+		else:
+			# Normal Land Countryside: balanced blend of flora, props, and bushes
+			var choice := rng.randf()
+			if slope_deg < 24.0 and choice < 0.35:
+				# Countryside wooden fence, broken fence, signpost, stump, stones, hay bale, or log
+				var prop_tex: Texture2D = TEX_PROPS[rng.randi() % TEX_PROPS.size()]
+				var spr := Sprite2D.new()
+				spr.add_to_group(vis_group)
+				spr.texture = prop_tex
+				spr.z_index = -2 # Behind car and flora
+				var sc := rng.randf_range(0.48, 0.62)
+				spr.scale = Vector2(sc, sc)
+				spr.offset = Vector2(0, -prop_tex.get_height() * 0.5 + 2)
+				spr.position = pt
+				# Keep fences and structures upright with gentle terrain tilt
+				spr.rotation = clampf(slope_angle * 0.22, -0.18, 0.18)
+				decorations_root.add_child(spr)
+			elif choice < 0.70:
+				# Rounded green bush, berry bush, or lavender shrub
+				var bush_tex: Texture2D = TEX_BUSHES[rng.randi() % TEX_BUSHES.size()]
+				var spr := Sprite2D.new()
+				spr.add_to_group(vis_group)
+				spr.texture = bush_tex
+				spr.z_index = -1
+				var sc := rng.randf_range(0.38, 0.52) if bush_tex.get_height() > 180 else rng.randf_range(0.55, 0.70)
+				spr.scale = Vector2(sc, sc)
+				spr.offset = Vector2(0, -bush_tex.get_height() * 0.5 + 2)
+				spr.position = pt
+				spr.rotation = clampf(slope_angle * 0.30, -0.25, 0.25)
+				decorations_root.add_child(spr)
+			else:
+				# Wild ferns, grass clumps, yellow/purple flowers, or small tufts
+				var flora_tex: Texture2D = TEX_FLOWERS[rng.randi() % TEX_FLOWERS.size()]
+				var spr := Sprite2D.new()
+				spr.add_to_group(vis_group)
+				spr.texture = flora_tex
+				spr.z_index = -1
+				var sc := rng.randf_range(0.42, 0.58) if flora_tex.get_width() > 180 else rng.randf_range(0.58, 0.76)
+				spr.scale = Vector2(sc, sc)
+				spr.offset = Vector2(0, -flora_tex.get_height() * 0.5 + 2)
+				spr.position = pt
+				spr.rotation = clampf(slope_angle * 0.30, -0.25, 0.25)
+				decorations_root.add_child(spr)
 
 func _build_destroyed_city_decorations(rng: RandomNumberGenerator) -> void:
 	# 1. Ground cracks along the road surface (subtle, aligned, never a separate road)

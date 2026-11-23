@@ -1,0 +1,252 @@
+#!/usr/bin/env python3
+"""
+generate_heaven_environment_scene.py
+Generates the definitive HeavenEnvironment.tscn for Phase 2.2 Final Composition Rebuild.
+"""
+
+import os
+
+SCENE_PATH = "/home/danny/DUMB-SPOT/Endless-Hillclimb-Repaired/Endless-Hillclimb-Fixed/scenes/environment/heaven/HeavenEnvironment.tscn"
+
+content = """[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/environment/HeavenEnvironment.gd" id="1_g2g6f"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/sky/puffy_sky_blue_01.png" id="2_qy5sv"]
+[ext_resource type="Shader" path="res://scripts/shaders/celestial_atmospheric_glow.gdshader" id="3_fphwc"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_rose_window.png" id="4_rose_win"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_01.png" id="6_nag25"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_08.png" id="7_n656k"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_15.png" id="8_crjeg"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_palace_column.png" id="11_gr4uw"]
+[ext_resource type="SpriteFrames" path="res://assets/environments/heaven/wildlife/dove_flight.tres" id="12_tir2s"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_06.png" id="13_125bk"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_18.png" id="14_nxamk"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/clouds/white_puff_22.png" id="15_f2jc2"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_palace_arch_gateway.png" id="17_vckx0"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/heaven_angel_statue.png" id="19_f21b4"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/particles/spark_01.png" id="30_3o0b0"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/particles/light_01.png" id="31_light"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_distant_palace_silhouette.png" id="35_dist_palace"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/architecture/heaven_palace_corridor_seamless.png" id="50_corridor_master"]
+
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_01.png" id="22_mhmmp"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_03.png" id="23_oc2x2"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_05.png" id="24_opehk"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_02.png" id="25_x6ie3"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_07.png" id="26_nbka4"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_08.png" id="27_twvql"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_04.png" id="28_xly1g"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/decorations/flowers/flower_06.png" id="29_rkaed"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_spark"]
+blend_mode = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cfyg2"]
+shader = ExtResource("3_fphwc")
+shader_parameter/glow_color = Color(1, 0.95, 0.82, 0.35)
+shader_parameter/base_alpha = 0.20
+shader_parameter/pulse_speed = 0.5
+shader_parameter/pulse_intensity = 0.04
+shader_parameter/radial_sharpness = 2.0
+
+[node name="HeavenEnvironment" type="ParallaxBackground" unique_id=1689200374]
+script = ExtResource("1_g2g6f")
+
+[node name="SkyLayer" type="ParallaxLayer" parent="." unique_id=387175962]
+motion_scale = Vector2(0.01, 0)
+motion_mirroring = Vector2(1920, 0)
+
+[node name="SkyBackground" type="TextureRect" parent="SkyLayer" unique_id=721209316]
+offset_left = -2000.0
+offset_top = -500.0
+offset_right = 30000.0
+offset_bottom = 1200.0
+texture = ExtResource("2_qy5sv")
+stretch_mode = 1
+
+[node name="CelestialSunGlow" type="Sprite2D" parent="SkyLayer" unique_id=1278137849]
+material = SubResource("ShaderMaterial_cfyg2")
+position = Vector2(640, 70)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("31_light")
+
+[node name="DistantCloudsLayer" type="ParallaxLayer" parent="." unique_id=300323379]
+motion_scale = Vector2(0.04, 0)
+motion_mirroring = Vector2(2560, 0)
+
+[node name="DistCloud1" type="Sprite2D" parent="DistantCloudsLayer" unique_id=1382900338]
+modulate = Color(1, 1, 1, 0.45)
+position = Vector2(320, 95)
+scale = Vector2(1.1, 1.0)
+texture = ExtResource("6_nag25")
+
+[node name="DistCloud2" type="Sprite2D" parent="DistantCloudsLayer" unique_id=2047480381]
+modulate = Color(1, 1, 1, 0.50)
+position = Vector2(1200, 115)
+scale = Vector2(1.2, 1.1)
+texture = ExtResource("7_n656k")
+
+[node name="DistCloud3" type="Sprite2D" parent="DistantCloudsLayer" unique_id=1754106458]
+modulate = Color(1, 1, 1, 0.45)
+position = Vector2(2050, 85)
+scale = Vector2(1.15, 1.05)
+texture = ExtResource("8_crjeg")
+
+[node name="DistantPalaceLayer" type="ParallaxLayer" parent="." unique_id=1783141619]
+motion_scale = Vector2(0.10, 0)
+motion_mirroring = Vector2(2560, 0)
+
+[node name="DistantPalaceSilhouette1" type="Sprite2D" parent="DistantPalaceLayer"]
+position = Vector2(640, 160)
+scale = Vector2(0.48, 0.48)
+texture = ExtResource("35_dist_palace")
+
+[node name="DistantPalaceSilhouette2" type="Sprite2D" parent="DistantPalaceLayer"]
+position = Vector2(1920, 160)
+scale = Vector2(0.48, 0.48)
+texture = ExtResource("35_dist_palace")
+
+[node name="DoveFlockLayer" type="ParallaxLayer" parent="." unique_id=860215217]
+visible = false
+modulate = Color(1, 1, 1, 0)
+motion_scale = Vector2(0.18, 0)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="DoveLead" type="AnimatedSprite2D" parent="DoveFlockLayer" unique_id=217921931]
+visible = false
+position = Vector2(500, -9999)
+scale = Vector2(0.34, 0.34)
+sprite_frames = ExtResource("12_tir2s")
+animation = &"fly"
+autoplay = "fly"
+
+[node name="DoveRight" type="AnimatedSprite2D" parent="DoveFlockLayer" unique_id=621602006]
+visible = false
+position = Vector2(430, -9999)
+scale = Vector2(0.28, 0.28)
+sprite_frames = ExtResource("12_tir2s")
+animation = &"fly"
+autoplay = "fly"
+
+[node name="DoveLeft" type="AnimatedSprite2D" parent="DoveFlockLayer" unique_id=1481009931]
+visible = false
+position = Vector2(570, -9999)
+scale = Vector2(0.30, 0.30)
+sprite_frames = ExtResource("12_tir2s")
+animation = &"fly"
+autoplay = "fly"
+
+[node name="CelestialCloudsLayer" type="ParallaxLayer" parent="." unique_id=1205353702]
+motion_scale = Vector2(0.18, 0)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="CumulusPuff1" type="Sprite2D" parent="CelestialCloudsLayer" unique_id=1890901075]
+modulate = Color(1, 0.99, 0.96, 0.60)
+position = Vector2(300, 480)
+scale = Vector2(1.10, 0.75)
+texture = ExtResource("13_125bk")
+
+[node name="CumulusPuff2" type="Sprite2D" parent="CelestialCloudsLayer" unique_id=1532585570]
+modulate = Color(1, 0.99, 0.96, 0.62)
+position = Vector2(1100, 470)
+scale = Vector2(1.15, 0.80)
+texture = ExtResource("14_nxamk")
+
+[node name="CumulusPuff3" type="Sprite2D" parent="CelestialCloudsLayer" unique_id=1978293714]
+modulate = Color(1, 0.99, 0.96, 0.58)
+position = Vector2(1750, 480)
+scale = Vector2(1.05, 0.75)
+texture = ExtResource("15_f2jc2")
+
+[node name="MidPalaceArchitectureLayer" type="ParallaxLayer" parent="." unique_id=743859988]
+motion_scale = Vector2(0.28, 0)
+motion_mirroring = Vector2(3200, 0)
+
+[node name="MasterCorridor" type="Sprite2D" parent="MidPalaceArchitectureLayer"]
+position = Vector2(1600, 360)
+texture = ExtResource("50_corridor_master")
+
+[node name="GoldenArchway" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=45960148]
+visible = false
+position = Vector2(320, 200)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("17_vckx0")
+
+[node name="IvoryAngelStatue" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=338376739]
+visible = false
+position = Vector2(2880, 280)
+scale = Vector2(0.35, 0.35)
+texture = ExtResource("19_f21b4")
+
+[node name="AngelHaloGlow" type="Sprite2D" parent="MidPalaceArchitectureLayer" unique_id=2303127]
+visible = false
+position = Vector2(2880, 160)
+scale = Vector2(0.35, 0.35)
+texture = ExtResource("31_light")
+
+[node name="NearFloraLayer" type="ParallaxLayer" parent="." unique_id=578012159]
+motion_scale = Vector2(0.28, 0)
+motion_mirroring = Vector2(3200, 0)
+
+[node name="Flower1" type="Sprite2D" parent="NearFloraLayer" unique_id=409454626]
+visible = false
+position = Vector2(340, -9999)
+texture = ExtResource("22_mhmmp")
+
+[node name="Flower2" type="Sprite2D" parent="NearFloraLayer" unique_id=1311159980]
+visible = false
+position = Vector2(1130, -9999)
+texture = ExtResource("25_x6ie3")
+
+[node name="Flower3" type="Sprite2D" parent="NearFloraLayer" unique_id=1733738944]
+visible = false
+position = Vector2(380, -9999)
+texture = ExtResource("23_oc2x2")
+
+[node name="Flower4" type="Sprite2D" parent="NearFloraLayer" unique_id=1296845119]
+visible = false
+position = Vector2(1830, -9999)
+texture = ExtResource("28_xly1g")
+
+[node name="Flower5" type="Sprite2D" parent="NearFloraLayer" unique_id=1380714282]
+visible = false
+position = Vector2(420, -9999)
+texture = ExtResource("24_opehk")
+
+[node name="Flower6" type="Sprite2D" parent="NearFloraLayer" unique_id=27517542]
+visible = false
+position = Vector2(1880, -9999)
+texture = ExtResource("29_rkaed")
+
+[node name="Flower7" type="Sprite2D" parent="NearFloraLayer" unique_id=1266384141]
+visible = false
+position = Vector2(1170, -9999)
+texture = ExtResource("26_nbka4")
+
+[node name="Flower8" type="Sprite2D" parent="NearFloraLayer" unique_id=1531273352]
+visible = false
+position = Vector2(1210, -9999)
+texture = ExtResource("27_twvql")
+
+[node name="CelestialSparkles" type="CPUParticles2D" parent="NearFloraLayer" unique_id=950585745]
+material = SubResource("CanvasItemMaterial_spark")
+position = Vector2(1600, 240)
+amount = 20
+lifetime = 2.5
+emission_shape = 3
+emission_rect_extents = Vector2(1600, 160)
+direction = Vector2(0, -1)
+spread = 30.0
+gravity = Vector2(0, -8)
+initial_velocity_min = 10.0
+initial_velocity_max = 25.0
+scale_amount_min = 0.08
+scale_amount_max = 0.22
+color = Color(1.0, 0.95, 0.70, 0.75)
+texture = ExtResource("30_3o0b0")
+"""
+
+with open(SCENE_PATH, "w") as f:
+    f.write(content.strip() + "\n")
+
+print("✓ Wrote definitive HeavenEnvironment.tscn:", SCENE_PATH)

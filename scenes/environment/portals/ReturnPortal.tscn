@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/environment/portals/ReturnPortal.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/environments/portals/return_portal_arch.png" id="2_arch"]
+[ext_resource type="Texture2D" path="res://assets/environments/portals/return_portal_vortex.png" id="3_vortex"]
+[ext_resource type="Texture2D" path="res://assets/environments/heaven/vfx/particles/spark_01.png" id="4_spark"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trigger"]
+size = Vector2(120, 320)
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_add"]
+blend_mode = 1
+
+[node name="ReturnPortal" type="Node2D"]
+z_index = -1
+script = ExtResource("1_script")
+
+[node name="Vortex" type="Sprite2D" parent="."]
+material = SubResource("CanvasItemMaterial_add")
+position = Vector2(0, -140)
+scale = Vector2(0.95, 0.95)
+texture = ExtResource("3_vortex")
+
+[node name="Sparkles" type="CPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_add")
+position = Vector2(0, -60)
+amount = 20
+lifetime = 2.0
+emission_shape = 3
+emission_rect_extents = Vector2(80, 20)
+direction = Vector2(0, -1)
+spread = 30.0
+gravity = Vector2(0, -25)
+initial_velocity_min = 30.0
+initial_velocity_max = 75.0
+scale_amount_min = 0.06
+scale_amount_max = 0.14
+color = Color(0.90, 0.98, 0.60, 0.85)
+texture = ExtResource("4_spark")
+
+[node name="Arch" type="Sprite2D" parent="."]
+position = Vector2(0, -160)
+texture = ExtResource("2_arch")
+
+[node name="TriggerArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TriggerArea"]
+position = Vector2(0, -150)
+shape = SubResource("RectangleShape2D_trigger")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+max_distance = 1800.0
+bus = &"SFX"

@@ -726,6 +726,10 @@ func refuel(amount: float) -> void:
 	current_fuel = clampf(current_fuel + amount, 0.0, max_fuel)
 	fuel_changed.emit(current_fuel, max_fuel)
 
+func refill_nitro(amount: float = 50.0) -> void:
+	current_nitro = clampf(current_nitro + amount, 0.0, max_nitro)
+	nitro_changed.emit(current_nitro, max_nitro)
+
 func get_speed_kmh() -> float:
 	return (linear_velocity.length() / 100.0) * 3.6
 

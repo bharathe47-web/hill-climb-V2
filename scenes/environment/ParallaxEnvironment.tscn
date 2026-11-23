@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://parallax_environment_001"]
+[gd_scene load_steps=26 format=3 uid="uid://parallax_environment_001"]
 
 [ext_resource type="Script" path="res://scripts/environment/ParallaxEnvironment.gd" id="1_parallax_script"]
 [ext_resource type="Texture2D" path="res://assets/environment/sky/sky_daylight_1920x1200.png" id="2_sky_tex"]
@@ -8,7 +8,22 @@
 [ext_resource type="Texture2D" path="res://assets/environment/parallax/layer_03_distant_hills.png" id="6_hills_tex"]
 [ext_resource type="Texture2D" path="res://assets/environment/clouds/cloud_cumulus_01.png" id="7_cumulus1"]
 [ext_resource type="Texture2D" path="res://assets/environment/clouds/cloud_cumulus_02.png" id="8_cumulus2"]
-[ext_resource type="Texture2D" path="res://assets/environment/parallax/layer_06_foreground_scenery.png" id="9_near_tex"]
+[ext_resource type="Texture2D" path="res://assets/environment/parallax/layer_04_forest_silhouettes.png" id="9_forest_silhouettes"]
+[ext_resource type="Texture2D" path="res://assets/environment/parallax/layer_05_midground_forest.png" id="10_mid_forest"]
+[ext_resource type="Texture2D" path="res://assets/environment/parallax/layer_06_foreground_scenery.png" id="11_near_scenery"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/bushes/bush_cozy_green.png" id="14_bush_shrub"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/fences/wooden_fence_01.png" id="16_fence"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/fences/wooden_fence_broken.png" id="17_fence_broken"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/plants/flower_yellow.png" id="18_flower_yellow"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/signs/wooden_signpost.png" id="21_signpost"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/props/fallen_log_01.png" id="22_fallen_log"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/trees/tree_pine_silhouette.png" id="23_pine"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/trees/tree_oak_silhouette.png" id="24_oak"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/trees/tree_birch_silhouette.png" id="25_birch"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/props/distant_windmill.png" id="26_windmill"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/props/distant_farmhouse.png" id="27_farmhouse"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/props/hay_bale_round.png" id="28_hay_bale"]
+[ext_resource type="Texture2D" path="res://assets/environment/countryside/bushes/bush_berry.png" id="29_berry_bush"]
 
 [node name="ParallaxEnvironment" type="ParallaxBackground"]
 script = ExtResource("1_parallax_script")
@@ -64,24 +79,6 @@ position = Vector2(1780, 45)
 scale = Vector2(1.1, 1.1)
 texture = ExtResource("4_cirrus")
 
-[node name="WispyCloud1" type="Polygon2D" parent="DistantCloudsLayer"]
-visible = false
-position = Vector2(200, 40)
-color = Color(1, 1, 1, 0.35)
-polygon = PackedVector2Array(0, 15, 60, 0, 150, 0, 220, 10, 300, 5, 360, 18, 280, 28, 120, 28, 40, 24)
-
-[node name="WispyCloud2" type="Polygon2D" parent="DistantCloudsLayer"]
-visible = false
-position = Vector2(1000, 60)
-color = Color(1, 1, 1, 0.3)
-polygon = PackedVector2Array(0, 12, 80, -5, 180, -2, 260, 12, 340, 6, 420, 20, 320, 30, 150, 28, 40, 22)
-
-[node name="WispyCloud3" type="Polygon2D" parent="DistantCloudsLayer"]
-visible = false
-position = Vector2(1700, 30)
-color = Color(1, 1, 1, 0.35)
-polygon = PackedVector2Array(0, 15, 70, 0, 160, 2, 240, 14, 310, 8, 380, 22, 270, 32, 110, 30, 30, 25)
-
 [node name="DistantMountainsLayer" type="ParallaxLayer" parent="."]
 motion_scale = Vector2(0.08, 0.04)
 motion_mirroring = Vector2(2560, 0)
@@ -102,13 +99,110 @@ polygon = PackedVector2Array(920, 90, 860, 145, 900, 150, 920, 138, 945, 152, 98
 color = Color(0.92, 0.95, 1, 0.9)
 polygon = PackedVector2Array(1680, 80, 1620, 135, 1660, 140, 1680, 128, 1700, 142, 1740, 135)
 
+[node name="DistantForestLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.14, 0.06)
+motion_mirroring = Vector2(2240, 0)
+
+[node name="ForestSilhouette1" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(80, 260)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("23_pine")
+
+[node name="ForestSilhouette2" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(240, 280)
+scale = Vector2(0.44, 0.44)
+texture = ExtResource("24_oak")
+
+[node name="ForestSilhouette3" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(400, 320)
+texture = ExtResource("9_forest_silhouettes")
+
+[node name="ForestSilhouette4" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(560, 280)
+scale = Vector2(0.44, 0.44)
+texture = ExtResource("25_birch")
+
+[node name="ForestSilhouette5" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(720, 255)
+scale = Vector2(0.46, 0.46)
+texture = ExtResource("23_pine")
+
+[node name="ForestSilhouette6" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(880, 285)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("24_oak")
+
+[node name="ForestSilhouette7" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(1040, 320)
+texture = ExtResource("9_forest_silhouettes")
+
+[node name="ForestSilhouette8" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(1200, 280)
+scale = Vector2(0.44, 0.44)
+texture = ExtResource("25_birch")
+
+[node name="ForestSilhouette9" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(1360, 260)
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("23_pine")
+
+[node name="ForestSilhouette10" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(1520, 280)
+scale = Vector2(0.44, 0.44)
+texture = ExtResource("24_oak")
+
+[node name="ForestSilhouette11" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(1680, 320)
+texture = ExtResource("9_forest_silhouettes")
+
+[node name="ForestSilhouette12" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(1840, 280)
+scale = Vector2(0.44, 0.44)
+texture = ExtResource("25_birch")
+
+[node name="ForestSilhouette13" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(2000, 255)
+scale = Vector2(0.46, 0.46)
+texture = ExtResource("23_pine")
+
+[node name="ForestSilhouette14" type="Sprite2D" parent="DistantForestLayer"]
+modulate = Color(0.40, 0.50, 0.46, 0.75)
+position = Vector2(2160, 285)
+scale = Vector2(0.43, 0.43)
+texture = ExtResource("24_oak")
+
 [node name="MidHillsLayer" type="ParallaxLayer" parent="."]
 motion_scale = Vector2(0.18, 0.08)
 motion_mirroring = Vector2(2048, 0)
 
 [node name="HillsBody" type="Polygon2D" parent="MidHillsLayer"]
-color = Color(0.38, 0.46, 0.52, 0.95)
+color = Color(0.24, 0.44, 0.36, 0.92)
 polygon = PackedVector2Array(0, 1600, 0, 360, 220, 330, 460, 370, 720, 290, 980, 350, 1240, 270, 1520, 340, 1780, 280, 1940, 330, 2048, 360, 2048, 1600)
+
+[node name="DistantWindmill" type="Sprite2D" parent="MidHillsLayer"]
+modulate = Color(0.24, 0.42, 0.35, 0.85)
+position = Vector2(720, 260)
+scale = Vector2(0.35, 0.35)
+texture = ExtResource("26_windmill")
+
+[node name="DistantFarmhouse" type="Sprite2D" parent="MidHillsLayer"]
+modulate = Color(0.24, 0.42, 0.35, 0.85)
+position = Vector2(1240, 245)
+scale = Vector2(0.35, 0.35)
+texture = ExtResource("27_farmhouse")
 
 [node name="CloudsLayer" type="ParallaxLayer" parent="."]
 motion_scale = Vector2(0.12, 0.05)
@@ -129,41 +223,115 @@ position = Vector2(1420, 145)
 scale = Vector2(1.4, 1.4)
 texture = ExtResource("7_cumulus1")
 
-[node name="Cloud1" type="Polygon2D" parent="CloudsLayer"]
-visible = false
-position = Vector2(250, 110)
-color = Color(1, 1, 1, 0.65)
-polygon = PackedVector2Array(0, 30, 20, 10, 50, 0, 90, 0, 120, 12, 150, 6, 190, 15, 210, 35, 180, 55, 30, 55)
+[node name="MidForestLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.22, 0.09)
+motion_mirroring = Vector2(2176, 0)
 
-[node name="Cloud2" type="Polygon2D" parent="CloudsLayer"]
-visible = false
-position = Vector2(850, 80)
-color = Color(1, 1, 1, 0.6)
-polygon = PackedVector2Array(0, 25, 25, 8, 60, 0, 100, 2, 135, 16, 170, 8, 210, 20, 230, 42, 190, 50, 30, 50)
+[node name="MidgroundForest1" type="Sprite2D" parent="MidForestLayer"]
+modulate = Color(0.38, 0.56, 0.42, 0.75)
+position = Vector2(272, 290)
+scale = Vector2(0.38, 0.38)
+texture = ExtResource("24_oak")
 
-[node name="Cloud3" type="Polygon2D" parent="CloudsLayer"]
-visible = false
-position = Vector2(1400, 130)
-color = Color(1, 1, 1, 0.65)
-polygon = PackedVector2Array(0, 28, 22, 12, 55, 2, 95, 0, 125, 14, 155, 8, 195, 18, 220, 38, 185, 52, 25, 52)
+[node name="MidgroundForest2" type="Sprite2D" parent="MidForestLayer"]
+modulate = Color(0.38, 0.56, 0.42, 0.75)
+position = Vector2(816, 285)
+scale = Vector2(0.38, 0.38)
+texture = ExtResource("23_pine")
+
+[node name="MidgroundForest3" type="Sprite2D" parent="MidForestLayer"]
+modulate = Color(0.38, 0.56, 0.42, 0.75)
+position = Vector2(1360, 290)
+scale = Vector2(0.38, 0.38)
+texture = ExtResource("25_birch")
+
+[node name="MidgroundForest4" type="Sprite2D" parent="MidForestLayer"]
+modulate = Color(0.38, 0.56, 0.42, 0.75)
+position = Vector2(1904, 285)
+scale = Vector2(0.38, 0.38)
+texture = ExtResource("24_oak")
 
 [node name="NearHillsLayer" type="ParallaxLayer" parent="."]
-motion_scale = Vector2(0.35, 0.15)
+motion_scale = Vector2(0.28, 0.12)
 motion_mirroring = Vector2(1920, 0)
 
 [node name="NearHillsBody" type="Polygon2D" parent="NearHillsLayer"]
-color = Color(0.28, 0.34, 0.38, 0.95)
+color = Color(0.26, 0.52, 0.24, 0.95)
 polygon = PackedVector2Array(0, 1600, 0, 390, 280, 350, 540, 410, 860, 340, 1160, 390, 1480, 330, 1720, 370, 1840, 395, 1920, 390, 1920, 1600)
 
 [node name="NearHillHighlight" type="Line2D" parent="NearHillsLayer"]
 points = PackedVector2Array(0, 390, 280, 350, 540, 410, 860, 340, 1160, 390, 1480, 330, 1720, 370, 1840, 395, 1920, 390)
-width = 4.0
-default_color = Color(0.34, 0.42, 0.46, 0.7)
+width = 5.0
+default_color = Color(0.38, 0.70, 0.32, 0.9)
 joint_mode = 2
 begin_cap_mode = 2
 end_cap_mode = 2
 antialiased = true
-joint_mode = 2
-begin_cap_mode = 2
-end_cap_mode = 2
-antialiased = true
+
+[node name="NearSceneryLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.32, 0.13)
+motion_mirroring = Vector2(2176, 0)
+
+[node name="ForegroundScenery1" type="Sprite2D" parent="NearSceneryLayer"]
+modulate = Color(0.28, 0.48, 0.30, 0.82)
+position = Vector2(272, 330)
+scale = Vector2(0.48, 0.48)
+texture = ExtResource("23_pine")
+
+[node name="ForegroundScenery2" type="Sprite2D" parent="NearSceneryLayer"]
+modulate = Color(0.28, 0.48, 0.30, 0.82)
+position = Vector2(816, 335)
+scale = Vector2(0.46, 0.46)
+texture = ExtResource("24_oak")
+
+[node name="ForegroundScenery3" type="Sprite2D" parent="NearSceneryLayer"]
+modulate = Color(0.28, 0.48, 0.30, 0.82)
+position = Vector2(1360, 330)
+scale = Vector2(0.48, 0.48)
+texture = ExtResource("25_birch")
+
+[node name="ForegroundScenery4" type="Sprite2D" parent="NearSceneryLayer"]
+modulate = Color(0.28, 0.48, 0.30, 0.82)
+position = Vector2(1904, 330)
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("23_pine")
+
+[node name="Fence1" type="Sprite2D" parent="NearSceneryLayer"]
+position = Vector2(180, 415)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("16_fence")
+
+[node name="BerryBush1" type="Sprite2D" parent="NearSceneryLayer"]
+position = Vector2(450, 412)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("29_berry_bush")
+
+[node name="BrokenFence" type="Sprite2D" parent="NearSceneryLayer"]
+position = Vector2(720, 415)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("17_fence_broken")
+
+[node name="BushShrub1" type="Sprite2D" parent="NearSceneryLayer"]
+position = Vector2(780, 405)
+scale = Vector2(0.38, 0.38)
+texture = ExtResource("14_bush_shrub")
+
+[node name="HayBale1" type="Sprite2D" parent="NearSceneryLayer"]
+position = Vector2(960, 412)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("28_hay_bale")
+
+[node name="FlowerYellow1" type="Sprite2D" parent="NearSceneryLayer"]
+position = Vector2(1290, 420)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("18_flower_yellow")
+
+[node name="Signpost" type="Sprite2D" parent="NearSceneryLayer"]
+position = Vector2(1250, 412)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("21_signpost")
+
+[node name="FallenLog" type="Sprite2D" parent="NearSceneryLayer"]
+position = Vector2(1780, 418)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("22_fallen_log")

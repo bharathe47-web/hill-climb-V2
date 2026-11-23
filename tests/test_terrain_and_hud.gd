@@ -33,8 +33,11 @@ func _init() -> void:
 		seg.segment_type = s_type
 		seg.rebuild_segment()
 		assert(seg.collision_polygon.polygon.size() > 0, "Collision polygon must have vertices")
-		assert(seg.ground_polygon.polygon.size() == seg.collision_polygon.polygon.size(), "Visual polygon and collision polygon must have identical vertex count")
-		assert(seg.collision_polygon.polygon == seg.ground_polygon.polygon, "Visual polygon and collision geometry must match exactly")
+		assert(seg.ground_polygon.polygon.size() == seg.generated_surface_points.size() * 2, "Visible ground must be a shallow surface band")
+		assert(seg.subsoil_polygon.polygon.size() == seg.generated_surface_points.size() + 2, "Subsoil must continue below the surface band to the deep bottom")
+		assert(seg.collision_polygon.polygon.size() == seg.generated_surface_points.size() + 2, "Collision must retain the complete terrain body")
+		assert(seg.ground_polygon.polygon[0].is_equal_approx(seg.generated_surface_points[0]), "Visible crust must follow the exact collision surface")
+		assert(seg.subsoil_polygon.polygon[0].is_equal_approx(seg.generated_surface_points[0] + Vector2(0.0, seg.visual_surface_band_depth)), "Subsoil must begin immediately below the top crust")
 		
 		# Test surface query helper
 		var surface_mid := seg.get_surface_point_and_normal_at(seg.segment_length * 0.5)

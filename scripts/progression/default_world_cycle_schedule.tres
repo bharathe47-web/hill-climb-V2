@@ -1,0 +1,87 @@
+[gd_resource type="Resource" script_class="WorldCycleSchedule" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/WorldCycleSchedule.gd" id="1_cuvh7"]
+
+[resource]
+script = ExtResource("1_cuvh7")
+entries = Array[Dictionary]([{
+"active_biome": 0,
+"end_m": 1000.0,
+"from_biome": 0,
+"is_transition": false,
+"name": "Normal Land (Countryside Start)",
+"profile_key": "normal_land_start",
+"start_m": 0.0,
+"state": 0,
+"to_biome": 0
+}, {
+"active_biome": 0,
+"end_m": 1150.0,
+"from_biome": 0,
+"is_transition": true,
+"name": "Transition: Normal Land -> Heaven",
+"profile_key": "ramp_normal_to_heaven",
+"start_m": 1000.0,
+"state": 1,
+"to_biome": 1
+}, {
+"active_biome": 1,
+"end_m": 2200.0,
+"from_biome": 1,
+"is_transition": false,
+"name": "Heaven (Celestial Palace)",
+"profile_key": "heaven_core",
+"start_m": 1150.0,
+"state": 2,
+"to_biome": 1
+}, {
+"active_biome": 1,
+"end_m": 2350.0,
+"from_biome": 1,
+"is_transition": true,
+"name": "Transition: Heaven -> Normal Land",
+"profile_key": "ramp_heaven_to_normal",
+"start_m": 2200.0,
+"state": 3,
+"to_biome": 0
+}, {
+"active_biome": 0,
+"end_m": 3500.0,
+"from_biome": 0,
+"is_transition": false,
+"name": "Normal Land (Expert Slopes)",
+"profile_key": "normal_land_expert",
+"start_m": 2350.0,
+"state": 4,
+"to_biome": 0
+}, {
+"active_biome": 0,
+"end_m": 3650.0,
+"from_biome": 0,
+"is_transition": true,
+"name": "Transition: Normal Land -> Hell",
+"profile_key": "ramp_normal_to_hell",
+"start_m": 3500.0,
+"state": 5,
+"to_biome": 2
+}, {
+"active_biome": 2,
+"end_m": 5000.0,
+"from_biome": 2,
+"is_transition": false,
+"name": "Hell (Basalt & Magma Caverns)",
+"profile_key": "hell_core",
+"start_m": 3650.0,
+"state": 6,
+"to_biome": 2
+}, {
+"active_biome": 2,
+"end_m": 5150.0,
+"from_biome": 2,
+"is_transition": true,
+"name": "Transition: Hell -> Normal Land",
+"profile_key": "ramp_hell_to_normal",
+"start_m": 5000.0,
+"state": 7,
+"to_biome": 0
+}])

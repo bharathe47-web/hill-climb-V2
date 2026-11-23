@@ -9,6 +9,11 @@ signal collected(value: int)
 @export var coin_value: int = 5
 @export var bob_height: float = 4.0
 @export var bob_frequency: float = 4.0
+@export var biome_theme: String = "normal":
+	set(value):
+		if biome_theme != value:
+			biome_theme = value
+			apply_biome_theme(value)
 
 @onready var visual: Node2D = $Visual
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -110,12 +115,36 @@ func reset_pickup() -> void:
 	if is_instance_valid(visual):
 		visual.visible = true
 		visual.position.y = _initial_visual_y
-	collision_shape.set_deferred("disabled", false)
-	if is_instance_valid(visual):
-		visual.visible = true
-		visual.position.y = _initial_visual_y
 		visual.scale = Vector2.ONE
 	if is_instance_valid(popup_label):
 		popup_label.visible = false
 	if is_instance_valid(sparkle_particles):
 		sparkle_particles.emitting = false
+	apply_biome_theme(biome_theme)
+
+## Applies optional thematic visual styling per biome without changing collision or reward logic
+func apply_biome_theme(theme_name: String) -> void:
+	if biome_theme != theme_name:
+		biome_theme = theme_name
+	match theme_name.to_lower():
+		"heaven":
+			if is_instance_valid(glow_aura):
+				glow_aura.color = Color(1.0, 0.96, 0.8, 0.38)
+			if is_instance_valid(sparkle_particles):
+				sparkle_particles.color = Color(1.0, 0.98, 0.85, 1.0)
+			if is_instance_valid(visual):
+				visual.modulate = Color(1.05, 1.05, 0.95, 1.0)
+		"hell":
+			if is_instance_valid(glow_aura):
+				glow_aura.color = Color(1.0, 0.35, 0.1, 0.42)
+			if is_instance_valid(sparkle_particles):
+				sparkle_particles.color = Color(1.0, 0.5, 0.12, 1.0)
+			if is_instance_valid(visual):
+				visual.modulate = Color(1.0, 0.85, 0.75, 1.0)
+		_:
+			if is_instance_valid(glow_aura):
+				glow_aura.color = Color(1.0, 0.88, 0.25, 0.22)
+			if is_instance_valid(sparkle_particles):
+				sparkle_particles.color = Color(1.0, 0.88, 0.2, 1.0)
+			if is_instance_valid(visual):
+				visual.modulate = Color(1.0, 1.0, 1.0, 1.0)

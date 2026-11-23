@@ -38,20 +38,25 @@ func test_nitro_button_redesign() -> void:
 	var nitro_btn: TextureButton = hud.get_node_or_null("%NitroButton")
 	assert(nitro_btn != null, "NitroButton must exist in HUD")
 	assert(nitro_btn.texture_normal != null, "NitroButton must have normal texture")
-	assert(nitro_btn.texture_normal.resource_path.ends_with("nitro_bottle.png"), 
-		"NitroButton must use clean nitro_bottle artwork, got %s" % nitro_btn.texture_normal.resource_path)
+	assert(nitro_btn.texture_normal.resource_path.ends_with("control_button_base.png"),
+		"NitroButton must use the dedicated touch-control frame, got %s" % nitro_btn.texture_normal.resource_path)
+	var nitro_icon: TextureRect = nitro_btn.get_node_or_null("NitroButtonIcon")
+	assert(nitro_icon != null, "NitroButton must contain a separate centered bottle icon")
+	assert(nitro_icon.texture != null and nitro_icon.texture.resource_path.ends_with("nitro_bottle.png"), "NitroButtonIcon must use nitro_bottle artwork")
+	assert(nitro_icon.mouse_filter == Control.MOUSE_FILTER_IGNORE, "The icon must not intercept touch input")
 	
 	# Verify no unnecessary text label node exists on the button
 	var label = nitro_btn.get_node_or_null("NitroButtonLabel")
 	assert(label == null, "Old NitroButtonLabel text must be removed from NitroButton")
 	
-	# Verify position on left side cleanly above BrakePedal with matching size
+	# Verify position on left side beside BrakePedal keeping driving lane clear
 	var brake_pedal: TextureButton = hud.get_node_or_null("%BrakePedal")
 	var gas_pedal: TextureButton = hud.get_node_or_null("%GasPedal")
 	assert(brake_pedal != null, "BrakePedal must exist")
 	assert(gas_pedal != null, "GasPedal must exist")
-	assert(nitro_btn.offset_bottom <= brake_pedal.offset_top, 
-		"NitroButton (bottom: %f) must be cleanly above BrakePedal (top: %f)" % [nitro_btn.offset_bottom, brake_pedal.offset_top])
+	assert(nitro_btn.offset_left >= brake_pedal.offset_right or nitro_btn.offset_bottom <= brake_pedal.offset_top, 
+		"NitroButton must be positioned cleanly beside or above BrakePedal")
+	assert(nitro_btn.offset_top >= -220.0, "NitroButton must not encroach into upper driving lane")
 	# Verify mobile button size scaling (140x140 px for all three controls)
 	assert(brake_pedal.offset_right - brake_pedal.offset_left == 140.0, "BrakePedal width must be 140px")
 	assert(gas_pedal.offset_right - gas_pedal.offset_left == 140.0, "GasPedal width must be 140px")
