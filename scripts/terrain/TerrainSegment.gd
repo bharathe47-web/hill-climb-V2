@@ -642,6 +642,16 @@ func _apply_geometry() -> void:
 			ground_uv.append(Vector2((position.x + pt.x) * active_ground_tex_scale.x, g_tex_h))
 		ground_polygon.uv = ground_uv
 
+		# Subtle sunlit rim-light along the crest: brighter at the very top edge, easing to a
+		# slightly deeper tone toward the base of the thin crust, so hills read with more depth
+		# instead of a flat painted band. Mirrors the shading approach already used on SubsoilPolygon.
+		var ground_colors := PackedColorArray()
+		for pt in generated_surface_points:
+			ground_colors.append(Color(1.1, 1.1, 1.02, 1.0))
+		for i in range(generated_surface_points.size() - 1, -1, -1):
+			ground_colors.append(Color(0.88, 0.88, 0.88, 1.0))
+		ground_polygon.vertex_colors = ground_colors
+
 	# 2. Build the visible underground body below the top crust. Collision stays
 	# on poly_pts above, so visual material changes cannot alter vehicle physics.
 	if subsoil_polygon:

@@ -19,11 +19,18 @@ signal activated
 
 var _tween: Tween = null
 
+# Gentle idle sway so the board reads as genuinely hanging from its chains rather than
+# a static, pinned sprite. Small and slow enough to never interfere with the hover/press reads.
+var _idle_time: float = 0.0
+@export var idle_sway_degrees: float = 1.4
+@export var idle_sway_speed: float = 0.8
+
 func _ready() -> void:
 	ignore_texture_size = true
 	stretch_mode = TextureButton.STRETCH_SCALE
 	focus_mode = Control.FOCUS_ALL
 	pivot_offset = size * 0.5
+	_idle_time = randf() * TAU
 	_build_chains()
 	if coming_soon:
 		modulate = Color(0.72, 0.72, 0.72, 1.0)
@@ -35,6 +42,10 @@ func _ready() -> void:
 	button_down.connect(func(): _animate(0.96, Color(0.85, 0.8, 0.75, 1.0)))
 	button_up.connect(func(): _animate(1.04 if is_hovered() else 1.0, _rest_color()))
 	pressed.connect(func(): activated.emit())
+
+func _process(delta: float) -> void:
+	_idle_time += delta
+	rotation = sin(_idle_time * idle_sway_speed) * deg_to_rad(idle_sway_degrees)
 
 func _rest_color() -> Color:
 	return Color(0.72, 0.72, 0.72, 1.0) if coming_soon else Color.WHITE

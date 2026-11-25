@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" path="res://assets/environments/portals/hell_portal_arch.png" id="2_arch"]
 [ext_resource type="Texture2D" path="res://assets/environments/portals/hell_portal_vortex.png" id="3_vortex"]
 [ext_resource type="Texture2D" path="res://assets/environments/hell/vfx/particles/volcanic_cinder_spark_01.png" id="4_spark"]
+[ext_resource type="Texture2D" path="res://assets/environments/portals/portal_glow_soft.png" id="5_glow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_trigger"]
 size = Vector2(120, 320)
@@ -14,6 +15,13 @@ blend_mode = 1
 [node name="HellPortal" type="Node2D"]
 z_index = -1
 script = ExtResource("1_script")
+
+[node name="Glow" type="Sprite2D" parent="."]
+material = SubResource("CanvasItemMaterial_add")
+position = Vector2(0, -140)
+scale = Vector2(0.95, 1.1)
+modulate = Color(1.0, 0.35, 0.15, 0.55)
+texture = ExtResource("5_glow")
 
 [node name="Vortex" type="Sprite2D" parent="."]
 material = SubResource("CanvasItemMaterial_add")

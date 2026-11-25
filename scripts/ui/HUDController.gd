@@ -5,6 +5,10 @@ extends Control
 ## Binds cleanly to GameManager and Vehicle signals with zero hard-coded coupling.
 ## Responsive across mobile and desktop display aspect ratios.
 
+# Loaded once at parse time rather than via load() inside _spawn_coin_popup(), which would
+# otherwise re-touch the resource cache on every single coin pickup.
+const _COIN_POPUP_FONT: FontFile = preload("res://assets/fonts/Boxy-Bold.ttf")
+
 @onready var distance_label: Label = %DistanceLabel
 @onready var best_distance_label: Label = %BestDistanceLabel
 @onready var fuel_bar: ProgressBar = %FuelBar
@@ -39,6 +43,15 @@ var _target_nitro: float = 100.0
 var _pothole_pulse_active: bool = false
 var _pothole_pulse_timer: float = 0.0
 var _last_coins_count: int = 0
+
+# Spring-damped needle motion (gives the gauges a touch of overshoot/settle instead of a flat lerp)
+var _rpm_needle_angular_vel: float = 0.0
+var _speed_needle_angular_vel: float = 0.0
+const _NEEDLE_SPRING_STIFFNESS: float = 220.0
+const _NEEDLE_SPRING_DAMPING: float = 16.0
+
+# Fuel bar critical-state border pulse (separate from the text beacon flash)
+var _fuel_critical_pulse_timer: float = 0.0
 
 # Style boxes for dynamic fuel bar feedback
 var _fuel_style_healthy: StyleBoxFlat
@@ -121,9 +134,14 @@ func _init_fuel_styles() -> void:
 	
 	_fuel_style_critical = StyleBoxFlat.new()
 	_fuel_style_critical.bg_color = Color(0.95, 0.22, 0.18, 1.0)
-	_fuel_style_critical.border_width_top = 1
+	_fuel_style_critical.border_width_top = 2
+	_fuel_style_critical.border_width_bottom = 2
+	_fuel_style_critical.border_width_left = 2
+	_fuel_style_critical.border_width_right = 2
 	_fuel_style_critical.border_color = Color(1.0, 0.55, 0.5, 0.8)
 	_fuel_style_critical.set_corner_radius_all(5)
+	_fuel_style_critical.shadow_color = Color(1.0, 0.25, 0.2, 0.55)
+	_fuel_style_critical.shadow_size = 4
 
 func _process(delta: float) -> void:
 	# Smoothly animate fuel bar towards target level during driving
@@ -162,7 +180,7 @@ func _process(delta: float) -> void:
 			ang_vel = absf(rw.angular_velocity)
 		var rpm_ratio: float = clampf(ang_vel / 80.0, 0.0, 1.0)
 		var target_rot: float = deg_to_rad(lerpf(-120.0, 120.0, rpm_ratio))
-		_rpm_needle.rotation = lerp_angle(_rpm_needle.rotation, target_rot, delta * 12.0)
+		_rpm_needle.rotation = _spring_toward_angle(_rpm_needle.rotation, target_rot, delta, true)
 
 	# Animate Speedometer needle and digital readout based on vehicle.get_speed_kmh()
 	if is_instance_valid(speed_needle) and is_instance_valid(_vehicle_ref):
@@ -171,7 +189,7 @@ func _process(delta: float) -> void:
 			speed_kmh = maxf(0.0, _vehicle_ref.get_speed_kmh())
 		var speed_ratio: float = clampf(speed_kmh / 220.0, 0.0, 1.0)
 		var target_speed_rot: float = deg_to_rad(lerpf(-135.0, 135.0, speed_ratio))
-		speed_needle.rotation = lerp_angle(speed_needle.rotation, target_speed_rot, delta * 14.0)
+		speed_needle.rotation = _spring_toward_angle(speed_needle.rotation, target_speed_rot, delta, false)
 		if is_instance_valid(speed_digital_label):
 			speed_digital_label.text = str(int(round(speed_kmh)))
 
@@ -188,6 +206,30 @@ func _process(delta: float) -> void:
 		if low_fuel_indicator and low_fuel_indicator.visible:
 			low_fuel_indicator.visible = false
 			low_fuel_indicator.scale = Vector2.ONE
+
+	# Pulse the fuel bar's own border/glow (not just the beacon text) when critical,
+	# so the warning reads even if the player isn't looking at the text label.
+	if _is_low_fuel and _fuel_style_critical:
+		_fuel_critical_pulse_timer += delta * 6.5
+		var glow: float = (sin(_fuel_critical_pulse_timer) * 0.5) + 0.5
+		_fuel_style_critical.border_color = Color(1.0, 0.55, 0.5, 0.8).lerp(Color(1.0, 0.92, 0.3, 1.0), glow)
+		_fuel_style_critical.shadow_size = roundi(lerpf(3.0, 10.0, glow))
+
+## Semi-implicit spring toward a target angle: produces a touch of needle overshoot/settle
+## instead of a flat lerp, which reads as a more mechanical, weighted gauge. `is_rpm` selects
+## a slightly snappier spring for the RPM needle vs. the heavier speedometer needle.
+func _spring_toward_angle(current: float, target: float, delta: float, is_rpm: bool) -> float:
+	var diff: float = angle_difference(current, target)
+	var stiffness: float = _NEEDLE_SPRING_STIFFNESS * (1.15 if is_rpm else 1.0)
+	var accel: float = diff * stiffness
+	if is_rpm:
+		_rpm_needle_angular_vel += accel * delta
+		_rpm_needle_angular_vel *= clampf(1.0 - _NEEDLE_SPRING_DAMPING * delta, 0.0, 1.0)
+		return current + _rpm_needle_angular_vel * delta
+	else:
+		_speed_needle_angular_vel += accel * delta
+		_speed_needle_angular_vel *= clampf(1.0 - _NEEDLE_SPRING_DAMPING * delta, 0.0, 1.0)
+		return current + _speed_needle_angular_vel * delta
 
 func _on_gas_down() -> void:
 	Input.action_press("accelerate")
@@ -366,7 +408,30 @@ func _on_coins_updated(count: int) -> void:
 			var tw := create_tween()
 			tw.tween_property(coins_panel, "scale", Vector2(1.1, 1.1), 0.1)
 			tw.tween_property(coins_panel, "scale", Vector2.ONE, 0.15)
+			_spawn_coin_popup(count - _last_coins_count)
 	_last_coins_count = count
+
+## Spawns a transient "+N" label that floats up and fades out above the coin counter,
+## giving each pickup a readable, satisfying confirmation beyond the counter tick and pop.
+func _spawn_coin_popup(delta_coins: int) -> void:
+	if delta_coins <= 0 or not is_instance_valid(coins_panel):
+		return
+	var popup := Label.new()
+	popup.text = "+%d" % delta_coins
+	popup.add_theme_font_override("font", _COIN_POPUP_FONT)
+	popup.add_theme_font_size_override("font_size", 20)
+	popup.add_theme_color_override("font_color", Color(1.0, 0.86, 0.25, 1.0))
+	popup.add_theme_color_override("font_outline_color", Color(0.25, 0.12, 0.02, 1.0))
+	popup.add_theme_constant_override("outline_size", 5)
+	popup.z_index = 50
+	popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(popup)
+	popup.global_position = coins_panel.global_position + Vector2(coins_panel.size.x * 0.5 - 10.0, -6.0)
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(popup, "position:y", popup.position.y - 34.0, 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(popup, "modulate:a", 0.0, 0.7).set_delay(0.15)
+	tw.chain().tween_callback(popup.queue_free)
 
 func _on_run_paused(is_paused: bool) -> void:
 	if pause_banner:
@@ -761,12 +826,26 @@ func _on_launch_zone_entered_900m(_target_dist_m: float, _cycle_idx: int) -> voi
 		_is_launch_window_active = false
 		_show_ramp_prompt(title, subtitle, Color(0.95, 0.6, 0.2, 1.0), Color(1.0, 0.7, 0.3))
 
-func _on_biome_changed_900m(_old_biome: int, new_biome: int, _cycle_idx: int) -> void:
+# A rotating set of flavor lines for the Normal Land return toast, so a player doing their
+# 20th lap of an endless run doesn't see the exact same line every single time.
+const _NORMAL_LAND_FLAVOR_LINES: Array[String] = [
+	"Endless Journey Continues",
+	"Back on Solid Ground",
+	"Open Road Ahead",
+	"Steady Driving Resumes",
+	"Keep the Wheels Turning",
+]
+
+func _on_biome_changed_900m(_old_biome: int, new_biome: int, cycle_idx: int) -> void:
 	_hide_ramp_prompt()
 	_is_launch_window_active = false
 	match new_biome:
 		WorldCycleSchedule.BiomeType.NORMAL_LAND:
-			show_toast("✦ NORMAL LAND ✦", "Endless Journey Continues", Color(0.35, 0.95, 0.45))
+			var flavor: String = _NORMAL_LAND_FLAVOR_LINES[cycle_idx % _NORMAL_LAND_FLAVOR_LINES.size()]
+			# Once the player has completed at least one full lap, quietly tack on the lap
+			# count so repeated loops read as ongoing progress rather than a static replay.
+			var subtitle: String = flavor if cycle_idx <= 0 else "%s  •  Lap %d" % [flavor, cycle_idx + 1]
+			show_toast("✦ NORMAL LAND ✦", subtitle, Color(0.35, 0.95, 0.45))
 		WorldCycleSchedule.BiomeType.HEAVEN:
 			show_toast("✦ HEAVEN ✦", "Celestial Palace", Color(1.0, 0.9, 0.25))
 		WorldCycleSchedule.BiomeType.HELL:
