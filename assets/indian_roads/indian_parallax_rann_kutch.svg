@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#93c5fd"/>
+      <stop offset="60%" stop-color="#e0f2fe"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <linearGradient id="saltFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="saltWhite" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="50%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#gSky)"/>
+  <!-- Shimmering Salt Mirage Line -->
+  <rect x="0" y="380" width="1920" height="40" fill="#bae6fd" opacity="0.4"/>
+  <!-- Far Salt Bed Flat -->
+  <path d="M 0,400 Q 480,395 960,400 T 1920,400 L 1920,720 L 0,720 Z" fill="url(#saltFar)"/>
+  <!-- White Desert Crystal Expanse -->
+  <path d="M 0,460 Q 320,450 640,460 T 1280,455 T 1920,460 L 1920,720 L 0,720 Z" fill="url(#saltWhite)"/>
+  <!-- Salt Ridge Formations -->
+  <path d="M 0,540 Q 400,525 800,535 T 1600,530 T 1920,540 L 1920,720 L 0,720 Z" fill="#e2e8f0" opacity="0.7"/>
+</svg>

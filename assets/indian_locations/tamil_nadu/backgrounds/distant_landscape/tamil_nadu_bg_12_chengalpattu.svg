@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="sky12" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="60%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#bae6fd"/>
+    </linearGradient>
+    <linearGradient id="lakeWater" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#sky12)"/>
+  <!-- Low distant hills around Chengalpattu lake basin -->
+  <path d="M 0,380 Q 280,340 560,370 T 1120,355 T 1680,375 L 1920,370 L 1920,720 L 0,720 Z" fill="#475569" opacity="0.5"/>
+  <!-- Vast Kolavai Lake water body reflecting sky -->
+  <path d="M 0,410 Q 340,385 680,400 T 1360,395 T 1920,405 L 1920,470 L 0,470 Z" fill="url(#lakeWater)" opacity="0.85"/>
+  <!-- Water highlights -->
+  <path d="M 120,435 Q 240,430 360,433 M 780,425 Q 920,420 1060,423 M 1420,430 Q 1580,425 1740,428" stroke="#ffffff" stroke-width="2" opacity="0.75" fill="none"/>
+  <!-- Wetland reeds, lotus fringes & green riparian banks -->
+  <path d="M 0,470 Q 360,440 720,460 T 1440,450 T 1920,465 L 1920,720 L 0,720 Z" fill="#059669" opacity="0.8"/>
+  <path d="M 0,520 Q 380,495 760,510 T 1520,500 T 1920,515 L 1920,720 L 0,720 Z" fill="#047857"/>
+</svg>
