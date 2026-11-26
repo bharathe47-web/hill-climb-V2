@@ -8,6 +8,9 @@ signal menu_requested
 @onready var resume_button: Button = %ResumeButton
 @onready var retry_button: Button = %RetryButton
 @onready var main_menu_button: Button = %MainMenuButton
+@onready var panel: PanelContainer = get_node_or_null("%Panel")
+
+var _entrance_tween: Tween = null
 
 var game_manager_ref: Node
 
@@ -35,8 +38,24 @@ func bind_game_manager(gm: Node) -> void:
 
 func _on_run_paused(is_paused: bool) -> void:
 	visible = is_paused
-	if visible and is_instance_valid(resume_button):
-		resume_button.grab_focus()
+	if visible:
+		_play_entrance_animation()
+		if is_instance_valid(resume_button):
+			resume_button.grab_focus()
+
+## Small scale+fade pop so the pause card arrives with a bit of weight instead of snapping
+## instantly to full size.
+func _play_entrance_animation() -> void:
+	if not is_instance_valid(panel):
+		return
+	if _entrance_tween and _entrance_tween.is_valid():
+		_entrance_tween.kill()
+	panel.pivot_offset = panel.size * 0.5
+	panel.scale = Vector2(0.82, 0.82)
+	panel.modulate.a = 0.0
+	_entrance_tween = create_tween().set_parallel(true)
+	_entrance_tween.tween_property(panel, "scale", Vector2.ONE, 0.26).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_entrance_tween.tween_property(panel, "modulate:a", 1.0, 0.18)
 
 func _on_run_started() -> void:
 	visible = false

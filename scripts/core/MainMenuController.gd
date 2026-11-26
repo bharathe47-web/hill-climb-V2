@@ -33,11 +33,32 @@ const QUIT_MARGIN_TOP := 56.0
 @onready var difficulty_layer: Control = %DifficultyLayer
 @onready var difficulty_menu: Control = %SurvivalDifficultyMenu
 
+# Idle parallax drift on the home screen's sky layers, so the scene feels alive while the
+# player reads the signboards rather than sitting perfectly static.
+var _parallax_time: float = 0.0
+var _clouds: Control = null
+var _distant_mountains: Control = null
+var _hills_forest: Control = null
+
 func _ready() -> void:
 	_connect_signals()
 	resized.connect(_layout)
 	_layout()
 	refresh_vehicle()
+	if is_instance_valid(stage):
+		_clouds = stage.get_node_or_null("Clouds")
+		_distant_mountains = stage.get_node_or_null("DistantMountains")
+		_hills_forest = stage.get_node_or_null("MidgroundHillsForest")
+	_parallax_time = randf() * TAU
+
+func _process(delta: float) -> void:
+	_parallax_time += delta
+	if is_instance_valid(_clouds):
+		_clouds.position.x = sin(_parallax_time * 0.12) * 16.0
+	if is_instance_valid(_distant_mountains):
+		_distant_mountains.position.x = sin(_parallax_time * 0.08 + 1.4) * 6.0
+	if is_instance_valid(_hills_forest):
+		_hills_forest.position.x = sin(_parallax_time * 0.18 + 2.6) * 3.0
 
 ## Shows the vehicle currently selected in the Garage (single source: SaveManager).
 func refresh_vehicle() -> void:

@@ -14,8 +14,10 @@ extends Control
 @onready var retry_button: Button = %RetryButton
 @onready var game_over_audio: AudioStreamPlayer = get_node_or_null("GameOverAudio")
 @onready var click_audio: AudioStreamPlayer = get_node_or_null("ClickAudio")
+@onready var card_panel: PanelContainer = get_node_or_null("%CardPanel")
 
 var game_manager_ref: Node
+var _entrance_tween: Tween = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -40,6 +42,7 @@ func _on_run_started() -> void:
 
 func _on_run_finished(final_distance: float, coins: int = 0, reason: String = "") -> void:
 	visible = true
+	_play_entrance_animation()
 	if is_instance_valid(game_over_audio):
 		game_over_audio.play()
 	
@@ -58,8 +61,6 @@ func _on_run_finished(final_distance: float, coins: int = 0, reason: String = ""
 			title_label.modulate = Color(0.35, 0.75, 1.0)
 			reason_label.text = "Good driving effort!"
 	
-	distance_value_label.text = "%d m" % int(final_distance)
-	
 	var best_dist: float = final_distance
 	var is_record: bool = false
 	var run_time: float = 0.0
@@ -71,16 +72,46 @@ func _on_run_finished(final_distance: float, coins: int = 0, reason: String = ""
 			is_record = game_manager_ref.is_new_record
 		if "run_time" in game_manager_ref:
 			run_time = game_manager_ref.run_time
-			
-	best_value_label.text = "%d m" % int(best_dist)
-	coins_value_label.text = "+%d" % coins
-	time_value_label.text = "%.1f s" % run_time
+
+	# Stats count up from zero in a short, staggered sequence instead of appearing instantly,
+	# so the results card reads as a small reveal rather than a static printout.
+	_animate_stat_count_up(distance_value_label, final_distance, 0.5, 0.0, func(v: float) -> String: return "%d m" % int(round(v)))
+	_animate_stat_count_up(best_value_label, best_dist, 0.5, 0.08, func(v: float) -> String: return "%d m" % int(round(v)))
+	_animate_stat_count_up(coins_value_label, float(coins), 0.5, 0.16, func(v: float) -> String: return "+%d" % int(round(v)))
+	_animate_stat_count_up(time_value_label, run_time, 0.5, 0.24, func(v: float) -> String: return "%.1f s" % v)
 	
 	if is_instance_valid(new_record_badge):
 		new_record_badge.visible = is_record
 	
 	if is_instance_valid(retry_button):
 		retry_button.grab_focus()
+
+## Animates a stat label counting up from 0 to target_value over `duration` seconds, after an
+## optional `delay` (used to stagger the four stats so they reveal one after another rather
+## than all at once). `format_fn` turns the current interpolated float into the label's text,
+## so each stat can keep its own formatting (whole meters, a "+" prefix, one decimal of time).
+func _animate_stat_count_up(label: Label, target_value: float, duration: float, delay: float, format_fn: Callable) -> void:
+	if not is_instance_valid(label):
+		return
+	label.text = format_fn.call(0.0)
+	var tw := create_tween()
+	if delay > 0.0:
+		tw.tween_interval(delay)
+	tw.tween_method(func(v: float) -> void: label.text = format_fn.call(v), 0.0, target_value, duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+## Small scale+fade pop so the results card arrives with a bit of weight instead of snapping
+## instantly to full size, mirroring the pause menu's entrance.
+func _play_entrance_animation() -> void:
+	if not is_instance_valid(card_panel):
+		return
+	if _entrance_tween and _entrance_tween.is_valid():
+		_entrance_tween.kill()
+	card_panel.pivot_offset = card_panel.size * 0.5
+	card_panel.scale = Vector2(0.82, 0.82)
+	card_panel.modulate.a = 0.0
+	_entrance_tween = create_tween().set_parallel(true)
+	_entrance_tween.tween_property(card_panel, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_entrance_tween.tween_property(card_panel, "modulate:a", 1.0, 0.2)
 
 func _on_retry_pressed() -> void:
 	if is_instance_valid(click_audio):

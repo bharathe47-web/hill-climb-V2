@@ -145,7 +145,6 @@ func _ready() -> void:
 	_setup_ui()
 	_setup_collectibles()
 	start_run()
-	print("[Survival] Initialized. Difficulty: %s, Spawning enabled: %s, Registered obstacles: %d" % [difficulty_config.get("name", "EASY"), enable_obstacle_spawning, obstacle_scenes.size()])
 
 func _init_audio() -> void:
 	# Ensure music player is available
@@ -668,8 +667,6 @@ func _spawn_obstacle_at(target_x: float) -> Node2D:
 	if obs.has_signal("obstacle_hit") and not obs.obstacle_hit.is_connected(_on_obstacle_reported_hit):
 		obs.obstacle_hit.connect(_on_obstacle_reported_hit.bind(obs))
 
-	var obs_name: String = str(obs.get("obstacle_id")) if "obstacle_id" in obs else str(obs.name)
-	print("[Survival] Spawned '%s' at (%0.1f, %0.1f), target surface_y=%0.1f" % [obs_name, target_x, spawn_y, surface_y])
 	return obs
 
 func _trigger_unburned_asteroid_spawn() -> Node2D:
@@ -707,7 +704,6 @@ func _trigger_unburned_asteroid_spawn() -> Node2D:
 	if ast.has_signal("obstacle_hit") and not ast.obstacle_hit.is_connected(_on_obstacle_reported_hit):
 		ast.obstacle_hit.connect(_on_obstacle_reported_hit.bind(ast))
 
-	print("[Survival] Spawned Unburned Asteroid at (%0.1f, %0.1f) - NO WARNING" % [target_x, spawn_y])
 	# CRITICAL: NO WARNING SIGN CREATED FOR ASTEROIDS!
 	return ast
 
@@ -752,7 +748,6 @@ func _trigger_burning_asteroid_spawn() -> Node2D:
 	if b_ast.has_signal("burning_impact_occurred") and not b_ast.burning_impact_occurred.is_connected(_on_burning_asteroid_ground_impact):
 		b_ast.burning_impact_occurred.connect(_on_burning_asteroid_ground_impact)
 
-	print("[Survival] Spawned Burning Asteroid at (%0.1f, %0.1f) - NO WARNING" % [target_x, spawn_y])
 	# CRITICAL: NO WARNING SIGN CREATED FOR ASTEROIDS!
 	return b_ast
 
@@ -781,7 +776,6 @@ func create_pothole_at(pos: Vector2, angle: float = 0.0) -> Node2D:
 	_active_potholes.append(pot)
 	if pot.has_signal("vehicle_entered_pothole"):
 		pot.vehicle_entered_pothole.connect(func(_veh, _pos): play_sfx(SFX_POTHOLE, -2.0))
-	print("[Survival] Created Pothole at (%0.1f, %0.1f)" % [pos.x, pos.y])
 	return pot
 
 func _on_obstacle_reported_hit(obstacle_id: String, _hit_pos: Vector2, obs_ref: Node = null, _extra: Node = null) -> void:
