@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="sky06" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="50%" stop-color="#38bdf8"/>
+      <stop offset="85%" stop-color="#bae6fd"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <linearGradient id="seaCoast" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0369a1"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="sandCoast" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#fde047"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#sky06)"/>
+  <!-- Coastal Marine Sky Clouds -->
+  <path d="M 180,130 Q 340,115 500,128 Q 360,145 180,130 Z" fill="#ffffff" opacity="0.7"/>
+  <path d="M 860,140 Q 1020,125 1200,138 Q 1040,155 860,140 Z" fill="#ffffff" opacity="0.65"/>
+  <path d="M 1480,120 Q 1640,105 1820,118 Q 1660,135 1480,120 Z" fill="#ffffff" opacity="0.75"/>
+  <!-- Bay of Bengal Azure Seascape Horizon -->
+  <rect x="0" y="350" width="1920" height="110" fill="url(#seaCoast)"/>
+  <path d="M 0,460 L 1920,460" stroke="#ffffff" stroke-width="2.5" stroke-dasharray="40 20" opacity="0.7"/>
+  <!-- Chennai Distant Skyline & Harbor Silhouettes on Horizon -->
+  <path d="M 640,350 L 640,320 L 660,320 L 660,350 Z" fill="#1e293b" opacity="0.55"/>
+  <path d="M 670,350 L 670,305 L 705,305 L 705,350 Z" fill="#334155" opacity="0.6"/>
+  <path d="M 715,350 L 715,330 L 735,330 L 735,350 Z" fill="#1e293b" opacity="0.55"/>
+  <!-- Marina Lighthouse Silhouette -->
+  <path d="M 1360,350 L 1366,280 L 1374,280 L 1380,350 Z" fill="#0f172a" opacity="0.65"/>
+  <!-- Casuarina Coastal Grove Belts -->
+  <path d="M 0,460 Q 280,425 560,445 T 1120,435 T 1680,450 T 1920,440 L 1920,720 L 0,720 Z" fill="#15803d" opacity="0.75"/>
+  <!-- Marina Beach Golden Sand Verge -->
+  <path d="M 0,520 Q 360,485 720,505 T 1440,495 T 1920,515 L 1920,720 L 0,720 Z" fill="#eab308" opacity="0.65"/>
+  <path d="M 0,580 Q 300,550 600,565 T 1200,555 T 1800,570 L 1920,565 L 1920,720 L 0,720 Z" fill="#ca8a04"/>
+</svg>

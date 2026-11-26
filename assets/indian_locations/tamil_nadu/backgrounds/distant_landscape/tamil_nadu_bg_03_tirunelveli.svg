@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="sky03" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="65%" stop-color="#bae6fd"/>
+      <stop offset="100%" stop-color="#fed7aa"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#sky03)"/>
+  <!-- Distant Kalakkad Rocky Ridges -->
+  <path d="M 0,360 L 220,310 L 460,350 L 720,280 L 980,340 L 1240,290 L 1520,330 L 1760,270 L 1920,320 L 1920,720 L 0,720 Z" fill="#475569" opacity="0.6"/>
+  <!-- Thamirabarani River Valley Green Strip -->
+  <path d="M 0,420 Q 380,380 760,405 T 1520,395 T 1920,415 L 1920,720 L 0,720 Z" fill="#15803d" opacity="0.75"/>
+  <!-- Red Laterite Soil & Palmyra Countryside -->
+  <path d="M 0,475 Q 340,440 680,460 T 1360,450 T 1920,465 L 1920,720 L 0,720 Z" fill="#c2410c" opacity="0.85"/>
+  <path d="M 0,525 Q 380,495 760,515 T 1520,505 T 1920,520 L 1920,720 L 0,720 Z" fill="#9a3412"/>
+</svg>

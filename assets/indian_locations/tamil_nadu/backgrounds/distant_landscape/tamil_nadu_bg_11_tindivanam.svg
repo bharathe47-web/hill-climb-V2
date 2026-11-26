@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="sky11" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="55%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#sky11)"/>
+  <!-- Expansive rural sky with scattered clouds -->
+  <ellipse cx="680" cy="140" rx="180" ry="36" fill="#ffffff" opacity="0.6"/>
+  <ellipse cx="1480" cy="120" rx="140" ry="32" fill="#ffffff" opacity="0.65"/>
+  <!-- Distant tree lines & gentle low ridges -->
+  <path d="M 0,390 Q 340,360 680,380 T 1360,370 T 1920,385 L 1920,720 L 0,720 Z" fill="#15803d" opacity="0.6"/>
+  <!-- Famous Tamarind and Mango highway farmland -->
+  <path d="M 0,440 Q 360,410 720,430 T 1440,420 T 1920,435 L 1920,720 L 0,720 Z" fill="#65a30d" opacity="0.75"/>
+  <path d="M 0,490 Q 320,465 640,480 T 1280,470 T 1920,485 L 1920,720 L 0,720 Z" fill="#4d7c0f" opacity="0.9"/>
+  <path d="M 0,535 Q 380,510 760,525 T 1520,515 T 1920,530 L 1920,720 L 0,720 Z" fill="#3f6212"/>
+</svg>

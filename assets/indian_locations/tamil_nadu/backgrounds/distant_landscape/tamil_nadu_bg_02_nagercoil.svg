@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="sky02" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="60%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <linearGradient id="ghats02" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#312e81"/>
+      <stop offset="100%" stop-color="#4338ca"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#sky02)"/>
+  <!-- Agasthiyamalai Mountain Peaks -->
+  <path d="M 0,340 L 140,260 L 290,305 L 450,220 L 620,295 L 810,200 L 980,275 L 1180,185 L 1360,270 L 1540,210 L 1730,285 L 1920,230 L 1920,720 L 0,720 Z" fill="url(#ghats02)" opacity="0.65"/>
+  <!-- Middle Hills with Forest Canopy -->
+  <path d="M 0,380 L 180,320 L 370,370 L 580,290 L 790,355 L 1020,280 L 1240,345 L 1460,270 L 1680,335 L 1920,290 L 1920,720 L 0,720 Z" fill="#1e1b4b" opacity="0.75"/>
+  <!-- Lush Green Foothills & Banana/Coconut Valleys -->
+  <path d="M 0,440 Q 320,390 640,420 T 1280,410 T 1920,430 L 1920,720 L 0,720 Z" fill="#15803d" opacity="0.85"/>
+  <path d="M 0,500 Q 360,460 720,485 T 1440,475 T 1920,490 L 1920,720 L 0,720 Z" fill="#166534"/>
+</svg>

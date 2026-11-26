@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="sky05" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="55%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#dcfce7"/>
+    </linearGradient>
+    <linearGradient id="paddyFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#166534"/>
+    </linearGradient>
+    <linearGradient id="paddyMid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#sky05)"/>
+  <!-- Fluffy Agricultural Clouds -->
+  <ellipse cx="380" cy="150" rx="180" ry="40" fill="#ffffff" opacity="0.75"/>
+  <ellipse cx="440" cy="130" rx="130" ry="45" fill="#ffffff" opacity="0.85"/>
+  <ellipse cx="1280" cy="160" rx="210" ry="42" fill="#ffffff" opacity="0.7"/>
+  <ellipse cx="1360" cy="135" rx="150" ry="48" fill="#ffffff" opacity="0.8"/>
+  <!-- Distant Trichy Rockfort Silhouette & Low Blue Ridge -->
+  <path d="M 0,390 Q 300,340 600,370 T 1200,350 T 1800,375 L 1920,380 L 1920,720 L 0,720 Z" fill="#60a5fa" opacity="0.45"/>
+  <!-- Distant Rockfort Outcrop Silhouette in Distance -->
+  <path d="M 720,360 L 750,290 L 780,275 L 810,290 L 840,360 Z" fill="#3b82f6" opacity="0.5"/>
+  <!-- Far Emerald Paddy Terraces -->
+  <path d="M 0,440 Q 360,395 720,425 T 1440,410 T 1920,430 L 1920,720 L 0,720 Z" fill="url(#paddyFar)" opacity="0.8"/>
+  <!-- Mid Fertile River Fields & Tamarind Tree Horizons -->
+  <path d="M 0,500 Q 280,465 560,485 T 1120,470 T 1680,490 T 1920,485 L 1920,720 L 0,720 Z" fill="url(#paddyMid)" opacity="0.9"/>
+  <!-- Foreground Alluvial Riverbanks -->
+  <path d="M 0,560 Q 380,530 760,545 T 1520,535 T 1920,555 L 1920,720 L 0,720 Z" fill="#14532d"/>
+</svg>

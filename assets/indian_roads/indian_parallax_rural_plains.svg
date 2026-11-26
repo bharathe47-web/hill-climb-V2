@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="rSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="55%" stop-color="#bae6fd"/>
+      <stop offset="100%" stop-color="#f0fdf4"/>
+    </linearGradient>
+    <linearGradient id="farField" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#84cc16"/>
+      <stop offset="100%" stop-color="#65a30d"/>
+    </linearGradient>
+    <linearGradient id="midField" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+    <linearGradient id="nearField" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#rSky)"/>
+  <!-- Clouds -->
+  <ellipse cx="400" cy="180" rx="140" ry="40" fill="#ffffff" opacity="0.75"/>
+  <ellipse cx="460" cy="160" rx="100" ry="45" fill="#ffffff" opacity="0.85"/>
+  <ellipse cx="1300" cy="150" rx="180" ry="45" fill="#ffffff" opacity="0.7"/>
+  <ellipse cx="1380" cy="130" rx="120" ry="50" fill="#ffffff" opacity="0.8"/>
+  <!-- Distant Blue Ridge Hills -->
+  <path d="M 0,360 Q 300,310 600,345 T 1200,320 T 1800,350 L 1920,355 L 1920,720 L 0,720 Z" fill="#93c5fd" opacity="0.5"/>
+  <!-- Far Agricultural Fields -->
+  <path d="M 0,420 Q 380,370 760,405 T 1520,390 T 1920,415 L 1920,720 L 0,720 Z" fill="url(#farField)" opacity="0.8"/>
+  <!-- Mid Mustard / Wheat Gold Patches -->
+  <path d="M 0,480 Q 280,440 560,470 T 1120,450 T 1680,475 T 1920,470 L 1920,720 L 0,720 Z" fill="url(#midField)" opacity="0.85"/>
+  <!-- Lush Green Foreground Plains -->
+  <path d="M 0,540 Q 360,500 720,530 T 1440,515 T 1920,535 L 1920,720 L 0,720 Z" fill="url(#nearField)"/>
+</svg>

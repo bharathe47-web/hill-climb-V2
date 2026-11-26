@@ -11,6 +11,7 @@ const SaveManager = preload("res://scripts/core/SaveManager.gd")
 signal start_game_requested
 signal start_survival_requested(difficulty: int)
 signal start_garage_requested
+signal start_indian_roads_requested
 signal quit_requested
 
 ## Design resolution of the home-screen art; the Stage node is scaled to fit the viewport width.
@@ -100,8 +101,7 @@ func _on_survival_pressed() -> void:
 	_open_difficulty_selection()
 
 func _on_indian_roads_pressed() -> void:
-	# Indian Roads is not implemented yet: no fake transition, just feedback.
-	indian_roads_sign.shake()
+	start_indian_roads_requested.emit()
 
 func _open_difficulty_selection() -> void:
 	difficulty_layer.visible = true

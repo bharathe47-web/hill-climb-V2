@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 360" width="1920" height="360">
+  <path d="M 0,215 Q 380,180 760,200 T 1520,190 T 1920,210 L 1920,360 L 0,360 Z" fill="#9a3412" opacity="0.8"/>
+  <!-- Iconic tall fan-topped Palmyra Palms -->
+  <g fill="#451a03">
+    <rect x="240" y="70" width="6" height="150" rx="3"/>
+    <circle cx="243" cy="65" r="22"/>
+    <rect x="680" y="60" width="6" height="160" rx="3"/>
+    <circle cx="683" cy="55" r="24"/>
+    <rect x="1140" y="75" width="6" height="145" rx="3"/>
+    <circle cx="1143" cy="70" r="20"/>
+    <rect x="1580" y="65" width="6" height="155" rx="3"/>
+    <circle cx="1583" cy="60" r="23"/>
+  </g>
+  <path d="M 0,265 Q 320,235 640,255 T 1280,245 T 1920,260 L 1920,360 L 0,360 Z" fill="#78350f"/>
+</svg>
