@@ -25,12 +25,19 @@ var _route_canvas: Control = null
 
 const STATE_ROUTE_GEOMETRY := {
 	"tamil_nadu": [
-		{"pos": Vector2(0.42, 0.94), "dist_m": 0.0, "label": "Kanyakumari"},
-		{"pos": Vector2(0.44, 0.88), "dist_m": 270.0, "label": "Glass Bridge"},
-		{"pos": Vector2(0.43, 0.80), "dist_m": 415.0, "label": "Thiruvalluvar"},
-		{"pos": Vector2(0.46, 0.60), "dist_m": 600.0, "label": "Madurai CP"},
-		{"pos": Vector2(0.58, 0.38), "dist_m": 850.0, "label": "NH44 Highway"},
-		{"pos": Vector2(0.78, 0.16), "dist_m": 1100.0, "label": "Chennai"}
+		{"pos": Vector2(0.42, 0.94), "dist_m": 0.0, "label": "1. Kanyakumari"},
+		{"pos": Vector2(0.40, 0.88), "dist_m": 100.0, "label": "2. Nagercoil"},
+		{"pos": Vector2(0.43, 0.81), "dist_m": 200.0, "label": "3. Tirunelveli CP"},
+		{"pos": Vector2(0.45, 0.74), "dist_m": 300.0, "label": "4. Kovilpatti"},
+		{"pos": Vector2(0.46, 0.67), "dist_m": 400.0, "label": "5. Virudhunagar"},
+		{"pos": Vector2(0.48, 0.59), "dist_m": 500.0, "label": "6. Madurai CP"},
+		{"pos": Vector2(0.53, 0.52), "dist_m": 600.0, "label": "7. Melur"},
+		{"pos": Vector2(0.56, 0.44), "dist_m": 700.0, "label": "8. Trichy CP"},
+		{"pos": Vector2(0.61, 0.37), "dist_m": 800.0, "label": "9. Perambalur"},
+		{"pos": Vector2(0.66, 0.30), "dist_m": 900.0, "label": "10. Villupuram CP"},
+		{"pos": Vector2(0.70, 0.24), "dist_m": 1000.0, "label": "11. Tindivanam"},
+		{"pos": Vector2(0.74, 0.20), "dist_m": 1100.0, "label": "12. Chengalpattu CP"},
+		{"pos": Vector2(0.78, 0.16), "dist_m": 1200.0, "label": "13. Chennai"}
 	],
 	"goa": [
 		{"pos": Vector2(0.38, 0.32), "dist_m": 0.0, "label": "Panaji"},

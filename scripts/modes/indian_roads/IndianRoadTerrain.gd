@@ -201,28 +201,28 @@ func _calculate_road_height(x: float) -> float:
 	var bridge_elevation := 0.0
 	var bridge_flatten := 1.0
 
-	if state_id == "tamil_nadu" and x >= 26000.0 and x <= 46000.0:
-		# Entrance ramp: 27000 to 29500 (rising by 85px with smoothstep)
-		if x >= 27000.0 and x < 29500.0:
-			var t := (x - 27000.0) / 2500.0
+	if state_id == "tamil_nadu" and x >= 2400.0 and x <= 8600.0:
+		# Entrance ramp: 2500 to 3500 (rising by 75px with smoothstep)
+		if x >= 2500.0 and x < 3500.0:
+			var t := (x - 2500.0) / 1000.0
 			var s := t * t * (3.0 - 2.0 * t)
-			bridge_elevation = -85.0 * s
-		# Arched glass bridge deck: 29500 to 42500 (spanning the ocean between Vivekananda & Thiruvalluvar)
-		elif x >= 29500.0 and x <= 42500.0:
-			var u := (x - 29500.0) / (42500.0 - 29500.0)
-			var arch := sin(u * PI) * 20.0
-			bridge_elevation = -85.0 - arch
-		# Exit ramp: 42500 to 45000 (descending by 85px back to coastal highway level)
-		elif x > 42500.0 and x <= 45000.0:
-			var v := (x - 42500.0) / 2500.0
+			bridge_elevation = -75.0 * s
+		# Arched glass bridge deck: 3500 to 7500 (spanning the ocean between Vivekananda & Thiruvalluvar)
+		elif x >= 3500.0 and x <= 7500.0:
+			var u := (x - 3500.0) / (7500.0 - 3500.0)
+			var arch := sin(u * PI) * 18.0
+			bridge_elevation = -75.0 - arch
+		# Exit ramp: 7500 to 8500 (descending by 75px back to coastal highway level)
+		elif x > 7500.0 and x <= 8500.0:
+			var v := (x - 7500.0) / 1000.0
 			var sv := v * v * (3.0 - 2.0 * v)
-			bridge_elevation = -85.0 * (1.0 - sv)
+			bridge_elevation = -75.0 * (1.0 - sv)
 
 		# Smoothly damp natural terrain waves on and approaching bridge
-		if x < 27000.0:
-			bridge_flatten = clampf((27000.0 - x) / 1000.0, 0.0, 1.0)
-		elif x > 45000.0:
-			bridge_flatten = clampf((x - 45000.0) / 1000.0, 0.0, 1.0)
+		if x < 2500.0:
+			bridge_flatten = clampf((2500.0 - x) / 500.0, 0.0, 1.0)
+		elif x > 8500.0:
+			bridge_flatten = clampf((x - 8500.0) / 500.0, 0.0, 1.0)
 		else:
 			bridge_flatten = 0.0
 
@@ -271,9 +271,24 @@ func _spawn_waypoints() -> void:
 
 		match wp.waypoint_type:
 			WaypointData.WaypointType.CHECKPOINT:
+				var is_tn: bool = active_route != null and active_route.state_id == "tamil_nadu"
+				var is_toll: bool = wp.get_meta("is_toll_plaza", false) if wp.has_meta("is_toll_plaza") else false
+				if is_tn and not wp.has_meta("is_toll_plaza"):
+					is_toll = ("toll" in wp.title.to_lower()) or ("toll" in wp.subtitle.to_lower())
+
 				var cp := CheckpointScene.instantiate() as IndianCheckpoint
 				cp.waypoint = wp
-				cp.global_position = spawn_pos
+				cp.is_toll_plaza = is_toll
+
+				var cp_x := wp_x
+				if is_tn:
+					if not is_toll:
+						cp_x = maxf(wp_x - 2800.0, 500.0)
+					else:
+						cp_x = 108000.0
+
+				var cp_y := _calculate_road_height(cp_x)
+				cp.global_position = Vector2(cp_x, cp_y)
 				cp.checkpoint_cleared.connect(func(id, w): checkpoint_cleared.emit(id, w))
 				waypoints_container.add_child(cp)
 
@@ -345,7 +360,7 @@ func _spawn_roadside_props() -> void:
 		"telangana":
 			allowed_props = [1, 2, 3, 3, 4, 4, 5, 7]
 		_: # tamil_nadu
-			allowed_props = [0, 0, 1, 2, 3, 4, 5, 6, 7]
+			allowed_props = [0, 0, 1, 1, 2, 3, 4] # All mark boards and milestones removed for clean view
 
 	# Seeded deterministic prop placement along the highway
 	var rng := RandomNumberGenerator.new()

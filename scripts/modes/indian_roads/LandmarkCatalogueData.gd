@@ -27,201 +27,417 @@ static func get_landmark_info(landmark_id: String, state_id: String = "") -> Dic
 static func _get_master_catalog() -> Dictionary:
 	return {
 		# =========================================================================
-		# 1. TAMIL NADU (12 LANDMARKS)
+		# 1. TAMIL NADU (13 LOCATIONS & AUTHENTIC LANDMARKS)
 		# =========================================================================
-		"LOC-TN-03": {
-			"id": "LOC-TN-03",
-			"name": "Gandhi Memorial Mandapam",
+		"tn_01_kanyakumari": {
+			"id": "tn_01_kanyakumari",
+			"name": "Kanyakumari Coast",
 			"state": "Tamil Nadu",
-			"location": "Kanyakumari Coast, Tamil Nadu",
-			"description": "An elegant pink coastal memorial built in the Orissan architectural tradition along the sea shore.",
-			"why_famous": "Built on the sacred site where Mahatma Gandhi's ashes were kept for public homage prior to sea immersion in 1948.",
-			"fact": "Engineered so that on October 2nd (Gandhi's birthday), the first rays of sunlight fall precisely through a ceiling aperture onto the exact ash spot."
+			"location": "Cape Comorin Coast",
+			"description": "Southernmost tip of India where three seas merge at Triveni Sangam.",
+			"why_famous": "Home to the monumental Thiruvalluvar Statue and Vivekananda Memorial.",
+			"fact": "Where the Arabian Sea, Indian Ocean, and Bay of Bengal meet."
 		},
-		"LOC-TN-04": {
-			"id": "LOC-TN-04",
-			"name": "Kumari Amman Temple",
+		"LOC-TN-01": {
+			"id": "LOC-TN-01",
+			"name": "Thiruvalluvar Statue",
 			"state": "Tamil Nadu",
-			"location": "Cape Comorin Shore, Tamil Nadu",
-			"description": "Ancient 3,000-year-old coastal sanctuary dedicated to Goddess Devi Kanya Kumari at India's southern tip.",
-			"why_famous": "Famed for the deity's legendary ruby nose ring, whose brilliant luminescence guided mariners navigating the hazardous cape waters.",
-			"fact": "The main sea-facing portal remains locked year-round to prevent ships from mistaking the sparkling gem for a coastal lighthouse."
-		},
-		"LOC-TN-05": {
-			"id": "LOC-TN-05",
-			"name": "Kanyakumari Glass Bridge",
-			"state": "Tamil Nadu",
-			"location": "Laccadive Sea Promenade, Tamil Nadu",
-			"description": "A striking modern skywalk bridge projecting out over the crashing waves of the southern sea.",
-			"why_famous": "Offers an unhindered transparent panoramic platform overlooking the confluence of the Indian Ocean, Arabian Sea, and Bay of Bengal.",
-			"fact": "Built with high-tensile structural steel box girders and multi-layered tempered laminated glass engineered against extreme marine typhoons."
+			"location": "Kanyakumari Offshore Rock",
+			"description": "133-ft carved granite colossus honouring ancient philosopher Valluvar.",
+			"why_famous": "Height corresponds to 133 chapters of the immortal Tirukkural.",
+			"fact": "Carved by 500 artisans from over 7,000 tons of solid stone."
 		},
 		"LOC-TN-02": {
 			"id": "LOC-TN-02",
 			"name": "Vivekananda Rock Memorial",
 			"state": "Tamil Nadu",
 			"location": "Indian Ocean Island, Kanyakumari",
-			"description": "Majestic granite rock memorial situated 500 metres offshore on two adjacent sea rock islands.",
-			"why_famous": "The sacred meditation retreat where Swami Vivekananda attained spiritual enlightenment and his universal message of harmony in 1892.",
-			"fact": "Features the Dhyana Mandapam meditation hall designed with a unique synthesis of temple architectural motifs from across India."
+			"description": "Sacred granite sea memorial situated 500m offshore on rock islands.",
+			"why_famous": "Meditation retreat where Swami Vivekananda attained enlightenment in 1892.",
+			"fact": "Features the sacred Dhyana Mandapam meditation hall."
 		},
-		"LOC-TN-01": {
-			"id": "LOC-TN-01",
-			"name": "Thiruvalluvar Statue",
+		"tn_02_nagercoil": {
+			"id": "tn_02_nagercoil",
+			"name": "Nagercoil & Palace",
 			"state": "Tamil Nadu",
-			"location": "Kanyakumari Offshore Rock, Tamil Nadu",
-			"description": "A monumental 133-foot carved granite colossus honouring the ancient Tamil philosopher-poet Valluvar.",
-			"why_famous": "Its 133-foot height directly corresponds to the 133 chapters of the Tirukkural, one of humanity's greatest ethical treatises on virtue and truth.",
-			"fact": "Sculpted by 500 master artisans from over 7,000 tons of solid stone, designed with an internal hollow core to withstand high-energy oceanic tsunamis."
+			"location": "Nagercoil Foothills",
+			"description": "Gateway nestled at Western Ghats foothills among lush coconut groves.",
+			"why_famous": "Home to 16th-century wooden Padmanabhapuram Palace and waterfalls.",
+			"fact": "Famed for traditional Travancore wooden architecture."
+		},
+		"LOC-TN-03": {
+			"id": "LOC-TN-03",
+			"name": "Padmanabhapuram Palace",
+			"state": "Tamil Nadu",
+			"location": "Nagercoil Foothills",
+			"description": "Exquisite 16th-century royal wooden palace of the Venad kingdom.",
+			"why_famous": "Masterpiece of gabled teakwood roofs and rosewood ceilings.",
+			"fact": "Constructed without a single iron nail using antique joinery."
+		},
+		"LOC-TN-04": {
+			"id": "LOC-TN-04",
+			"name": "Thirparappu Waterfalls",
+			"state": "Tamil Nadu",
+			"location": "Kodayar River Basin",
+			"description": "Scenic 50-ft cascading waterfall plunging over a natural rocky bed.",
+			"why_famous": "Perennial forest waters flowing beside an ancient Shiva temple.",
+			"fact": "Flows uninterrupted for seven months fed by monsoons."
+		},
+		"tn_03_tirunelveli": {
+			"id": "tn_03_tirunelveli",
+			"name": "Tirunelveli Checkpoint",
+			"state": "Tamil Nadu",
+			"location": "Thamirabarani Basin",
+			"description": "Ancient city on the Thamirabarani River, famed for heritage and sweet halwa.",
+			"why_famous": "Home of Nellaiappar Temple with its famous musical stone pillars.",
+			"fact": "A major southern cultural and highway crossroads."
+		},
+		"LOC-TN-05": {
+			"id": "LOC-TN-05",
+			"name": "Nellaiappar Temple Gopuram",
+			"state": "Tamil Nadu",
+			"location": "Tirunelveli Town",
+			"description": "Colossal 8th-century Dravidian temple sanctum with towering Rajagopurams.",
+			"why_famous": "Mani Mandapam musical pillars produce musical swaras when tapped.",
+			"fact": "Spans 14 acres built across centuries by Pandyan and Nayak kings."
 		},
 		"LOC-TN-06": {
 			"id": "LOC-TN-06",
-			"name": "Vattakottai Coastal Fort",
+			"name": "Courtallam Waterfalls",
 			"state": "Tamil Nadu",
-			"location": "Coastal Ramparts, Kanyakumari",
-			"description": "An 18th-century circular granite seaside fortification built under the reign of the Travancore Kingdom.",
-			"why_famous": "Served as a key coastal defense bastion guarding the sea lanes around Cape Comorin with gun mounts and stone battlements.",
-			"fact": "Constructed with massive natural black granite blocks; one side directly overlooks the rolling blue waves while the other frames the Western Ghats."
+			"location": "Western Ghats, Tenkasi",
+			"description": "Celebrated 'Spa of South India' cascading over mineral-rich rocks.",
+			"why_famous": "Forest waters pass through dense medicinal herbs with therapeutic qualities.",
+			"fact": "Praised in ancient Sangam literature as Honey Falls."
+		},
+		"tn_04_kovilpatti": {
+			"id": "tn_04_kovilpatti",
+			"name": "Kovilpatti Junction",
+			"state": "Tamil Nadu",
+			"location": "Kovilpatti Palmyra Belt",
+			"description": "Vibrant industrial and sweet-making hub along the southern highway.",
+			"why_famous": "GI-tagged Kadalai Mittai groundnut candy and match industries.",
+			"fact": "Made with organic jaggery and Thamirabarani river water."
 		},
 		"LOC-TN-07": {
 			"id": "LOC-TN-07",
-			"name": "Kamarajar Memorial Mandapam",
+			"name": "Kovilpatti Sweet Corridor",
 			"state": "Tamil Nadu",
-			"location": "Shoreline Park, Kanyakumari",
-			"description": "A grand seaside memorial complex dedicated to K. Kamaraj, the revered statesman and former Chief Minister of Tamil Nadu.",
-			"why_famous": "Celebrates the 'Kingmaker' who spearheaded free education and introduced the revolutionary midday meal scheme across the state.",
-			"fact": "Houses extensive photographic archives and personal artifacts documenting the transformative socio-educational renaissance of South India."
+			"location": "Kovilpatti Palmyra Belt",
+			"description": "Famous roadside confectionery stalls and traditional workshops.",
+			"why_famous": "Authentic handmade peanut brittle cooked in bell-metal cauldrons.",
+			"fact": "Black cotton soil produces especially flavorful groundnuts."
+		},
+		"tn_05_virudhunagar": {
+			"id": "tn_05_virudhunagar",
+			"name": "Virudhunagar Gateway",
+			"state": "Tamil Nadu",
+			"location": "Virudhunagar District",
+			"description": "Historic trade corridor and gateway to sacred Srivilliputhur.",
+			"why_famous": "Birthplace of Andal and home to the official Tamil Nadu emblem temple.",
+			"fact": "Key junction connecting Madurai with southern districts."
+		},
+		"LOC-TN-08": {
+			"id": "LOC-TN-08",
+			"name": "Srivilliputhur Andal Temple",
+			"state": "Tamil Nadu",
+			"location": "Srivilliputhur",
+			"description": "Majestic 11-tiered Dravidian gopuram rising 59m into the skyline.",
+			"why_famous": "The iconic temple tower depicted on the official Tamil Nadu emblem.",
+			"fact": "One of the tallest gopurams in India, built in 1949 as state seal."
+		},
+		"tn_06_madurai": {
+			"id": "tn_06_madurai",
+			"name": "Madurai City Checkpoint",
+			"state": "Tamil Nadu",
+			"location": "Madurai, Vaigai River",
+			"description": "Ancient 2,500-year-old Temple City on the fertile Vaigai River.",
+			"why_famous": "Home to world-famous Meenakshi Amman Temple and royal palaces.",
+			"fact": "One of the oldest continuously inhabited cities on Earth."
+		},
+		"LOC-TN-09": {
+			"id": "LOC-TN-09",
+			"name": "Meenakshi Amman Temple",
+			"state": "Tamil Nadu",
+			"location": "Madurai, Tamil Nadu",
+			"description": "Historic Hindu temple located on the southern bank of the Vaigai River, Madurai, known for its towering, brightly sculpted gopurams.",
+			"why_famous": "Ancient temple city centerpiece with 14 magnificent, brightly sculpted gopuram towers.",
+			"fact": "Famous Hall of Thousand Pillars contains 985 carved stone pillars."
+		},
+		"LOC-TN-10": {
+			"id": "LOC-TN-10",
+			"name": "Thirumalai Nayak Palace",
+			"state": "Tamil Nadu",
+			"location": "Madurai Royal Palace",
+			"description": "Grand 17th-century palace blending Dravidian and Italian Renaissance styles.",
+			"why_famous": "Colossal 82-ft stucco pillars and majestic domed audience hall.",
+			"fact": "Constructed in 1636 AD by King Thirumalai Nayak."
+		},
+		"tn_07_melur": {
+			"id": "tn_07_melur",
+			"name": "Melur Transition",
+			"state": "Tamil Nadu",
+			"location": "Melur Granite Belt",
+			"description": "Scenic agricultural zone flanked by rugged granite outcroppings.",
+			"why_famous": "Historic 2,000-year-old rock-cut Jain caves of Samanar Hills.",
+			"fact": "Brahmi stone inscriptions detail ancient South Indian monastic history."
+		},
+		"LOC-TN-11": {
+			"id": "LOC-TN-11",
+			"name": "Samanar Hills",
+			"state": "Tamil Nadu",
+			"location": "Melur Granite Belt",
+			"description": "Dramatic rocky hill outcrop honeycombed with natural meditation caves.",
+			"why_famous": "Bas-relief carvings of Tirthankaras dating to 1st century BCE.",
+			"fact": "Protected national archaeological monument of India."
+		},
+		"tn_08_tiruchirappalli": {
+			"id": "tn_08_tiruchirappalli",
+			"name": "Tiruchirappalli Checkpoint",
+			"state": "Tamil Nadu",
+			"location": "Cauvery River Basin",
+			"description": "Historic fortress and island temple city on the sacred Cauvery River.",
+			"why_famous": "Billion-year-old Rockfort fortress and Sri Ranganathaswamy sanctuary.",
+			"fact": "Crucial central Tamil Nadu transport and heritage hub."
+		},
+		"LOC-TN-12": {
+			"id": "LOC-TN-12",
+			"name": "Tiruchirappalli Rockfort",
+			"state": "Tamil Nadu",
+			"location": "Rockfort Hill, Trichy",
+			"description": "83-metre monolithic quartz rock fort crowned by Ucchi Pillayar Temple.",
+			"why_famous": "3.8-billion-year-old natural fortress with 6th-century cave temples.",
+			"fact": "437 steps carved directly into the rock lead to the summit."
+		},
+		"LOC-TN-13": {
+			"id": "LOC-TN-13",
+			"name": "Srirangam Ranganathaswamy Temple",
+			"state": "Tamil Nadu",
+			"location": "Srirangam Island, Trichy",
+			"description": "Colossal 156-acre island temple complex enclosed by 21 Rajagopurams.",
+			"why_famous": "Tallest temple tower in Asia (73m) and UNESCO Award of Merit winner.",
+			"fact": "Largest functioning Hindu temple complex in the world."
+		},
+		"tn_09_perambalur": {
+			"id": "tn_09_perambalur",
+			"name": "Perambalur Highway",
+			"state": "Tamil Nadu",
+			"location": "Perambalur Basin",
+			"description": "Fast expressway corridor through fertile agricultural maize plains.",
+			"why_famous": "Gateway to Cretaceous ammonite fossil wood beds and highway temples.",
+			"fact": "Fossil beds date back 120 million years to dinosaur-era sea."
 		},
 		"LOC-TN-14": {
 			"id": "LOC-TN-14",
-			"name": "Meenakshi Amman Temple",
+			"name": "Perambalur Temple Gopuram",
 			"state": "Tamil Nadu",
-			"location": "Madurai Temple City, Tamil Nadu",
-			"description": "A world-renowned historic Dravidian temple complex dominating the cultural heart of Madurai.",
-			"why_famous": "Renowned for its 14 soaring sculptured gopurams (gateway towers), sacred Golden Lotus Tank, and legendary Hall of a Thousand Pillars.",
-			"fact": "The colossal southern tower reaches a height of 52 metres and is adorned with over 1,500 intricately painted stucco sculptures of deities and mythical beasts."
+			"location": "Perambalur Agricultural Corridor",
+			"description": "Ornate roadside Dravidian gopuram presiding over the agricultural highway.",
+			"why_famous": "Traditional sacred architectural gateway along the central highway.",
+			"fact": "Marks the transition from Cauvery basin into northern Tamil Nadu."
+		},
+		"tn_10_villupuram": {
+			"id": "tn_10_villupuram",
+			"name": "Villupuram Checkpoint",
+			"state": "Tamil Nadu",
+			"location": "Grand Southern Trunk Road",
+			"description": "Bustling transit crossroads connecting central and northern Tamil Nadu.",
+			"why_famous": "Gateway to Gingee Fort and Grand Southern Trunk Road corridor.",
+			"fact": "Major rail and road crossroads of northern Tamil Nadu."
 		},
 		"LOC-TN-15": {
 			"id": "LOC-TN-15",
-			"name": "Thirumalai Nayakkar Mahal",
+			"name": "Villupuram Whitewashed Gopuram",
 			"state": "Tamil Nadu",
-			"location": "Madurai Royal Palace, Tamil Nadu",
-			"description": "A magnificent 17th-century palace built in 1636 CE by King Thirumalai Nayak of the Nayaka dynasty.",
-			"why_famous": "Celebrated as an architectural triumph synthesizing classical Italian Renaissance colonnades with indigenous Dravidian arches and vaults.",
-			"fact": "The giant cylindrical stucco pillars in the Swarga Vilasam durbar hall measure 12 metres in height and 4 metres in circumference."
+			"location": "Villupuram Highway Junction",
+			"description": "Multi-tiered whitewashed Dravidian temple tower standing beside NH45.",
+			"why_famous": "Traditional lime-coated gopuram landmark providing roadside beauty.",
+			"fact": "Whitewashing with shell-lime protects stone mortar from monsoon heat."
+		},
+		"tn_11_tindivanam": {
+			"id": "tn_11_tindivanam",
+			"name": "Tindivanam Junction",
+			"state": "Tamil Nadu",
+			"location": "Tindivanam Highway Belt",
+			"description": "Historic crossroads town historically named for its sacred tamarind groves.",
+			"why_famous": "Key highway bifurcation point connecting Chennai with Puducherry.",
+			"fact": "Popular highway refreshment corridor for long-distance drivers."
 		},
 		"LOC-TN-16": {
 			"id": "LOC-TN-16",
-			"name": "NH44 Highway Junction Dhaba",
+			"name": "Tindivanam Highway Corridor",
 			"state": "Tamil Nadu",
-			"location": "Tamil Countryside Corridor",
-			"description": "A bustling highway pitstop and traditional roadside tea dhaba along India's longest national highway NH44.",
-			"why_famous": "The lifeline of South Indian long-distance road trips, serving freshly brewed frothy filter coffee, piping-hot medu vadas, and masala dosas.",
-			"fact": "NH44 runs 4,112 kilometres continuously from Srinagar in Kashmir all the way to Kanyakumari at the southern tip of India."
+			"location": "Tindivanam Junction",
+			"description": "Famous roadside stopover for fresh tender coconut and South Indian snacks.",
+			"why_famous": "Vital midpoint halt for commuters along Grand Southern Trunk Road.",
+			"fact": "Branches eastward towards the French coastal boulevards of Puducherry."
+		},
+		"tn_12_chengalpattu": {
+			"id": "tn_12_chengalpattu",
+			"name": "Chengalpattu Checkpoint",
+			"state": "Tamil Nadu",
+			"location": "Chengalpattu Gateway",
+			"description": "Lakeside suburban toll gateway leading into Chennai metropolitan zone.",
+			"why_famous": "Detour gateway to UNESCO World Heritage site Mahabalipuram.",
+			"fact": "Ancient Pallava port gateway with 1,300-year-old rock temples."
 		},
 		"LOC-TN-17": {
 			"id": "LOC-TN-17",
-			"name": "Kapaleeshwarar Temple",
+			"name": "Mahabalipuram Shore Temple",
 			"state": "Tamil Nadu",
-			"location": "Mylapore, Chennai, Tamil Nadu",
-			"description": "A landmark 7th-century Dravidian temple complex dedicated to Lord Shiva situated in historic Mylapore.",
-			"why_famous": "Showcases authentic classical Pallava-Chola architecture, a resplendent rainbow gopuram, and a vast sacred water tank surrounded by historic streets.",
-			"fact": "Home to the famous annual Arupathimoovar festival where 63 bronze statues of Nayanmar saints are carried in a grand coastal procession."
+			"location": "Coromandel Coast, Chengalpattu",
+			"description": "8th-century structural stone temple built by Pallava kings on the beach.",
+			"why_famous": "UNESCO World Heritage Site with twin pyramidal spires facing the surf.",
+			"fact": "Built of carved granite blocks that have withstood waves for 13 centuries."
 		},
-		"LOC-TN-22": {
-			"id": "LOC-TN-22",
+		"tn_13_chennai": {
+			"id": "tn_13_chennai",
+			"name": "Chennai Victory Finish",
+			"state": "Tamil Nadu",
+			"location": "Chennai, Bay of Bengal Coast",
+			"description": "Vibrant capital of Tamil Nadu on Coromandel Coast and journey finale.",
+			"why_famous": "Marina Beach, historic Fort St. George, and San Thome Basilica.",
+			"fact": "Southern terminal of the complete 1,200m Tamil Nadu road journey."
+		},
+		"LOC-TN-18": {
+			"id": "LOC-TN-18",
+			"name": "San Thome Basilica",
+			"state": "Tamil Nadu",
+			"location": "Santhome, Chennai Coast",
+			"description": "155-ft Neo-Gothic white spire basilica built over tomb of St. Thomas.",
+			"why_famous": "One of only three churches in the world built over an apostle's tomb.",
+			"fact": "Features stained-glass windows imported from Munich, Germany."
+		},
+		"LOC-TN-19": {
+			"id": "LOC-TN-19",
+			"name": "Fort St. George",
+			"state": "Tamil Nadu",
+			"location": "Coromandel Coast, Chennai",
+			"description": "First English colonial citadel in India, founded in 1644 on the coast.",
+			"why_famous": "Houses the Tamil Nadu Legislative Assembly and historic Fort Museum.",
+			"fact": "Contains St. Mary's Church (1680), the oldest British building in Asia."
+		},
+		"LOC-TN-20": {
+			"id": "LOC-TN-20",
 			"name": "Marina Beach Lighthouse",
 			"state": "Tamil Nadu",
-			"location": "Marina Beach, Chennai, Tamil Nadu",
-			"description": "A towering 46-metre triangular concrete beacon standing proudly beside the Bay of Bengal surf.",
-			"why_famous": "One of the only lighthouses in India fitted with an express observation elevator, offering panoramic views over the world's second-longest urban beach.",
-			"fact": "Equipped with a powerful modern solar-powered metal-halide optic that projects navigational beam signals over 28 nautical miles out to sea."
+			"location": "Marina Beach, Chennai",
+			"description": "46-metre modern triangular lighthouse overlooking the golden sands.",
+			"why_famous": "Grand finish landmark marking successful completion of Tamil Nadu journey.",
+			"fact": "Marina Beach is the world's second-longest natural urban beach (13 km)."
 		},
 
+		# 2. GOA (11 LANDMARKS - GOA-01..GOA-11)
 		# =========================================================================
-		# 2. GOA (9 LANDMARKS)
-		# =========================================================================
-		"LOC-GA-02": {
-			"id": "LOC-GA-02",
-			"name": "Fontainhas Latin Quarter",
-			"state": "Goa",
-			"location": "Panaji Heritage Quarter, Goa",
-			"description": "Asia's only surviving Mediterranean Latin quarter, nestled along the base of the Altinho hillside in Panaji.",
-			"why_famous": "Famed for its narrow cobblestone alleys lined with 18th-century Portuguese colonial homes painted in vibrant ochre yellow, azure blue, and terracotta red.",
-			"fact": "By municipal law dating back centuries, all houses in Fontainhas must be repainted annually immediately following the monsoon season."
-		},
-		"LOC-GA-01": {
-			"id": "LOC-GA-01",
-			"name": "Our Lady of Immaculate Conception",
-			"state": "Goa",
-			"location": "Panaji Church Square, Goa",
-			"description": "An iconic brilliant-white colonial Baroque church built on a high terraced bluff above central Panaji in 1541.",
-			"why_famous": "Instantly recognizable by its grand symmetrical zigzag staircases and towering crown pediment overlooking the city square.",
-			"fact": "Houses the second-largest church bell in Goa, cast in bronze and originally brought over from the Augustinian monastery in Old Goa."
-		},
-		"LOC-GA-11": {
-			"id": "LOC-GA-11",
-			"name": "Calangute Beach Road Promenade",
-			"state": "Goa",
-			"location": "Bardez Coastal Strip, North Goa",
-			"description": "The bustling beach avenue leading directly into the golden sands of Calangute, the 'Queen of Beaches'.",
-			"why_famous": "The historic epicenter of Goa's coastal tourism culture since the 1960s, lined with wooden beach shacks, seafood eateries, and coconut groves.",
-			"fact": "Originally discovered as a peaceful haven by international travelers, it now forms Goa's most celebrated coastal lifestyle promenade."
-		},
-		"LOC-GA-09": {
-			"id": "LOC-GA-09",
-			"name": "Fort Aguada & 1864 Lighthouse",
-			"state": "Goa",
-			"location": "Sinquerim Coastal Bluff, North Goa",
-			"description": "A massive 17th-century Portuguese laterite sea fortress commanding the mouth of the Mandovi River.",
-			"why_famous": "Served as the primary strategic bastion guarding Portuguese Goa against Maratha and Dutch fleets, housing an enormous 2.3-million-gallon freshwater cistern.",
-			"fact": "Features a 4-story circular stone lighthouse constructed in 1864, which is the oldest lighthouse of its kind across the entire Asian continent."
-		},
-		"LOC-GA-14": {
-			"id": "LOC-GA-14",
-			"name": "Chapora Red Laterite Fort",
-			"state": "Goa",
-			"location": "Vagator Hilltop, North Goa",
-			"description": "Atmospheric red laterite ramparts perched atop a dramatic coastal ridge high above the Chapora River estuary.",
-			"why_famous": "Famed for sweeping 360-degree sunset vistas across Vagator Beach and featured prominently in modern Indian cinema.",
-			"fact": "Built by Adil Shah of Bijapur and later rebuilt by the Portuguese in 1717 with subterranean escape tunnels leading to the river shore."
-		},
-		"LOC-GA-16": {
-			"id": "LOC-GA-16",
-			"name": "Se Cathedral",
-			"state": "Goa",
-			"location": "Old Goa UNESCO Heritage Site",
-			"description": "One of the largest cathedrals in all of Asia, built in the imposing Portuguese-Manueline architectural style.",
-			"why_famous": "Dedicated to St. Catherine of Alexandria and renowned for its majestic Tuscan exterior and richly gilded interior Corinthian chapels.",
-			"fact": "Houses the legendary 'Golden Bell' (Sino de Ouro), celebrated across the world for its rich, melodious tone that can be heard across the river valley."
-		},
-		"LOC-GA-17": {
-			"id": "LOC-GA-17",
-			"name": "Church of St Francis of Assisi",
-			"state": "Goa",
-			"location": "Old Goa UNESCO Heritage Site",
-			"description": "A handsome church built in 1661 featuring a decorative Manueline entrance portal saved from an earlier 1517 structure.",
-			"why_famous": "Renowned for its remarkable woodcarvings, biblical fresco panels, and gilded floral reredos behind the high altar.",
-			"fact": "The adjacent convent now serves as the Archaeological Museum of Goa, displaying exquisite colonial stone sculptures and royal portraits."
-		},
-		"LOC-GA-15": {
-			"id": "LOC-GA-15",
+		"GOA-01": {
+			"id": "GOA-01",
 			"name": "Basilica of Bom Jesus",
 			"state": "Goa",
 			"location": "Old Goa UNESCO Heritage Site",
-			"description": "A globally renowned UNESCO World Heritage site and India's finest example of unplastered Renaissance Baroque architecture.",
-			"why_famous": "Preserves the sacred mortal relics of St. Francis Xavier in an ornate Florentine silver-and-marble mausoleum.",
-			"fact": "Every ten years, the sacred relics are brought down for solemn public veneration during a worldwide exposition drawing millions of pilgrims."
+			"description": "A world-renowned UNESCO World Heritage basilica and one of India's finest examples of Baroque architecture, with its unplastered laterite facade standing proudly in Old Goa.",
+			"why_famous": "Preserves the sacred mortal relics of St. Francis Xavier and draws pilgrims from around the world.",
+			"fact": "Every ten years, the relics are exposed for public veneration during a major exposition in Old Goa."
 		},
-		"LOC-GA-22": {
-			"id": "LOC-GA-22",
-			"name": "Holy Spirit Church",
+		"GOA-02": {
+			"id": "GOA-02",
+			"name": "Se Cathedral",
 			"state": "Goa",
-			"location": "Margao Heritage Square, South Goa",
-			"description": "An imposing 17th-century Baroque church anchoring the historic Old Market square of South Goa's cultural capital.",
-			"why_famous": "Celebrated for its monumental pure-white stucco facade, gilded reredos, and peaceful tree-lined avenue of grand Portuguese mansions.",
-			"fact": "Rebuilt in 1675 on a site originally consecrated in 1564, it remains the focal point for Margao's vibrant annual Feast of Pentecost celebrations."
+			"location": "Old Goa UNESCO Heritage Site",
+			"description": "One of the largest churches in Asia, built in Portuguese-Manueline style with a majestic white facade and towering presence.",
+			"why_famous": "Dedicated to St. Catherine of Alexandria and celebrated for its grand scale and historic Golden Bell.",
+			"fact": "The cathedral's Golden Bell was famed for its rich tone that carried across the surrounding countryside."
 		},
+		"GOA-03": {
+			"id": "GOA-03",
+			"name": "St. Anthony Church",
+			"state": "Goa",
+			"location": "Cabo de Rama, South Goa",
+			"description": "A serene coastal church near the Cabo de Rama region, reflecting Goa's Portuguese-era spiritual heritage against a tropical seaside backdrop.",
+			"why_famous": "Known for its peaceful setting and connection to the historic Cabo de Rama coastal landscape.",
+			"fact": "Cabo de Rama is named in local legend after Lord Rama, and the area blends natural coastal beauty with centuries of Goan history."
+		},
+		"GOA-04": {
+			"id": "GOA-04",
+			"name": "Shri Mangueshi Temple",
+			"state": "Goa",
+			"location": "Priol, Ponda, Goa",
+			"description": "One of Goa's most prominent Hindu temples, dedicated to Lord Manguesh, with an elegant white tower, domes, and a tranquil temple tank setting.",
+			"why_famous": "A major spiritual landmark of Goa, known for its distinctive Goan temple architecture and deep cultural significance.",
+			"fact": "The temple's seven-storey deepstambha (lamp tower) is a striking feature of traditional Goan temple design."
+		},
+		"GOA-05": {
+			"id": "GOA-05",
+			"name": "Chapora Fort",
+			"state": "Goa",
+			"location": "Vagator, North Goa",
+			"description": "A rugged laterite fort perched above the Chapora River and Vagator coastline, offering dramatic views over the Arabian Sea.",
+			"why_famous": "Famous for its sweeping coastal vistas, red laterite ramparts, and iconic sunset viewpoint.",
+			"fact": "The fort was rebuilt by the Portuguese in 1717 and features steep slopes that once formed a natural defence."
+		},
+		"GOA-06": {
+			"id": "GOA-06",
+			"name": "Fort Aguada Lighthouse",
+			"state": "Goa",
+			"location": "Sinquerim, North Goa",
+			"description": "A historic Portuguese fort and lighthouse complex overlooking the mouth of the Mandovi River and the Arabian Sea.",
+			"why_famous": "One of Goa's best-preserved coastal forts, known for its lighthouse, bastions, and strategic maritime history.",
+			"fact": "The Aguada lighthouse, built in 1864, is among the oldest lighthouses of its kind in Asia."
+		},
+		"GOA-07": {
+			"id": "GOA-07",
+			"name": "Reis Magos Fort",
+			"state": "Goa",
+			"location": "Reis Magos, Bardez, Goa",
+			"description": "A beautifully restored laterite fort on the northern bank of the Mandovi River, offering panoramic views across the water toward Panaji.",
+			"why_famous": "One of Goa's oldest forts, admired for its restoration, coastal setting, and historical role in defending the Mandovi estuary.",
+			"fact": "The fort was originally constructed in 1551 and later served as a prison before being carefully restored."
+		},
+		"GOA-08": {
+			"id": "GOA-08",
+			"name": "St. Augustine Tower",
+			"state": "Goa",
+			"location": "Old Goa UNESCO Heritage Site",
+			"description": "The towering laterite ruin of the Church of St. Augustine, a hauntingly beautiful remnant of one of Old Goa's grandest 17th-century complexes.",
+			"why_famous": "The lone 46-metre tower is an iconic Old Goa landmark and a powerful symbol of the city's layered history.",
+			"fact": "The tower was once part of a massive Augustinian church complex that collapsed over centuries after abandonment."
+		},
+		"GOA-09": {
+			"id": "GOA-09",
+			"name": "Fontainhas",
+			"state": "Goa",
+			"location": "Panjim Latin Quarter, Goa",
+			"description": "Asia's oldest Latin quarter, known for narrow streets, colourful Portuguese-style houses, tiled roofs, and old-world Goan charm.",
+			"why_famous": "A living heritage neighbourhood celebrated for its vibrant facades, art galleries, bakeries, and Indo-Portuguese culture.",
+			"fact": "Fontainhas is named after the 'little fountain' at the foot of the Altinho hill in Panaji."
+		},
+		"GOA-10": {
+			"id": "GOA-10",
+			"name": "Dudhsagar Falls",
+			"state": "Goa",
+			"location": "Mollem, Western Ghats, Goa",
+			"description": "A spectacular four-tiered waterfall cascading through lush Western Ghats forest, one of India's tallest and most dramatic natural attractions.",
+			"why_famous": "Its milky-white cascade, forest setting, and railway bridge backdrop make it one of Goa's most iconic scenic destinations.",
+			"fact": "The name 'Dudhsagar' means 'Sea of Milk', inspired by the waterfall's powerful white torrents."
+		},
+		"GOA-11": {
+			"id": "GOA-11",
+			"name": "Palolem Beach",
+			"state": "Goa",
+			"location": "Canacona, South Goa",
+			"description": "A picturesque crescent-shaped beach in South Goa, lined with palm trees, calm waters, and colourful beach huts.",
+			"why_famous": "Renowned for its scenic natural bay, relaxed tropical atmosphere, and postcard-perfect shoreline.",
+			"fact": "Palolem's curved bay and gentle waters make it one of the most photographed beaches in South Goa."
+		},
+		# Backward-compatible aliases for legacy Goa IDs
+		"LOC-GA-01": {"id": "GOA-06", "name": "Fort Aguada Lighthouse", "state": "Goa", "location": "Sinquerim, North Goa", "description": "A historic Portuguese fort and lighthouse complex overlooking the mouth of the Mandovi River and the Arabian Sea.", "why_famous": "One of Goa's best-preserved coastal forts, known for its lighthouse and maritime history.", "fact": "The Aguada lighthouse, built in 1864, is among the oldest lighthouses of its kind in Asia."},
+		"LOC-GA-02": {"id": "GOA-09", "name": "Fontainhas", "state": "Goa", "location": "Panjim Latin Quarter, Goa", "description": "Asia's oldest Latin quarter, known for narrow streets, colourful Portuguese-style houses, and old-world Goan charm.", "why_famous": "A living heritage neighbourhood celebrated for vibrant facades and Indo-Portuguese culture.", "fact": "Fontainhas is named after the 'little fountain' at the foot of the Altinho hill in Panaji."},
+		"LOC-GA-09": {"id": "GOA-06", "name": "Fort Aguada Lighthouse", "state": "Goa", "location": "Sinquerim, North Goa", "description": "A historic Portuguese fort and lighthouse complex overlooking the mouth of the Mandovi River and the Arabian Sea.", "why_famous": "One of Goa's best-preserved coastal forts, known for its lighthouse and maritime history.", "fact": "The Aguada lighthouse, built in 1864, is among the oldest lighthouses of its kind in Asia."},
+		"LOC-GA-11": {"id": "GOA-11", "name": "Palolem Beach", "state": "Goa", "location": "Canacona, South Goa", "description": "A picturesque crescent-shaped beach in South Goa, lined with palm trees, calm waters, and colourful beach huts.", "why_famous": "Renowned for its scenic natural bay and relaxed tropical atmosphere.", "fact": "Palolem's curved bay and gentle waters make it one of the most photographed beaches in South Goa."},
+		"LOC-GA-14": {"id": "GOA-05", "name": "Chapora Fort", "state": "Goa", "location": "Vagator, North Goa", "description": "A rugged laterite fort perched above the Chapora River and Vagator coastline.", "why_famous": "Famous for sweeping coastal vistas and red laterite ramparts.", "fact": "The fort was rebuilt by the Portuguese in 1717."},
+		"LOC-GA-15": {"id": "GOA-01", "name": "Basilica of Bom Jesus", "state": "Goa", "location": "Old Goa UNESCO Heritage Site", "description": "A world-renowned UNESCO World Heritage basilica and one of India's finest examples of Baroque architecture.", "why_famous": "Preserves the sacred mortal relics of St. Francis Xavier.", "fact": "Every ten years, the relics are exposed for public veneration during a major exposition."},
+		"LOC-GA-16": {"id": "GOA-02", "name": "Se Cathedral", "state": "Goa", "location": "Old Goa UNESCO Heritage Site", "description": "One of the largest churches in Asia, built in Portuguese-Manueline style.", "why_famous": "Dedicated to St. Catherine of Alexandria and celebrated for its grand scale.", "fact": "The cathedral's Golden Bell was famed for its rich tone."},
+		"LOC-GA-17": {"id": "GOA-08", "name": "St. Augustine Tower", "state": "Goa", "location": "Old Goa UNESCO Heritage Site", "description": "The towering laterite ruin of the Church of St. Augustine, an iconic remnant of Old Goa.", "why_famous": "The lone 46-metre tower is a powerful symbol of Old Goa's layered history.", "fact": "The tower was once part of a massive Augustinian church complex."},
+		"LOC-GA-22": {"id": "GOA-03", "name": "St. Anthony Church", "state": "Goa", "location": "Cabo de Rama, South Goa", "description": "A serene coastal church near the Cabo de Rama region, reflecting Goa's Portuguese-era spiritual heritage.", "why_famous": "Known for its peaceful setting and connection to the Cabo de Rama coastal landscape.", "fact": "Cabo de Rama blends natural coastal beauty with centuries of Goan history."},
 
 		# =========================================================================
 		# 3. KERALA (6 LANDMARKS)

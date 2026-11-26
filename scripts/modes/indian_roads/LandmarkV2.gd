@@ -50,7 +50,7 @@ func _ready() -> void:
 			if is_instance_valid(monument_sprite):
 				monument_sprite.z_index = -2
 			if is_instance_valid(milestone_sprite):
-				milestone_sprite.z_index = -1
+				milestone_sprite.visible = false
 			var sb = get_node_or_null("Signboard")
 			if is_instance_valid(sb):
 				sb.z_index = -1

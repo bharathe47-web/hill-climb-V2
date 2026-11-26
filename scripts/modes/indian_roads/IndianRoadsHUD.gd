@@ -163,11 +163,10 @@ func show_landmark_info(info: Dictionary) -> void:
 		info_description_label.text = info.get("description", "")
 	if is_instance_valid(info_why_famous_label):
 		var why: String = info.get("why_famous", "")
-		var fact: String = info.get("fact", "")
-		if fact != "":
-			info_why_famous_label.text = "Why famous: %s\nFact: %s" % [why, fact]
+		if why != "":
+			info_why_famous_label.text = "• " + why
 		else:
-			info_why_famous_label.text = "Why famous: %s" % why
+			info_why_famous_label.text = ""
 
 	landmark_info_panel.visible = true
 	landmark_info_panel.modulate.a = 0.0

@@ -37,11 +37,8 @@ func _ready() -> void:
 					scale_factor *= (300.0 / float(tex.get_height()))
 				monument_sprite.scale = Vector2(scale_factor, scale_factor)
 
-	if is_instance_valid(milestone_sprite) and milestone_sprite.texture:
-		var mh := float(milestone_sprite.texture.get_height())
-		if mh > 100.0:
-			var ms := 50.0 / mh
-			milestone_sprite.scale = Vector2(ms, ms)
+	if is_instance_valid(milestone_sprite):
+		milestone_sprite.visible = false
 
 	if is_instance_valid(title_label):
 		title_label.text = landmark_title

@@ -6,13 +6,13 @@ extends Node2D
 ## Thiruvalluvar Statue with continuous physics road collision, translucent cyan glass deck,
 ## deep ocean water beneath, structural steel piers, and 3D layered front/rear safety balustrades.
 
-@export var bridge_start_x: float = 27000.0 # 270m
-@export var bridge_ramp_end_x: float = 29500.0 # 295m
-@export var bridge_deck_end_x: float = 42500.0 # 425m
-@export var bridge_end_x: float = 45000.0 # 450m
+@export var bridge_start_x: float = 2500.0 # 25m
+@export var bridge_ramp_end_x: float = 3500.0 # 35m
+@export var bridge_deck_end_x: float = 7500.0 # 75m
+@export var bridge_end_x: float = 8500.0 # 85m
 
-@export var vivekananda_island_x: float = 34000.0 # 340m (matching LOC-TN-02 Vivekananda Rock Memorial)
-@export var thiruvalluvar_island_x: float = 41500.0 # 415m (matching LOC-TN-01 Thiruvalluvar Statue)
+@export var vivekananda_island_x: float = 4000.0 # 40m (matching LOC-TN-02 Vivekananda Rock Memorial)
+@export var thiruvalluvar_island_x: float = 7000.0 # 70m (matching LOC-TN-01 Thiruvalluvar Statue)
 
 # Color Palette
 var ocean_deep_color := Color(0.04, 0.16, 0.28, 1.0)
@@ -300,7 +300,7 @@ func _draw_thiruvalluvar_pedestal_island(center_x: float) -> void:
 # -----------------------------------------------------------------------------
 func _draw_pylons_and_trusses() -> void:
 	var pylon_positions: Array[float] = [
-		27800.0, 29500.0, 31500.0, 33500.0, 35500.0, 37500.0, 39500.0, 41500.0, 42500.0, 44200.0
+		2600.0, 3200.0, 4000.0, 4800.0, 5600.0, 6400.0, 7000.0, 7800.0, 8400.0
 	]
 
 	for px in pylon_positions:

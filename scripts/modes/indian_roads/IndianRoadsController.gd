@@ -303,6 +303,9 @@ func _on_checkpoint_cleared(checkpoint_id: String, waypoint: WaypointData) -> vo
 	var banner_text := waypoint.announcement_text if waypoint != null else "CHECKPOINT CLEARED!"
 	if is_instance_valid(hud):
 		hud.show_announcement_toast(banner_text, "+%d Coins Reward!" % reward)
+		var info: Dictionary = LandmarkCatalogueData.get_landmark_info(checkpoint_id, active_route.state_id if active_route else "")
+		if not info.is_empty() and info.get("name") != "Historical Landmark":
+			hud.show_landmark_info(info)
 	_update_next_waypoint_hud()
 
 func _on_landmark_reached(landmark_id: String, waypoint: WaypointData) -> void:
@@ -356,6 +359,9 @@ func _on_destination_reached(dest_id: String, waypoint: WaypointData) -> void:
 
 	if is_instance_valid(hud):
 		hud.show_announcement_toast(toast_msg, toast_sub)
+		var info: Dictionary = LandmarkCatalogueData.get_landmark_info(dest_id, active_route.state_id if active_route else "")
+		if not info.is_empty() and info.get("name") != "Historical Landmark":
+			hud.show_landmark_info(info)
 
 	# Present victory celebration screen after a short delay
 	var next_id_copy := next_unlocked

@@ -11,6 +11,7 @@ signal checkpoint_cleared(checkpoint_id: String, waypoint: WaypointData)
 @export var waypoint: WaypointData = null
 @export var checkpoint_name: String = "CHECKPOINT"
 @export var is_cleared: bool = false
+@export var is_toll_plaza: bool = false
 
 @onready var trigger_area: Area2D = $TriggerArea
 @onready var banner_sprite: Sprite2D = $BannerSprite
@@ -21,16 +22,30 @@ signal checkpoint_cleared(checkpoint_id: String, waypoint: WaypointData)
 func _ready() -> void:
 	if waypoint != null:
 		checkpoint_name = waypoint.title
-	if is_instance_valid(title_label):
-		title_label.text = checkpoint_name
-	if is_instance_valid(status_label):
-		status_label.text = "STOP & TOLL" if not is_cleared else "CLEARED"
+		if waypoint.has_meta("is_toll_plaza"):
+			is_toll_plaza = bool(waypoint.get_meta("is_toll_plaza"))
+		elif "toll" in waypoint.title.to_lower() or "toll" in waypoint.subtitle.to_lower():
+			is_toll_plaza = true
 
-	if is_instance_valid(gate_sprite) and gate_sprite.texture:
-		var gh := float(gate_sprite.texture.get_height())
-		if gh > 150.0:
-			var s := 180.0 / gh
-			gate_sprite.scale = Vector2(s, s)
+	if is_instance_valid(title_label):
+		if is_toll_plaza:
+			title_label.text = checkpoint_name if "TOLL" in checkpoint_name.to_upper() else (checkpoint_name.to_upper() + " TOLL PLAZA")
+		else:
+			title_label.text = checkpoint_name.to_upper() + " CHECKPOINT"
+
+	if is_instance_valid(status_label):
+		status_label.text = ("STOP & TOLL" if is_toll_plaza else "CHECKPOINT") if not is_cleared else "CLEARED"
+
+	if not is_toll_plaza:
+		if is_instance_valid(gate_sprite):
+			gate_sprite.visible = false
+	else:
+		if is_instance_valid(gate_sprite) and gate_sprite.texture:
+			gate_sprite.visible = true
+			var gh := float(gate_sprite.texture.get_height())
+			if gh > 150.0:
+				var s := 180.0 / gh
+				gate_sprite.scale = Vector2(s, s)
 
 	if is_instance_valid(banner_sprite) and banner_sprite.texture:
 		var bh := float(banner_sprite.texture.get_height())

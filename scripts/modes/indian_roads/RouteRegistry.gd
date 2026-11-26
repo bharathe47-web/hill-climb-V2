@@ -104,8 +104,8 @@ static func get_tamil_nadu_route() -> RouteData:
 	r.state_name = "Tamil Nadu"
 	r.start_city = "Kanyakumari"
 	r.destination_city = "Chennai"
-	r.total_distance_m = 1100.0
-	r.description = "Drive from Kanyakumari through historical Madurai to Marina Beach in Chennai on NH44."
+	r.total_distance_m = 1200.0
+	r.description = "Complete 13-location grand road journey from Kanyakumari to Chennai on NH44 and NH45."
 	r.state_map_path = "res://assets/indian_locations/tamil_nadu_state_map.svg"
 	r.state_card_icon_path = "res://assets/indian_locations/state_select_tamil_nadu.png"
 	r.sky_texture_path = "res://assets/indian_roads/indian_sky_tropical.png"
@@ -113,71 +113,166 @@ static func get_tamil_nadu_route() -> RouteData:
 	r.is_unlocked = true
 	r.completion_reward_coins = 500
 
-	# Waypoints
+	# 1. TN-01: Kanyakumari (0m - START)
 	var wp0 := WaypointData.new()
-	wp0.id = "tn_start"
+	wp0.id = "tn_01_kanyakumari"
 	wp0.title = "Kanyakumari"
-	wp0.subtitle = "Triveni Sangam & Coastal Starting Point"
+	wp0.subtitle = "Cape Comorin & Coastal Starting Point"
 	wp0.distance_m = 0.0
 	wp0.waypoint_type = WaypointData.WaypointType.START
-	wp0.landmark_texture_path = ""
-	wp0.announcement_text = "ROUTE STARTED: KANYAKUMARI"
+	wp0.landmark_texture_path = "res://assets/indian_locations/tamil_nadu_thiruvalluvar_statue.png"
+	wp0.announcement_text = "ROUTE STARTED: KANYAKUMARI (TN-01)"
+	wp0.coins_reward = 0
 	r.waypoints.append(wp0)
 
+	# 2. TN-02: Nagercoil (100m - LANDMARK)
 	var wp1 := WaypointData.new()
-	wp1.id = "tn_glass_bridge"
-	wp1.title = "Kanyakumari Glass Bridge"
-	wp1.subtitle = "Ocean Glass Bridge Highway Span"
-	wp1.distance_m = 270.0
+	wp1.id = "tn_02_nagercoil"
+	wp1.title = "Nagercoil"
+	wp1.subtitle = "Padmanabhapuram Palace & Coconut Groves"
+	wp1.distance_m = 100.0
 	wp1.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp1.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/kanyakumari/landmarks/glass_bridge/kanyakumari_glass_bridge.png"
-	wp1.announcement_text = "HERO LANDMARK: OCEAN GLASS BRIDGE"
-	wp1.coins_reward = 80
+	wp1.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_padmanabhapuram_palace.png"
+	wp1.announcement_text = "TOWN REACHED: NAGERCOIL (TN-02)"
+	wp1.coins_reward = 50
 	r.waypoints.append(wp1)
 
+	# 3. TN-03: Tirunelveli (200m - CHECKPOINT 1)
 	var wp2 := WaypointData.new()
-	wp2.id = "tn_thiruvalluvar"
-	wp2.title = "Thiruvalluvar Statue"
-	wp2.subtitle = "Vivekananda Rock Memorial Landmark"
-	wp2.distance_m = 415.0
-	wp2.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp2.landmark_texture_path = "res://assets/indian_locations/tamil_nadu_thiruvalluvar_statue.png"
-	wp2.announcement_text = "LANDMARK: THIRUVALLUVAR STATUE"
-	wp2.coins_reward = 80
+	wp2.id = "tn_03_tirunelveli"
+	wp2.title = "Tirunelveli"
+	wp2.subtitle = "Nellaiappar Temple & Thamirabarani Plains"
+	wp2.distance_m = 200.0
+	wp2.waypoint_type = WaypointData.WaypointType.CHECKPOINT
+	wp2.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_nellaiappar_temple.png"
+	wp2.announcement_text = "CHECKPOINT 1 CLEARED: TIRUNELVELI (TN-03)"
+	wp2.coins_reward = 100
+	wp2.set_meta("is_toll_plaza", false)
 	r.waypoints.append(wp2)
 
+	# 4. TN-04: Kovilpatti (300m - LANDMARK)
 	var wp3 := WaypointData.new()
-	wp3.id = "tn_madurai_cp"
-	wp3.title = "Madurai Checkpoint"
-	wp3.subtitle = "Meenakshi Amman Temple Gate & NH44 Toll"
-	wp3.distance_m = 600.0
-	wp3.waypoint_type = WaypointData.WaypointType.CHECKPOINT
-	wp3.landmark_texture_path = "res://assets/indian_locations/tamil_nadu_madurai_meenakshi_temple.png"
-	wp3.announcement_text = "CHECKPOINT 1 CLEARED: MADURAI"
-	wp3.coins_reward = 120
+	wp3.id = "tn_04_kovilpatti"
+	wp3.title = "Kovilpatti"
+	wp3.subtitle = "Peanut Candy Town & Palmyra Belt"
+	wp3.distance_m = 300.0
+	wp3.waypoint_type = WaypointData.WaypointType.LANDMARK
+	wp3.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/shops/shop_tamil_potti_kadai.png"
+	wp3.announcement_text = "TOWN REACHED: KOVILPATTI (TN-04)"
+	wp3.coins_reward = 50
 	r.waypoints.append(wp3)
 
+	# 5. TN-05: Virudhunagar (400m - LANDMARK)
 	var wp4 := WaypointData.new()
-	wp4.id = "tn_highway_dhaba"
-	wp4.title = "NH44 Highway Junction"
-	wp4.subtitle = "Banyan Tree & Traditional Dhaba"
-	wp4.distance_m = 850.0
+	wp4.id = "tn_05_virudhunagar"
+	wp4.title = "Virudhunagar"
+	wp4.subtitle = "Srivilliputhur Andal Temple Gateway"
+	wp4.distance_m = 400.0
 	wp4.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp4.landmark_texture_path = "res://assets/indian_roads/indian_roadside_dhaba_stall.png"
-	wp4.announcement_text = "LANDMARK: NH44 HIGHWAY DHABA"
+	wp4.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_srivilliputhur_andal_temple.png"
+	wp4.announcement_text = "TOWN REACHED: VIRUDHUNAGAR (TN-05)"
 	wp4.coins_reward = 60
 	r.waypoints.append(wp4)
 
+	# 6. TN-06: Madurai (500m - CHECKPOINT 2)
 	var wp5 := WaypointData.new()
-	wp5.id = "tn_destination"
-	wp5.title = "Chennai Marina Beach"
-	wp5.subtitle = "Destination: Marina Lighthouse & Victory Arch"
-	wp5.distance_m = 1100.0
-	wp5.waypoint_type = WaypointData.WaypointType.DESTINATION
-	wp5.landmark_texture_path = "res://assets/indian_locations/tamil_nadu_chennai_marina_lighthouse.png"
-	wp5.announcement_text = "DESTINATION REACHED: CHENNAI!"
-	wp5.coins_reward = 350
+	wp5.id = "tn_06_madurai"
+	wp5.title = "Madurai"
+	wp5.subtitle = "Meenakshi Amman Temple & Pandyan Capital"
+	wp5.distance_m = 500.0
+	wp5.waypoint_type = WaypointData.WaypointType.CHECKPOINT
+	wp5.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/madurai_meenakshi_amman_temple_supplied.png"
+	wp5.announcement_text = "CHECKPOINT 2 CLEARED: MADURAI (TN-06)"
+	wp5.coins_reward = 120
+	wp5.set_meta("is_toll_plaza", false)
 	r.waypoints.append(wp5)
+
+	# 7. TN-07: Melur (600m - LANDMARK)
+	var wp6 := WaypointData.new()
+	wp6.id = "tn_07_melur"
+	wp6.title = "Melur"
+	wp6.subtitle = "Granite Hills & Samanar Malai Transition"
+	wp6.distance_m = 600.0
+	wp6.waypoint_type = WaypointData.WaypointType.LANDMARK
+	wp6.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/scenery/tamil_nadu_samanar_hills.png"
+	wp6.announcement_text = "TOWN REACHED: MELUR (TN-07)"
+	wp6.coins_reward = 50
+	r.waypoints.append(wp6)
+
+	# 8. TN-08: Tiruchirappalli (700m - CHECKPOINT 3)
+	var wp7 := WaypointData.new()
+	wp7.id = "tn_08_tiruchirappalli"
+	wp7.title = "Tiruchirappalli"
+	wp7.subtitle = "Rockfort & Srirangam Temple Town"
+	wp7.distance_m = 700.0
+	wp7.waypoint_type = WaypointData.WaypointType.CHECKPOINT
+	wp7.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_rockfort_trichy.png"
+	wp7.announcement_text = "CHECKPOINT 3 CLEARED: TIRUCHIRAPPALLI (TN-08)"
+	wp7.coins_reward = 120
+	wp7.set_meta("is_toll_plaza", false)
+	r.waypoints.append(wp7)
+
+	# 9. TN-09: Perambalur (800m - LANDMARK)
+	var wp8 := WaypointData.new()
+	wp8.id = "tn_09_perambalur"
+	wp8.title = "Perambalur"
+	wp8.subtitle = "Temple Gopuram & Agricultural Highway"
+	wp8.distance_m = 800.0
+	wp8.waypoint_type = WaypointData.WaypointType.LANDMARK
+	wp8.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_perambalur_temple_gopuram.png"
+	wp8.announcement_text = "TOWN REACHED: PERAMBALUR (TN-09)"
+	wp8.coins_reward = 50
+	r.waypoints.append(wp8)
+
+	# 10. TN-10: Villupuram (900m - CHECKPOINT 4)
+	var wp9 := WaypointData.new()
+	wp9.id = "tn_10_villupuram"
+	wp9.title = "Villupuram"
+	wp9.subtitle = "Whitewashed Gopuram & GST Highway Corridor"
+	wp9.distance_m = 900.0
+	wp9.waypoint_type = WaypointData.WaypointType.CHECKPOINT
+	wp9.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_villupuram_gopuram.png"
+	wp9.announcement_text = "CHECKPOINT 4 CLEARED: VILLUPURAM (TN-10)"
+	wp9.coins_reward = 100
+	wp9.set_meta("is_toll_plaza", false)
+	r.waypoints.append(wp9)
+
+	# 11. TN-11: Tindivanam (1000m - LANDMARK)
+	var wp10 := WaypointData.new()
+	wp10.id = "tn_11_tindivanam"
+	wp10.title = "Tindivanam"
+	wp10.subtitle = "Tamarind Groves & NH45 Highway Junction"
+	wp10.distance_m = 1000.0
+	wp10.waypoint_type = WaypointData.WaypointType.LANDMARK
+	wp10.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/shops/shop_tamil_tender_coconut_stall.png"
+	wp10.announcement_text = "TOWN REACHED: TINDIVANAM (TN-11)"
+	wp10.coins_reward = 50
+	r.waypoints.append(wp10)
+
+	# 12. TN-12: Chengalpattu (1100m - CHECKPOINT 5)
+	var wp11 := WaypointData.new()
+	wp11.id = "tn_12_chengalpattu"
+	wp11.title = "Chengalpattu"
+	wp11.subtitle = "Paranur NH45 Toll Plaza & Gateway to Chennai"
+	wp11.distance_m = 1100.0
+	wp11.waypoint_type = WaypointData.WaypointType.CHECKPOINT
+	wp11.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_mahabalipuram_shore_temple.png"
+	wp11.announcement_text = "CHECKPOINT 5 CLEARED: CHENGALPATTU (TN-12)"
+	wp11.coins_reward = 120
+	wp11.set_meta("is_toll_plaza", true)
+	r.waypoints.append(wp11)
+
+	# 13. TN-13: Chennai (1200m - DESTINATION)
+	var wp12 := WaypointData.new()
+	wp12.id = "tn_13_chennai"
+	wp12.title = "Chennai"
+	wp12.subtitle = "San Thome, Fort St. George & Marina Beach"
+	wp12.distance_m = 1200.0
+	wp12.waypoint_type = WaypointData.WaypointType.DESTINATION
+	wp12.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_san_thome_basilica.png"
+	wp12.announcement_text = "DESTINATION REACHED: CHENNAI (TN-13)!"
+	wp12.coins_reward = 500
+	r.waypoints.append(wp12)
 
 	return r
 

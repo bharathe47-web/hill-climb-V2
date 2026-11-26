@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="sky04" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="60%" stop-color="#bae6fd"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="graniteFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <linearGradient id="graniteTor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#sky04)"/>
+  <!-- Cirrus and cumulus clouds -->
+  <ellipse cx="620" cy="150" rx="170" ry="35" fill="#ffffff" opacity="0.7"/>
+  <ellipse cx="1380" cy="130" rx="200" ry="40" fill="#ffffff" opacity="0.65"/>
+  <!-- Distant Weathered Granite Monoliths & Tors -->
+  <path d="M 0,390 Q 160,280 340,360 Q 480,310 660,370 Q 860,260 1060,350 Q 1240,290 1440,360 Q 1660,270 1860,350 L 1920,360 L 1920,720 L 0,720 Z" fill="url(#graniteFar)" opacity="0.6"/>
+  <!-- Mid Granite Boulder Hills & Rocky Outcrops -->
+  <path d="M 0,440 Q 220,350 460,420 Q 700,340 940,410 Q 1180,330 1420,415 Q 1680,345 1920,420 L 1920,720 L 0,720 Z" fill="url(#graniteTor)" opacity="0.85"/>
+  <!-- Dry Deciduous Scrub & Rocky Footings -->
+  <path d="M 0,510 Q 320,465 640,490 T 1280,475 T 1920,500 L 1920,720 L 0,720 Z" fill="#3f3f46" opacity="0.9"/>
+  <path d="M 0,570 Q 380,535 760,555 T 1520,540 T 1920,560 L 1920,720 L 0,720 Z" fill="#1c1917"/>
+</svg>

@@ -20,7 +20,10 @@ func _ready() -> void:
 	if waypoint != null:
 		destination_city = waypoint.title
 	if is_instance_valid(city_label):
-		city_label.text = "WELCOME TO " + destination_city.to_upper()
+		if destination_city.to_upper() == "CHENNAI":
+			city_label.text = "CHENNAI — JOURNEY COMPLETED"
+		else:
+			city_label.text = "WELCOME TO " + destination_city.to_upper()
 
 	if is_instance_valid(arch_sprite) and arch_sprite.texture:
 		var ah := float(arch_sprite.texture.get_height())

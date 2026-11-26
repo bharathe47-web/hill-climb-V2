@@ -18,6 +18,7 @@ position = Vector2(0, -110)
 texture = ExtResource("2_monument")
 
 [node name="MilestoneSprite" type="Sprite2D" parent="."]
+visible = false
 z_index = -1
 position = Vector2(90, -30)
 texture = ExtResource("3_milestone")

@@ -170,7 +170,7 @@ func _run_captures() -> void:
 	var x_goa: float = 100.0 * 100.0
 	goa_veh.global_position = Vector2(x_goa, goa_terr.get_height_at(x_goa) - 45.0)
 	goa_cam.global_position = Vector2(x_goa + 180.0, goa_terr.get_height_at(x_goa) - 70.0)
-	goa_hud.show_landmark_info(LandmarkCatalogueData.get_landmark_info("LOC-GA-02", "goa"))
+	goa_hud.show_landmark_info(LandmarkCatalogueData.get_landmark_info("GOA-09", "goa"))
 	goa_hud.update_progress(100.0, 950.0, 80)
 	for f in range(15):
 		await physics_frame

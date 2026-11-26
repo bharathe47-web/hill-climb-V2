@@ -72,6 +72,66 @@ func _apply_state_theme(state_id: String) -> void:
 			terrain_wave_amp = 1.0
 			terrain_freq_mult = 1.0
 
+func _plan_road_features() -> void:
+	speed_breaker_x_positions.clear()
+	hazard_zone_x_positions.clear()
+	pothole_x_positions.clear()
+
+	var state_id := active_route.state_id if active_route != null else ""
+	var is_tamil_nadu := (state_id == "tamil_nadu")
+
+	# Safe speed breaker placement: roughly every 320m, avoiding waypoints and landmarks by at least 35m (3500px)
+	var sb_cursor := 24000.0
+	while sb_cursor < total_length_px - 8000.0:
+		var safe := true
+		if active_route != null:
+			for wp in active_route.waypoints:
+				var wp_x := wp.distance_m * 100.0
+				if absf(sb_cursor - wp_x) < 3500.0:
+					safe = false
+					break
+		# In Tamil Nadu, strictly avoid the Kanyakumari Glass Bridge span (20m to 90m)
+		if is_tamil_nadu and sb_cursor >= 2000.0 and sb_cursor <= 9000.0:
+			safe = false
+		if safe:
+			speed_breaker_x_positions.append(sb_cursor)
+		sb_cursor += 32000.0
+
+	# Road work / construction zones: ONLY place in safe open highway stretches far away from all landmarks/checkpoints
+	if is_tamil_nadu:
+		# Tamil Nadu safe open stretches: 360m (between Kovilpatti & Virudhunagar) and 820m (between Trichy & Perambalur)
+		hazard_zone_x_positions.append(36000.0)
+		hazard_zone_x_positions.append(82000.0)
+	else:
+		if total_length_px > 60000.0:
+			hazard_zone_x_positions.append(50000.0)
+		if total_length_px > 130000.0:
+			hazard_zone_x_positions.append(115000.0)
+
+	# Gentle asphalt potholes in open stretches
+	if total_length_px > 40000.0:
+		if is_tamil_nadu:
+			pothole_x_positions.append(26000.0)
+			pothole_x_positions.append(68000.0)
+		else:
+			pothole_x_positions.append(34000.0)
+	if total_length_px > 90000.0 and not is_tamil_nadu:
+		pothole_x_positions.append(88000.0)
+
+func _build_collision() -> void:
+	if not is_instance_valid(collision_poly) or road_points.is_empty():
+		return
+
+	var poly := PackedVector2Array()
+	# Top surface matches road_points exactly (wheels roll with pixel-perfect contact on road surface)
+	poly.append_array(road_points)
+	# Bottom closing polygon with generous containment margin
+	var last_x := road_points[road_points.size() - 1].x
+	var first_x := road_points[0].x
+	poly.append(Vector2(last_x, base_y + bottom_depth + 500.0))
+	poly.append(Vector2(first_x, base_y + bottom_depth + 500.0))
+	collision_poly.polygon = poly
+
 func _spawn_waypoints() -> void:
 	if active_route == null or not is_instance_valid(waypoints_container):
 		return
@@ -83,9 +143,26 @@ func _spawn_waypoints() -> void:
 
 		match wp.waypoint_type:
 			WaypointData.WaypointType.CHECKPOINT:
+				var is_tn: bool = active_route != null and active_route.state_id == "tamil_nadu"
+				var is_toll: bool = wp.get_meta("is_toll_plaza", false) if wp.has_meta("is_toll_plaza") else false
+				if is_tn and not wp.has_meta("is_toll_plaza"):
+					is_toll = ("toll" in wp.title.to_lower()) or ("toll" in wp.subtitle.to_lower())
+
 				var cp := CheckpointV2Scene.instantiate() as IndianCheckpointV2
 				cp.waypoint = wp
-				cp.global_position = spawn_pos
+				cp.is_toll_plaza = is_toll
+
+				var cp_x := wp_x
+				if is_tn:
+					if not is_toll:
+						# Place city checkpoint arch 28m (2800px) before landmark so there is zero overlap
+						cp_x = maxf(wp_x - 2800.0, 500.0)
+					else:
+						# Paranur Highway Toll Plaza at 1080m (before Mahabalipuram Shore Temple at 1135m)
+						cp_x = 108000.0
+
+				var cp_y := _calculate_road_height(cp_x)
+				cp.global_position = Vector2(cp_x, cp_y)
 				cp.checkpoint_cleared.connect(func(id, w): checkpoint_cleared.emit(id, w))
 				waypoints_container.add_child(cp)
 
@@ -161,11 +238,11 @@ func _spawn_roadside_props() -> void:
 			props_container.add_child(bridge)
 
 	# Helper check to ensure props/signs never clash with landmarks or bridge spans
-	var is_clear := func(check_x: float, min_gap: float = 650.0) -> bool:
+	var is_clear := func(check_x: float, min_gap: float = 1200.0) -> bool:
 		for lx in landmark_x_positions:
 			if absf(check_x - lx) < min_gap:
 				return false
-		if state_id == "tamil_nadu" and check_x >= 26500.0 and check_x <= 45500.0:
+		if state_id == "tamil_nadu" and check_x >= 2400.0 and check_x <= 8600.0:
 			return false
 		return true
 
@@ -224,73 +301,144 @@ func _spawn_roadside_props() -> void:
 		var norm_pos: float = current_x / total_length_px
 		var y := _calculate_road_height(current_x)
 
-		# Ensure clear visual breathing room around all famous landmarks
+		# Ensure clear visual breathing room around all famous landmarks and checkpoint arches
 		var is_near_landmark := false
 		for lx in landmark_x_positions:
-			if absf(current_x - lx) < 650.0:
+			if absf(current_x - lx) < 1100.0:
 				is_near_landmark = true
 				break
+		if not is_near_landmark and active_route != null:
+			for wp in active_route.waypoints:
+				var wp_x := wp.distance_m * 100.0
+				if absf(current_x - wp_x) < 1100.0 or absf(current_x - (wp_x - 2800.0)) < 900.0:
+					is_near_landmark = true
+					break
 
 		if is_near_landmark:
-			current_x += 700.0
+			current_x += 1050.0
 			continue
 
 		# For Tamil Nadu: Keep ocean glass bridge span clear of terrestrial cottages, shops, and trees
-		if state_id == "tamil_nadu" and current_x >= 26800.0 and current_x <= 45200.0:
+		if state_id == "tamil_nadu" and current_x >= 2400.0 and current_x <= 8600.0:
 			current_x += 600.0
 			continue
 
 		var roll := rng.randf()
 
-		# Only spawn village buildings at start/end settlement zones to eliminate repetitive housing
-		var is_settlement_zone: bool = (norm_pos < 0.18 or norm_pos > 0.85)
+		# Zone-specific texture selection for Tamil Nadu (13 regional environments)
+		var active_buildings := buildings
+		var active_vegetation := vegetation
+		var active_shops := shops
+		var active_props := props
 
-		if is_settlement_zone and roll < 0.35 and not buildings.is_empty():
+		if state_id == "tamil_nadu":
+			var zone_idx: int = clampi(int(current_x / 10000.0), 0, 12)
+			match zone_idx:
+				0: # TN-01 Kanyakumari (Coastal)
+					active_buildings = _filter_by_name(buildings, ["coastal", "cottage"])
+					active_vegetation = _filter_by_name(vegetation, ["coconut", "bougainvillea"])
+					active_props = _filter_by_name(props, ["boat", "kolam"])
+				1: # TN-02 Nagercoil (Coconut groves & Travancore)
+					active_vegetation = _filter_by_name(vegetation, ["coconut", "banana"])
+					active_shops = _filter_by_name(shops, ["coconut", "tea"])
+				2: # TN-03 Tirunelveli (Thamirabarani plains)
+					active_vegetation = _filter_by_name(vegetation, ["palmyra", "neem"])
+					active_props = _filter_by_name(props, ["bullock"])
+					active_shops = _filter_by_name(shops, ["tea"])
+				3: # TN-04 Kovilpatti (Semi-dry candy junction)
+					active_vegetation = _filter_by_name(vegetation, ["palmyra", "neem"])
+					active_shops = _filter_by_name(shops, ["potti", "tea"])
+				4: # TN-05 Virudhunagar (Agricultural basin)
+					active_buildings = _filter_by_name(buildings, ["thatched", "cottage"])
+					active_vegetation = _filter_by_name(vegetation, ["neem"])
+					active_props = _filter_by_name(props, ["bullock"])
+				5: # TN-06 Madurai (Temple city urban)
+					active_buildings = _filter_by_name(buildings, ["agraharam", "temple_residence"])
+					active_shops = _filter_by_name(shops, ["poo_kadai", "tea"])
+				6: # TN-07 Melur (Granite hills & transition)
+					active_vegetation = _filter_by_name(vegetation, ["banyan", "bougainvillea"])
+					active_shops = _filter_by_name(shops, ["tea", "potti"])
+				7: # TN-08 Tiruchirappalli (Cauvery river & mansions)
+					active_buildings = _filter_by_name(buildings, ["chettinad", "temple_residence"])
+					active_shops = _filter_by_name(shops, ["poo_kadai", "tea"])
+				8: # TN-09 Perambalur (Agricultural highway)
+					active_vegetation = _filter_by_name(vegetation, ["neem", "banyan"])
+					active_buildings = _filter_by_name(buildings, ["thatched"])
+				9: # TN-10 Villupuram (Highway junction)
+					active_shops = _filter_by_name(shops, ["tea", "potti"])
+					active_vegetation = _filter_by_name(vegetation, ["banyan", "neem"])
+				10: # TN-11 Tindivanam (Tamarind belt)
+					active_vegetation = _filter_by_name(vegetation, ["banyan", "neem"])
+					active_shops = _filter_by_name(shops, ["tea"])
+				11: # TN-12 Chengalpattu (Suburban & coastal approach)
+					active_buildings = _filter_by_name(buildings, ["modern_terrace"])
+					active_vegetation = _filter_by_name(vegetation, ["bougainvillea", "coconut"])
+				12: # TN-13 Chennai (Metropolitan destination)
+					active_buildings = _filter_by_name(buildings, ["modern_terrace", "chettinad"])
+					active_props = _filter_by_name(props, ["kolam"])
+
+		# Only spawn village buildings at start/end settlement zones to eliminate repetitive housing
+		var is_settlement_zone: bool = (norm_pos < 0.18 or norm_pos > 0.85 or (state_id == "tamil_nadu" and (int(current_x / 10000.0) in [0, 5, 7, 11, 12])))
+
+		if is_settlement_zone and roll < 0.35 and not active_buildings.is_empty():
 			# Place architectural building (Z-index -3, behind road) with generous spacing
-			var b_idx: int = rng.randi() % buildings.size()
-			if b_idx == last_bldg_idx and buildings.size() > 1:
-				b_idx = (b_idx + 1) % buildings.size()
+			var b_idx: int = rng.randi() % active_buildings.size()
+			if b_idx == last_bldg_idx and active_buildings.size() > 1:
+				b_idx = (b_idx + 1) % active_buildings.size()
 			last_bldg_idx = b_idx
 
-			var b_tex: Texture2D = buildings[b_idx]
+			var b_tex: Texture2D = active_buildings[b_idx]
 			var b_height: float = rng.randf_range(145.0, 175.0)
 			_add_roadside_sprite(b_tex, b_height, current_x, y, -3)
 
 			# Small shrub accent
-			if rng.randf() < 0.40 and not vegetation.is_empty():
-				var shrub_tex: Texture2D = vegetation[rng.randi() % vegetation.size()]
+			if rng.randf() < 0.40 and not active_vegetation.is_empty():
+				var shrub_tex: Texture2D = active_vegetation[rng.randi() % active_vegetation.size()]
 				_add_roadside_sprite(shrub_tex, 85.0, current_x + 95.0, _calculate_road_height(current_x + 95.0), -2)
 
 			current_x += rng.randf_range(800.0, 1150.0)
 
-		elif roll < 0.72 and not vegetation.is_empty():
-			# Place regional tree or vegetation variant (Z-index -2)
-			var t_idx: int = rng.randi() % vegetation.size()
-			if t_idx == last_tree_idx and vegetation.size() > 1:
-				t_idx = (t_idx + 1) % vegetation.size()
+		elif roll < 0.72 and not active_vegetation.is_empty():
+			# Place regional tree or vegetation variant with organic natural clustering
+			var t_idx: int = rng.randi() % active_vegetation.size()
+			if t_idx == last_tree_idx and active_vegetation.size() > 1:
+				t_idx = (t_idx + 1) % active_vegetation.size()
 			last_tree_idx = t_idx
 
-			var t_tex: Texture2D = vegetation[t_idx]
-			var base_tree_h: float = 210.0 if "tall" in t_tex.resource_path or "palm" in t_tex.resource_path else 170.0
-			var tree_height: float = base_tree_h * rng.randf_range(0.88, 1.15)
+			var t_tex: Texture2D = active_vegetation[t_idx]
+			var base_tree_h: float = 215.0 if "tall" in t_tex.resource_path or "palm" in t_tex.resource_path else 170.0
+			var tree_height: float = base_tree_h * rng.randf_range(0.85, 1.18)
 			_add_roadside_sprite(t_tex, tree_height, current_x, y, -2)
-			current_x += rng.randf_range(650.0, 950.0)
 
-		elif roll < 0.88 and not shops.is_empty():
+			# 35% chance to spawn an organic companion tree forming a natural grove, followed by a scenic gap
+			if rng.randf() < 0.35 and active_vegetation.size() > 1:
+				var comp_idx := (t_idx + 1) % active_vegetation.size()
+				var comp_tex: Texture2D = active_vegetation[comp_idx]
+				var comp_x: float = current_x + rng.randf_range(95.0, 150.0)
+				var comp_h: float = tree_height * rng.randf_range(0.78, 0.96)
+				_add_roadside_sprite(comp_tex, comp_h, comp_x, _calculate_road_height(comp_x), -2)
+				current_x += rng.randf_range(1100.0, 1550.0) # Reveal scenic distant horizon
+			else:
+				current_x += rng.randf_range(800.0, 1250.0)
+
+		elif roll < 0.88 and not active_shops.is_empty():
 			# Place roadside local shop / market kiosk (Z-index -1)
-			var s_idx: int = rng.randi() % shops.size()
-			var s_tex: Texture2D = shops[s_idx]
+			var s_idx: int = rng.randi() % active_shops.size()
+			var s_tex: Texture2D = active_shops[s_idx]
 			_add_roadside_sprite(s_tex, 95.0, current_x, y, -1)
 			current_x += rng.randf_range(750.0, 1100.0)
 
 		else:
-			# Place cultural prop, milestone, or sign (Z-index -1, behind vehicle)
-			if rng.randf() < 0.5 and not props.is_empty():
-				var p_idx: int = rng.randi() % props.size()
-				var p_tex: Texture2D = props[p_idx]
+			# Place authentic cultural prop (Z-index -1, behind vehicle)
+			# All milestone and mark boards removed for clean scenic roadside view
+			if not active_props.is_empty():
+				var p_idx: int = rng.randi() % active_props.size()
+				var p_tex: Texture2D = active_props[p_idx]
 				_add_roadside_sprite(p_tex, 75.0, current_x, y, -1)
-			elif tex_milestone:
-				_add_roadside_sprite(tex_milestone, 50.0, current_x, y, -1)
+			elif not active_shops.is_empty():
+				var s_idx: int = rng.randi() % active_shops.size()
+				var s_tex: Texture2D = active_shops[s_idx]
+				_add_roadside_sprite(s_tex, 85.0, current_x, y, -1)
 			current_x += rng.randf_range(650.0, 1000.0)
 
 		# Add guardrail on steep slope variations (Z-index -1)
@@ -306,7 +454,7 @@ func _populate_pickups_and_coins(total_len: float, state_id: String, rng: Random
 
 	while pickup_x < total_len - 1200.0:
 		# Don't place inside ocean bridge span on Tamil Nadu
-		if state_id == "tamil_nadu" and pickup_x >= 26800.0 and pickup_x <= 45200.0:
+		if state_id == "tamil_nadu" and pickup_x >= 2400.0 and pickup_x <= 8600.0:
 			pickup_x += 600.0
 			continue
 
@@ -375,6 +523,15 @@ func _load_textures_in_folder(dir_path: String) -> Array[Texture2D]:
 		da.list_dir_end()
 	return result
 
+func _filter_by_name(list: Array[Texture2D], keywords: Array[String]) -> Array[Texture2D]:
+	var filtered: Array[Texture2D] = []
+	for tex in list:
+		for kw in keywords:
+			if kw in tex.resource_path.to_lower():
+				filtered.append(tex)
+				break
+	return filtered if not filtered.is_empty() else list
+
 func _add_roadside_sprite(tex: Texture2D, target_height: float, pos_x: float, road_y: float, z_idx: int) -> Sprite2D:
 	if not tex:
 		return null
@@ -422,13 +579,20 @@ func _draw_stratified_embankment(pts: PackedVector2Array, start_x: float, end_x:
 	if strata_line.size() >= 2:
 		draw_polyline(strata_line, shoulder_color.darkened(0.12), 2.0, true)
 
+func _offset_polyline(pts: PackedVector2Array, offset_y: float) -> PackedVector2Array:
+	var res := PackedVector2Array()
+	res.resize(pts.size())
+	for i in range(pts.size()):
+		res[i] = Vector2(pts[i].x, pts[i].y + offset_y)
+	return res
+
 func _draw() -> void:
 	if road_points.size() < 2:
 		return
 
 	var is_tamil_nadu := (active_route != null and active_route.state_id == "tamil_nadu")
-	var bridge_min_x := 27000.0
-	var bridge_max_x := 45000.0
+	var bridge_min_x := 2500.0
+	var bridge_max_x := 8500.0
 
 	# 1. Foundation polygon (multi-tiered subsurface earth foundation)
 	if is_tamil_nadu:
@@ -457,6 +621,8 @@ func _draw() -> void:
 		_draw_stratified_embankment(road_points, first_x, last_x)
 
 	# 2. Graded aggregate shoulder strip & 3. Main dark asphalt
+	# Draw asphalt and gravel extending downwards from road_points, so the top contact surface aligns
+	# 100% pixel-perfect with road_points (zero wheel sinking, zero vehicle floating).
 	if is_tamil_nadu:
 		var seg_west := PackedVector2Array()
 		var seg_east := PackedVector2Array()
@@ -467,17 +633,23 @@ func _draw() -> void:
 				seg_east.append(pt)
 
 		if seg_west.size() >= 2:
-			draw_polyline(seg_west, gravel_color, 32.0, true)
-			draw_polyline(seg_west, road_surface_color, 24.0, true)
-			draw_polyline(seg_west, road_surface_color.lightened(0.12), 4.0, true)
+			var gravel_pts := _offset_polyline(seg_west, 14.0)
+			var asphalt_pts := _offset_polyline(seg_west, 10.0)
+			draw_polyline(gravel_pts, gravel_color, 28.0, true)
+			draw_polyline(asphalt_pts, road_surface_color, 20.0, true)
+			draw_polyline(seg_west, road_surface_color.lightened(0.12), 2.0, true)
 		if seg_east.size() >= 2:
-			draw_polyline(seg_east, gravel_color, 32.0, true)
-			draw_polyline(seg_east, road_surface_color, 24.0, true)
-			draw_polyline(seg_east, road_surface_color.lightened(0.12), 4.0, true)
+			var gravel_pts := _offset_polyline(seg_east, 14.0)
+			var asphalt_pts := _offset_polyline(seg_east, 10.0)
+			draw_polyline(gravel_pts, gravel_color, 28.0, true)
+			draw_polyline(asphalt_pts, road_surface_color, 20.0, true)
+			draw_polyline(seg_east, road_surface_color.lightened(0.12), 2.0, true)
 	else:
-		draw_polyline(road_points, gravel_color, 32.0, true)
-		draw_polyline(road_points, road_surface_color, 24.0, true)
-		draw_polyline(road_points, road_surface_color.lightened(0.12), 4.0, true)
+		var gravel_pts := _offset_polyline(road_points, 14.0)
+		var asphalt_pts := _offset_polyline(road_points, 10.0)
+		draw_polyline(gravel_pts, gravel_color, 28.0, true)
+		draw_polyline(asphalt_pts, road_surface_color, 20.0, true)
+		draw_polyline(road_points, road_surface_color.lightened(0.12), 2.0, true)
 
 	# 5. Continuous reflective white road shoulder edge lines
 	for i in range(road_points.size() - 1):
@@ -487,21 +659,23 @@ func _draw() -> void:
 			continue # Handled by glass bridge deck balustrades
 		var dir := (p2 - p1).normalized()
 		var norm := Vector2(-dir.y, dir.x)
-		draw_line(p1 + norm * 9.0, p2 + norm * 9.0, edge_line_color, 2.0, true)
-		draw_line(p1 - norm * 9.0, p2 - norm * 9.0, edge_line_color, 2.0, true)
+		# Top white shoulder line: flush at top contact surface
+		draw_line(p1 + norm * 1.5, p2 + norm * 1.5, edge_line_color, 2.5, true)
+		# Bottom shoulder boundary line
+		draw_line(p1 + norm * 19.0, p2 + norm * 19.0, edge_line_color, 2.0, true)
 
 	# 6. Asphalt potholes (recessed depression with cracked edge)
 	for pt_x in pothole_x_positions:
 		var py := _calculate_road_height(pt_x)
-		draw_circle(Vector2(pt_x, py + 2.0), 16.0, road_surface_color.darkened(0.55))
-		draw_arc(Vector2(pt_x, py + 2.0), 16.0, 0.0, TAU, 12, road_surface_color.lightened(0.25), 1.5)
+		draw_circle(Vector2(pt_x, py + 8.0), 14.0, road_surface_color.darkened(0.55))
+		draw_arc(Vector2(pt_x, py + 8.0), 14.0, 0.0, TAU, 12, road_surface_color.lightened(0.25), 1.5)
 
 	# 7. Speed breaker yellow stripes
 	for sb_x in speed_breaker_x_positions:
 		for offset: float in [-18.0, -9.0, 0.0, 9.0, 18.0]:
 			var px: float = sb_x + offset
 			var py := _calculate_road_height(px)
-			draw_line(Vector2(px, py - 9.0), Vector2(px, py + 9.0), Color(1.0, 0.88, 0.2, 0.95), 3.0)
+			draw_line(Vector2(px, py), Vector2(px, py + 20.0), Color(1.0, 0.88, 0.2, 0.95), 3.0)
 
 	# 8. Yellow dashed highway center line
 	var stripe_len := 40.0
@@ -515,8 +689,8 @@ func _draw() -> void:
 			continue # Glass bridge has its own expansion transoms instead of yellow highway stripes
 		var dir := (p2 - p1).normalized()
 		var normal := Vector2(-dir.y, dir.x)
-		var c1 := p1 + normal * 1.5
-		var c2 := p2 + normal * 1.5
+		var c1 := p1 + normal * 10.0
+		var c2 := p2 + normal * 10.0
 
 		var dist_along := fmod(p1.x, cycle)
 		if dist_along < stripe_len:

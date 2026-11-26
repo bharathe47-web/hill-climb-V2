@@ -107,6 +107,26 @@ func _setup_signboard() -> void:
 	if is_instance_valid(subtitle_label):
 		subtitle_label.text = location_district
 
+	# Dynamic signboard width for crystal-clear readability
+	var sign_bg: ColorRect = signboard.get_node_or_null("SignBg")
+	var sign_border: ReferenceRect = signboard.get_node_or_null("SignBorder")
+	var title_len: int = place_name.length()
+	var half_w: float = 110.0
+	if title_len > 16:
+		half_w = maxf(110.0, float(title_len) * 5.4 + 18.0)
+	if is_instance_valid(sign_bg):
+		sign_bg.offset_left = -half_w
+		sign_bg.offset_right = half_w
+	if is_instance_valid(sign_border):
+		sign_border.offset_left = -half_w
+		sign_border.offset_right = half_w
+	if is_instance_valid(title_label):
+		title_label.offset_left = -half_w + 4.0
+		title_label.offset_right = half_w - 4.0
+	if is_instance_valid(subtitle_label):
+		subtitle_label.offset_left = -half_w + 4.0
+		subtitle_label.offset_right = half_w - 4.0
+
 	if is_offshore:
 		# Offshore monument (e.g. Thiruvalluvar Statue): positioned on approach platform to the left
 		# Elevated clear of vehicle and monument pedestal

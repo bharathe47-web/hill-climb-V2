@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 360" width="1920" height="360">
+  <path d="M 0,225 Q 340,195 680,215 T 1360,205 T 1920,220 L 1920,360 L 0,360 Z" fill="#15803d" opacity="0.75"/>
+  <!-- Casuarina pine-like needle tree silhouettes -->
+  <g fill="#166534">
+    <polygon points="220,110 205,210 235,210"/>
+    <polygon points="245,100 230,210 260,210"/>
+    <polygon points="760,105 745,215 775,215"/>
+    <polygon points="785,95 770,215 800,215"/>
+    <polygon points="1320,110 1305,210 1335,210"/>
+    <polygon points="1345,100 1330,210 1360,210"/>
+    <polygon points="1740,105 1725,215 1755,215"/>
+    <polygon points="1765,95 1750,215 1780,215"/>
+  </g>
+  <path d="M 0,270 Q 380,245 760,260 T 1520,250 T 1920,265 L 1920,360 L 0,360 Z" fill="#ca8a04"/>
+</svg>
