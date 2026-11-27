@@ -201,7 +201,6 @@ offset_bottom = 619.0
 texture_normal = ExtResource("29_sign_roads")
 script = ExtResource("28_signboard")
 chain_top_y = 430.0
-coming_soon = true
 wind_max_angle_deg = 2.6
 
 [node name="SurvivalSign" type="TextureButton" parent="Stage"]

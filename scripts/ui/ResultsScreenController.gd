@@ -60,6 +60,9 @@ func _on_run_finished(final_distance: float, coins: int = 0, reason: String = ""
 			title_label.text = "RUN FINISHED"
 			title_label.modulate = Color(0.35, 0.75, 1.0)
 			reason_label.text = "Good driving effort!"
+	if wooden_skin_applied:
+		# On the wooden plank the title keeps the art's yellow instead of the colour tint.
+		title_label.modulate = Color.WHITE
 	
 	var best_dist: float = final_distance
 	var is_record: bool = false
@@ -126,3 +129,52 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("restart") or event.is_action_pressed("ui_accept"):
 		get_viewport().set_input_as_handled()
 		_on_retry_pressed()
+
+# =========================================================================
+# WOODEN GAME OVER SKIN (opt-in, Endless only: called from Game.gd)
+# ResultsScreen.tscn is unchanged; the existing labels/button are moved onto the wooden panel.
+# =========================================================================
+
+const WOOD_PANEL_WIDTH := 500.0
+var wooden_skin_applied: bool = false
+
+func apply_wooden_skin() -> void:
+	if wooden_skin_applied or not is_instance_valid(card_panel):
+		return
+	wooden_skin_applied = true
+	var s := WOOD_PANEL_WIDTH / WoodenGameOverSkin.PANEL_SRC.x
+	var art := WoodenGameOverSkin.build_panel(card_panel, WOOD_PANEL_WIDTH)
+
+	# Subtitle plank: the live result title ("DRIVER CRASHED!", "OUT OF FUEL!", ...).
+	if is_instance_valid(title_label):
+		WoodenGameOverSkin.place(title_label, art, WoodenGameOverSkin.SUBTITLE_RECT, s)
+		WoodenGameOverSkin.style_label(title_label, int(round(62.0 * s)), WoodenGameOverSkin.YELLOW, int(round(22.0 * s)), HORIZONTAL_ALIGNMENT_CENTER)
+	if is_instance_valid(reason_label):
+		WoodenGameOverSkin.place(reason_label, art, WoodenGameOverSkin.REASON_RECT, s)
+		WoodenGameOverSkin.style_label(reason_label, int(round(36.0 * s)), WoodenGameOverSkin.WHITE, int(round(14.0 * s)), HORIZONTAL_ALIGNMENT_CENTER)
+	if is_instance_valid(new_record_badge):
+		var was_visible := new_record_badge.visible
+		WoodenGameOverSkin.place(new_record_badge, art, WoodenGameOverSkin.BADGE_RECT, s)
+		WoodenGameOverSkin.style_label(new_record_badge, int(round(30.0 * s)), WoodenGameOverSkin.YELLOW, int(round(12.0 * s)), HORIZONTAL_ALIGNMENT_CENTER)
+		new_record_badge.visible = was_visible
+
+	# Four stat rows: tag on the left, live value on the right (same nodes, same count-up animation).
+	var rows := [["DistTag", distance_value_label, WoodenGameOverSkin.WHITE],
+		["BestTag", best_value_label, WoodenGameOverSkin.YELLOW],
+		["CoinsTag", coins_value_label, WoodenGameOverSkin.YELLOW],
+		["TimeTag", time_value_label, WoodenGameOverSkin.WHITE]]
+	for i in rows.size():
+		var tag := card_panel.find_child(rows[i][0], true, false) as Label
+		var top: float = WoodenGameOverSkin.ROW_TOPS[i]
+		if tag:
+			WoodenGameOverSkin.place(tag, art, Rect2(WoodenGameOverSkin.LABEL_X.x, top, WoodenGameOverSkin.LABEL_X.y, WoodenGameOverSkin.ROW_H), s)
+			WoodenGameOverSkin.style_label(tag, int(round(38.0 * s)), WoodenGameOverSkin.WHITE, int(round(15.0 * s)), HORIZONTAL_ALIGNMENT_LEFT)
+		var value: Label = rows[i][1]
+		if is_instance_valid(value):
+			WoodenGameOverSkin.place(value, art, Rect2(WoodenGameOverSkin.VALUE_X.x, top, WoodenGameOverSkin.VALUE_X.y, WoodenGameOverSkin.ROW_H), s)
+			WoodenGameOverSkin.style_label(value, int(round(46.0 * s)), rows[i][2], int(round(17.0 * s)), HORIZONTAL_ALIGNMENT_RIGHT)
+
+	if is_instance_valid(retry_button):
+		WoodenGameOverSkin.place(retry_button, art, WoodenGameOverSkin.BUTTON_SLOT, s)
+		WoodenGameOverSkin.style_button(retry_button, s, int(round(64.0 * s)))
+		retry_button.text = "RETRY AGAIN"

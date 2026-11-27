@@ -327,6 +327,9 @@ func _setup_ui() -> void:
 
 	if is_instance_valid(pause_menu):
 		pause_menu.bind_game_manager(self)
+		# Survival uses the wooden pause menu (opt-in; PauseMenu.tscn itself is unchanged).
+		if pause_menu.has_method("apply_wooden_skin"):
+			pause_menu.apply_wooden_skin()
 		if not pause_menu.menu_requested.is_connected(_on_menu_pressed):
 			pause_menu.menu_requested.connect(_on_menu_pressed)
 

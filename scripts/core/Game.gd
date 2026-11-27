@@ -123,6 +123,13 @@ func _setup_ui() -> void:
 		# Endless mode uses the wooden arcade HUD look (opt-in; HUD.tscn itself is unchanged).
 		if hud.has_method("apply_wooden_skin"):
 			hud.apply_wooden_skin()
+	# Endless uses the wooden pause menu too (opt-in; PauseMenu.tscn itself is unchanged).
+	if is_instance_valid(pause_menu) and pause_menu.has_method("apply_wooden_skin"):
+		pause_menu.apply_wooden_skin()
+	# Endless uses the wooden game-over results panel (opt-in; ResultsScreen.tscn unchanged).
+	if is_instance_valid(results_screen) and results_screen.has_method("apply_wooden_skin"):
+		results_screen.apply_wooden_skin()
+	if is_instance_valid(hud):
 		if is_instance_valid(game_manager):
 			hud.bind_game_manager(game_manager)
 		if is_instance_valid(vehicle):
