@@ -14,11 +14,11 @@ const SMOKE_TEXTURE: Texture2D = preload("res://assets/vehicles/effects/exhaust_
 
 @export var vehicle_scale: float = 3.4
 ## Engine idle vibration (in vehicle-local units, before scaling).
-@export var vibration_amplitude: float = 0.22
-@export var vibration_frequency: float = 26.0
+@export var vibration_amplitude: float = 0.08
+@export var vibration_frequency: float = 20.0
 ## Slow suspension bob (in vehicle-local units, before scaling).
-@export var suspension_amplitude: float = 0.45
-@export var suspension_frequency: float = 2.2
+@export var suspension_amplitude: float = 0.16
+@export var suspension_frequency: float = 1.6
 
 var vehicle_id: String = ""
 
@@ -29,9 +29,9 @@ var _body_base_y: Array[float] = []
 var _time: float = 0.0
 
 func _process(delta: float) -> void:
-	if _body_nodes.is_empty():
+	if _body_nodes.is_empty() or not is_visible_in_tree():
 		return
-	_time += delta
+	_time += minf(delta, 0.1)
 	var offset := sin(_time * vibration_frequency) * vibration_amplitude
 	offset += sin(_time * TAU * suspension_frequency * 0.5) * suspension_amplitude
 	for i in range(_body_nodes.size()):

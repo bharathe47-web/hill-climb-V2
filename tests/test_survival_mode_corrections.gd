@@ -215,8 +215,9 @@ func _test_issue_10_pedal_controls_styling(root: Window) -> void:
 	var gas_tex = hud.gas_pedal.texture_normal
 	var brake_tex = hud.brake_pedal.texture_normal
 	assert(gas_tex != null and brake_tex != null, "Both pedals must have textures")
-	assert(gas_tex.resource_path.ends_with("accelerator_pedal_normal.png"), "Gas pedal uses accelerator texture")
-	assert(brake_tex.resource_path.ends_with("brake_pedal_normal.png"), "Brake pedal uses brake texture")
+	# Survival uses the wooden Survival HUD controls (assets/ui/survival_hud/).
+	assert(gas_tex.resource_path.ends_with("survival_hud_gas.png"), "Gas pedal uses Survival accelerator texture")
+	assert(brake_tex.resource_path.ends_with("survival_hud_brake.png"), "Brake pedal uses Survival brake texture")
 	assert(gas_tex.resource_path != brake_tex.resource_path, "Gas and brake textures must be distinct")
 
 	# Test input behavior

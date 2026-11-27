@@ -192,6 +192,7 @@ func _process(delta: float) -> void:
 		speed_needle.rotation = _spring_toward_angle(speed_needle.rotation, target_speed_rot, delta, false)
 		if is_instance_valid(speed_digital_label):
 			speed_digital_label.text = str(int(round(speed_kmh)))
+	_update_wooden_needle(delta)
 
 	# Pulse low fuel beacon when critical
 	if _is_low_fuel:
@@ -257,6 +258,16 @@ func _on_pause_button_pressed() -> void:
 	var ev := InputEventAction.new()
 	ev.action = "pause"
 	ev.pressed = true
+	Input.parse_input_event(ev)
+	# Release the synthetic press shortly after, otherwise "pause" stays held forever and
+	# is_action_just_pressed("pause") never fires again (pause button only worked once).
+	# process_always=true so the timer still runs while the tree is paused.
+	get_tree().create_timer(0.1, true).timeout.connect(_release_pause_action)
+
+func _release_pause_action() -> void:
+	var ev := InputEventAction.new()
+	ev.action = "pause"
+	ev.pressed = false
 	Input.parse_input_event(ev)
 
 ## Binds to GameManager signals
@@ -860,3 +871,235 @@ func _on_progression_reset() -> void:
 	if nitro_bar:
 		nitro_bar.scale = Vector2.ONE
 		nitro_bar.modulate = Color.WHITE
+
+# =========================================================================
+# ENDLESS WOODEN HUD SKIN
+# Opt-in restyle with the Wooden Arcade HUD kit (assets/ui/endless_hud/). Only Game.gd (Endless)
+# calls apply_wooden_skin(); a bare HUD.tscn instance (tests, other scenes) keeps its original look.
+# Survival is unaffected: its HUD (game_hud.tscn) runs game_hud.gd, not this script.
+# Existing nodes are MOVED onto the wooden art and restyled, so every update path and
+# unique-name lookup (%DistanceLabel, %FuelBar, %CoinsLabel, ...) keeps working.
+# =========================================================================
+
+const WOOD_DIR := "res://assets/ui/endless_hud/"
+const WOOD_FONT: FontFile = preload("res://assets/fonts/Kenney_Future.ttf")
+const WOOD_WHITE := Color(1.0, 0.98, 0.93)
+const WOOD_YELLOW := Color(1.0, 0.84, 0.16)
+const WOOD_OUTLINE := Color(0.13, 0.06, 0.02)
+## Source-pixel geometry of the kit art.
+const WOOD_STATS_SIZE := Vector2(745.0, 321.0)
+const WOOD_DIST_RECT := Rect2(288.0, 36.0, 110.0, 54.0)
+const WOOD_BEST_RECT := Rect2(404.0, 38.0, 282.0, 50.0)
+const WOOD_FUEL_TRACK := Rect2(290.0, 136.0, 291.0, 39.0)
+const WOOD_NITRO_TRACK := Rect2(290.0, 225.0, 291.0, 38.0)
+const WOOD_FUEL_PILL := Rect2(590.0, 124.0, 92.0, 54.0)
+const WOOD_NITRO_PILL := Rect2(588.0, 213.0, 94.0, 55.0)
+const WOOD_COIN_SIZE := Vector2(397.0, 177.0)
+const WOOD_SPEEDO_SIZE := Vector2(388.0, 385.0)
+const WOOD_SPEEDO_HUB := Vector2(195.0, 187.0)
+const WOOD_SPEEDO_NEEDLE_LEN := 128.0
+const WOOD_SPEEDO_ARC_DEG := 125.0
+const WOOD_SPEEDO_MAX_KMH := 220.0
+
+var wooden_skin_applied: bool = false
+var _wood_needle_pivot: Node2D = null
+
+func _wood_tex(file_name: String) -> Texture2D:
+	return load(WOOD_DIR + file_name + ".png") as Texture2D
+
+func _wood_place(c: Control, ax: float, ay: float, pos: Vector2, sz: Vector2) -> void:
+	c.anchor_left = ax
+	c.anchor_right = ax
+	c.anchor_top = ay
+	c.anchor_bottom = ay
+	c.offset_left = pos.x
+	c.offset_top = pos.y
+	c.offset_right = pos.x + sz.x
+	c.offset_bottom = pos.y + sz.y
+
+## Moves a node onto a wooden panel at a rect given in the art's source pixels.
+func _wood_attach(c: Control, panel: Control, src_rect: Rect2, s: float) -> void:
+	c.reparent(panel, false)
+	c.visible = true
+	c.custom_minimum_size = Vector2.ZERO
+	c.size_flags_horizontal = Control.SIZE_FILL
+	c.size_flags_vertical = Control.SIZE_FILL
+	_wood_place(c, 0.0, 0.0, src_rect.position * s, src_rect.size * s)
+
+func _wood_label(lbl: Label, font_size: int, color: Color, outline: int) -> void:
+	lbl.add_theme_font_override("font", WOOD_FONT)
+	lbl.add_theme_font_size_override("font_size", font_size)
+	lbl.add_theme_color_override("font_color", color)
+	lbl.add_theme_color_override("font_outline_color", WOOD_OUTLINE)
+	lbl.add_theme_constant_override("outline_size", outline)
+	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+## Turns an existing panel into a wooden one: old background/content hidden, art added inside.
+func _wood_host(host: Control, tex_name: String, ax: float, ay: float, pos: Vector2, sz: Vector2) -> TextureRect:
+	if host is PanelContainer:
+		host.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	for child in host.get_children():
+		if child is CanvasItem:
+			child.visible = false
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.custom_minimum_size = Vector2.ZERO
+	_wood_place(host, ax, ay, pos, sz)
+	host.pivot_offset = sz * 0.5
+	var tr := TextureRect.new()
+	tr.name = "Wood" + host.name
+	tr.texture = _wood_tex(tex_name)
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.add_child(tr)
+	if not (host is Container):
+		tr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	return tr
+
+## Public entry point used by the Endless game scene (Game.gd).
+func apply_wooden_skin() -> void:
+	if wooden_skin_applied:
+		return
+	wooden_skin_applied = true
+	_wood_buttons()
+	_wood_stats_panel()
+	_wood_coin_panel()
+	_wood_speedometer()
+
+func _wood_button(btn: TextureButton, tex_name: String) -> void:
+	btn.texture_normal = _wood_tex(tex_name)
+	btn.texture_pressed = _wood_tex(tex_name + "_pressed")
+	btn.texture_hover = null
+	btn.ignore_texture_size = true
+	btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+
+func _wood_buttons() -> void:
+	# Pedals keep a large touch area (taller rect to fit the kit's pedal-with-stem shape).
+	if is_instance_valid(brake_pedal):
+		_wood_button(brake_pedal, "endless_hud_brake")
+		_wood_place(brake_pedal, 0.0, 1.0, Vector2(28.0, -196.0), Vector2(126.0, 176.0))
+	if is_instance_valid(gas_pedal):
+		_wood_button(gas_pedal, "endless_hud_gas")
+		_wood_place(gas_pedal, 1.0, 1.0, Vector2(-154.0, -196.0), Vector2(126.0, 176.0))
+	if is_instance_valid(nitro_button):
+		_wood_button(nitro_button, "endless_hud_nitro")
+		# The kit's nitro button already contains the bottle artwork.
+		var icon := nitro_button.get_node_or_null("NitroButtonIcon") as CanvasItem
+		if icon:
+			icon.visible = false
+		_wood_place(nitro_button, 0.0, 1.0, Vector2(172.0, -156.0), Vector2(128.0, 128.0))
+	if is_instance_valid(pause_button):
+		_wood_button(pause_button, "endless_hud_pause")
+		_wood_place(pause_button, 1.0, 0.0, Vector2(-82.0, 8.0), Vector2(70.0, 70.0))
+
+func _wood_stats_panel() -> void:
+	var panel_host := get_node_or_null("TopStatsPanel") as Control
+	if not is_instance_valid(panel_host):
+		return
+	var sz := Vector2(372.0, 372.0 * WOOD_STATS_SIZE.y / WOOD_STATS_SIZE.x)
+	var s := sz.x / WOOD_STATS_SIZE.x
+	var panel := _wood_host(panel_host, "endless_hud_stats_panel", 0.0, 0.0, Vector2(10.0, 8.0), sz)
+
+	if is_instance_valid(distance_label):
+		_wood_attach(distance_label, panel, WOOD_DIST_RECT, s)
+		_wood_label(distance_label, 17, WOOD_YELLOW, 8)
+	if is_instance_valid(best_distance_label):
+		_wood_attach(best_distance_label, panel, WOOD_BEST_RECT, s)
+		_wood_label(best_distance_label, 16, WOOD_WHITE, 8)
+
+	for pair in [[fuel_bar, WOOD_FUEL_TRACK], [nitro_bar, WOOD_NITRO_TRACK]]:
+		var bar: ProgressBar = pair[0]
+		if is_instance_valid(bar):
+			var track: Rect2 = pair[1]
+			_wood_attach(bar, panel, Rect2(track.position + Vector2(2, 2), track.size - Vector2(4, 4)), s)
+			bar.show_percentage = false
+			bar.add_theme_stylebox_override("background", StyleBoxEmpty.new())
+	for st in [_fuel_style_healthy, _fuel_style_warning, _fuel_style_critical]:
+		if st:
+			st.set_corner_radius_all(6)
+	if is_instance_valid(nitro_bar):
+		var nitro_fill := StyleBoxFlat.new()
+		nitro_fill.bg_color = Color(0.0, 0.85, 1.0)
+		nitro_fill.border_width_top = 1
+		nitro_fill.border_color = Color(0.6, 0.97, 1.0, 0.8)
+		nitro_fill.set_corner_radius_all(6)
+		nitro_bar.add_theme_stylebox_override("fill", nitro_fill)
+
+	if is_instance_valid(fuel_percentage_label):
+		_wood_attach(fuel_percentage_label, panel, WOOD_FUEL_PILL, s)
+		_wood_label(fuel_percentage_label, 16, WOOD_WHITE, 7)
+	if is_instance_valid(nitro_percentage_label):
+		_wood_attach(nitro_percentage_label, panel, WOOD_NITRO_PILL, s)
+		_wood_label(nitro_percentage_label, 16, WOOD_WHITE, 7)
+	# LOW FUEL warning flashes centred on the fuel bar (the kit has no separate slot for it).
+	if is_instance_valid(low_fuel_indicator):
+		_wood_attach(low_fuel_indicator, panel, WOOD_FUEL_TRACK, s)
+		_wood_label(low_fuel_indicator, 14, Color(1.0, 0.3, 0.22), 7)
+		low_fuel_indicator.visible = _is_low_fuel
+		low_fuel_indicator.pivot_offset = low_fuel_indicator.size * 0.5
+
+func _wood_coin_panel() -> void:
+	if not is_instance_valid(coins_panel) or not is_instance_valid(coins_label):
+		return
+	var sz := Vector2(176.0, 176.0 * WOOD_COIN_SIZE.y / WOOD_COIN_SIZE.x)
+	var s := sz.x / WOOD_COIN_SIZE.x
+	# Left of the pause button in the top-right corner.
+	var panel := _wood_host(coins_panel, "endless_hud_coin_panel", 1.0, 0.0, Vector2(-90.0 - sz.x, 4.0 + (70.0 - sz.y) * 0.5), sz)
+	_wood_attach(coins_label, panel, Rect2(178.0, 30.0, 190.0, 110.0), s)
+	_wood_label(coins_label, 26, WOOD_YELLOW, 9)
+
+func _wood_speedometer() -> void:
+	var gauge := get_node_or_null("SpeedometerGauge") as Control
+	if not is_instance_valid(gauge):
+		return
+	var sz := Vector2(156.0, 156.0 * WOOD_SPEEDO_SIZE.y / WOOD_SPEEDO_SIZE.x)
+	var s := sz.x / WOOD_SPEEDO_SIZE.x
+	# Bottom-right, just left of the gas pedal (gas occupies right -154..-28).
+	var dial := _wood_host(gauge, "endless_hud_speedometer", 1.0, 1.0, Vector2(-166.0 - sz.x, -16.0 - sz.y), sz)
+
+	var pivot := Node2D.new()
+	pivot.name = "WoodNeedlePivot"
+	pivot.position = WOOD_SPEEDO_HUB * s
+	dial.add_child(pivot)
+	var length := WOOD_SPEEDO_NEEDLE_LEN * s
+	var outline := Polygon2D.new()
+	outline.color = WOOD_OUTLINE
+	outline.polygon = PackedVector2Array([Vector2(-4.4, 4.0), Vector2(4.4, 4.0), Vector2(2.0, -length - 2.0), Vector2(-2.0, -length - 2.0)])
+	pivot.add_child(outline)
+	var body := Polygon2D.new()
+	body.color = Color(0.93, 0.12, 0.08)
+	body.polygon = PackedVector2Array([Vector2(-3.0, 2.5), Vector2(3.0, 2.5), Vector2(1.0, -length), Vector2(-1.0, -length)])
+	pivot.add_child(body)
+	var shine := Line2D.new()
+	shine.width = 1.0
+	shine.default_color = Color(1.0, 0.95, 0.9, 0.9)
+	shine.points = PackedVector2Array([Vector2(-1.1, -4.0), Vector2(-0.5, -length + 3.0)])
+	pivot.add_child(shine)
+	pivot.rotation = deg_to_rad(-WOOD_SPEEDO_ARC_DEG)
+	_wood_needle_pivot = pivot
+
+	var hub := TextureRect.new()
+	hub.name = "WoodNeedleHub"
+	hub.texture = _wood_tex("endless_hud_speedo_hub")
+	hub.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	hub.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dial.add_child(hub)
+	var hub_size := Vector2(51.0, 51.0) * s
+	_wood_place(hub, 0.0, 0.0, WOOD_SPEEDO_HUB * s - hub_size * 0.5, hub_size)
+
+	if is_instance_valid(speed_digital_label):
+		_wood_attach(speed_digital_label, dial, Rect2(WOOD_SPEEDO_HUB.x - 60.0, 228.0, 120.0, 56.0), s)
+		_wood_label(speed_digital_label, 19, WOOD_WHITE, 8)
+
+func _update_wooden_needle(delta: float) -> void:
+	if not is_instance_valid(_wood_needle_pivot) or not is_instance_valid(_vehicle_ref):
+		return
+	var speed_kmh: float = 0.0
+	if _vehicle_ref.has_method("get_speed_kmh"):
+		speed_kmh = maxf(0.0, _vehicle_ref.get_speed_kmh())
+	var ratio: float = clampf(speed_kmh / WOOD_SPEEDO_MAX_KMH, 0.0, 1.0)
+	var target := deg_to_rad(lerpf(-WOOD_SPEEDO_ARC_DEG, WOOD_SPEEDO_ARC_DEG, ratio))
+	_wood_needle_pivot.rotation = lerp_angle(_wood_needle_pivot.rotation, target, clampf(delta * 14.0, 0.0, 1.0))

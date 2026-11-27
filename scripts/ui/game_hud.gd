@@ -12,8 +12,27 @@ enum HUDMode {
 	SURVIVAL
 }
 
-const HEART_FULL_TEX = preload("res://assets/ui/hud/hearts/hud_heart_full.png")
-const HEART_EMPTY_TEX = preload("res://assets/ui/hud/hearts/hud_heart_empty.png")
+## Hearts are only shown in Survival, so they use the wooden Survival HUD heart art.
+const HEART_FULL_TEX = preload("res://assets/ui/survival_hud/survival_hud_heart_full.png")
+const HEART_EMPTY_TEX = preload("res://assets/ui/survival_hud/survival_hud_heart_empty.png")
+
+# --- Survival wooden HUD skin (applied ONLY in HUDMode.SURVIVAL; Endless uses HUD.tscn + HUDController.gd) ---
+const SKIN_DIR := "res://assets/ui/survival_hud/"
+const SKIN_FONT: FontFile = preload("res://assets/fonts/Kenney_Future.ttf")
+const SKIN_YELLOW := Color(1.0, 0.84, 0.16)
+const SKIN_WHITE := Color(1.0, 0.98, 0.93)
+const SKIN_OUTLINE := Color(0.17, 0.08, 0.02)
+## Speedometer art: hub centre and needle length in source pixels (247x215 dial), arc of the tick marks.
+const SKIN_SPEEDO_HUB := Vector2(141.0, 99.0)
+const SKIN_SPEEDO_NEEDLE_LEN := 74.0
+const SKIN_SPEEDO_ARC_DEG := 130.0
+const SKIN_SPEEDO_MAX_KMH := 220.0
+## Fuel bar art: empty track rectangle in source pixels (475x143 panel).
+const SKIN_FUEL_TRACK := Rect2(54.0, 68.0, 370.0, 28.0)
+
+var _survival_skin_applied: bool = false
+var _skin_nodes: Dictionary = {}
+var _skin_needle_pivot: Node2D = null
 
 @export var current_mode: HUDMode = HUDMode.ENDLESS
 
@@ -191,6 +210,7 @@ func _process(delta: float) -> void:
 		speed_needle.rotation = lerp_angle(speed_needle.rotation, target_speed_rot, delta * 14.0)
 		if is_instance_valid(speed_digital_label):
 			speed_digital_label.text = str(int(round(speed_kmh)))
+	_update_survival_skin_needle(delta)
 
 	# Pulse low fuel beacon when critical
 	if _is_low_fuel:
@@ -271,6 +291,266 @@ func _apply_mode_layout() -> void:
 				nitro_button.visible = false
 			if is_instance_valid(nitro_section):
 				nitro_section.visible = false
+			_apply_survival_skin()
+
+# =========================================================================
+# SURVIVAL WOODEN HUD SKIN
+# Restyles the Survival HUD with the wooden art in assets/ui/survival_hud/.
+# Existing nodes (FuelBar, CoinsLabel, HeartContainer, time/dist labels, speed label,
+# pedals, pause) are MOVED into the new panels and restyled, so every update path,
+# unique-name lookup (%CoinsLabel, %HeartContainer...) and test keeps working.
+# =========================================================================
+
+func _skin_tex(file_name: String) -> Texture2D:
+	return load(SKIN_DIR + file_name + ".png") as Texture2D
+
+## Anchors a control to (ax, ay) of the HUD and sets its rect relative to that anchor.
+func _skin_place(c: Control, ax: float, ay: float, pos: Vector2, sz: Vector2) -> void:
+	c.anchor_left = ax
+	c.anchor_right = ax
+	c.anchor_top = ay
+	c.anchor_bottom = ay
+	c.offset_left = pos.x
+	c.offset_top = pos.y
+	c.offset_right = pos.x + sz.x
+	c.offset_bottom = pos.y + sz.y
+
+## Places a control at a fixed rect inside a (non-container) parent.
+func _skin_rect(c: Control, pos: Vector2, sz: Vector2) -> void:
+	c.custom_minimum_size = Vector2.ZERO
+	_skin_place(c, 0.0, 0.0, pos, sz)
+
+func _skin_label(lbl: Label, font_size: int, color: Color, outline: int) -> void:
+	lbl.add_theme_font_override("font", SKIN_FONT)
+	lbl.add_theme_font_size_override("font_size", font_size)
+	lbl.add_theme_color_override("font_color", color)
+	lbl.add_theme_color_override("font_outline_color", SKIN_OUTLINE)
+	lbl.add_theme_constant_override("outline_size", outline)
+	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+## Turns an existing HUD panel (host) into a wooden panel: its old background and old content are
+## hidden, the wooden art is added inside it, and the host is moved/resized to the art's rect.
+## The host stays the real, visible panel (SurvivalPanel, CoinsPanel, ...), it just looks wooden now.
+func _skin_panel(key: String, tex_name: String, host: Control, ax: float, ay: float, pos: Vector2, sz: Vector2) -> TextureRect:
+	if host is PanelContainer:
+		host.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	for child in host.get_children():
+		if child is CanvasItem:
+			child.visible = false
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.custom_minimum_size = Vector2.ZERO
+	var tr := TextureRect.new()
+	tr.name = key
+	tr.texture = _skin_tex(tex_name)
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.add_child(tr)
+	if not (host is Container):
+		tr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_skin_nodes[host] = [ax, ay, pos, sz]
+	_skin_layout_host(host)
+	return tr
+
+func _skin_layout_host(host: Control) -> void:
+	var p: Array = _skin_nodes[host]
+	_skin_place(host, p[0], p[1], p[2], p[3])
+	host.pivot_offset = p[3] * 0.5
+	host.visible = true
+
+func _apply_survival_skin() -> void:
+	if current_mode != HUDMode.SURVIVAL:
+		return
+	if not _survival_skin_applied:
+		_survival_skin_applied = true
+		_skin_buttons()
+		_skin_fuel_panel()
+		_skin_stats_panel()
+		_skin_coin_panel()
+		_skin_speedometer()
+	# _apply_mode_layout() re-positions the original panels on every pass: restore the wooden layout.
+	for host in _skin_nodes.keys():
+		if is_instance_valid(host):
+			_skin_layout_host(host)
+
+func _skin_buttons() -> void:
+	# Pedals keep their 140x140 touch areas and keep-aspect stretch; only the artwork changes.
+	if is_instance_valid(brake_pedal):
+		brake_pedal.texture_normal = _skin_tex("survival_hud_brake")
+		brake_pedal.texture_pressed = _skin_tex("survival_hud_brake_pressed")
+		brake_pedal.texture_hover = null
+	if is_instance_valid(gas_pedal):
+		gas_pedal.texture_normal = _skin_tex("survival_hud_gas")
+		gas_pedal.texture_pressed = _skin_tex("survival_hud_gas_pressed")
+		gas_pedal.texture_hover = null
+	if is_instance_valid(pause_button):
+		pause_button.texture_normal = _skin_tex("survival_hud_pause")
+		pause_button.texture_pressed = _skin_tex("survival_hud_pause_pressed")
+		pause_button.texture_hover = null
+		pause_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+		_skin_place(pause_button, 1.0, 0.0, Vector2(-80.0, 8.0), Vector2(68.0, 62.0))
+
+func _skin_fuel_panel() -> void:
+	if not is_instance_valid(top_stats_panel) or not is_instance_valid(fuel_bar):
+		return
+	var src_size := Vector2(475.0, 143.0)
+	var sz := Vector2(330.0, 330.0 * src_size.y / src_size.x)
+	var s := sz.x / src_size.x
+	var panel := _skin_panel("SurvivalFuelPanel", "survival_hud_fuel_panel", top_stats_panel, 0.0, 0.0, Vector2(10.0, 8.0), sz)
+
+	# Move the whole FuelSection (header row + bar) onto the wooden panel. The header row sits
+	# where the art had "FUEL ... 100%", the bar fills the art's empty track exactly.
+	if is_instance_valid(fuel_section):
+		fuel_section.reparent(panel, false)
+		fuel_section.visible = true
+		fuel_section.add_theme_constant_override("separation", maxi(1, int(2.0 * s)))
+		var header_h := (SKIN_FUEL_TRACK.position.y - 2.0 - 32.0) * s
+		_skin_rect(fuel_section, Vector2(SKIN_FUEL_TRACK.position.x, 32.0) * s,
+			Vector2(SKIN_FUEL_TRACK.size.x, SKIN_FUEL_TRACK.end.y - 32.0) * s)
+		var header: Control = fuel_section.get_node_or_null("FuelHeader")
+		if is_instance_valid(header):
+			header.custom_minimum_size = Vector2(0.0, header_h)
+			# The wooden art already shows the "FUEL" title.
+			for n in ["FuelIconRoot", "FuelTitle"]:
+				var c := header.get_node_or_null(n) as CanvasItem
+				if c:
+					c.visible = false
+			# Pack the row from the right: percentage always at the right edge, the LOW FUEL
+			# warning appears just left of it, never over the painted "FUEL" title.
+			if header is BoxContainer:
+				header.alignment = BoxContainer.ALIGNMENT_END
+				header.add_theme_constant_override("separation", 8)
+		if is_instance_valid(low_fuel_indicator):
+			_skin_label(low_fuel_indicator, 14, Color(1.0, 0.3, 0.22), 6)
+			low_fuel_indicator.size_flags_horizontal = Control.SIZE_SHRINK_END
+	fuel_bar.show_percentage = false
+	fuel_bar.add_theme_stylebox_override("background", StyleBoxEmpty.new())
+	fuel_bar.custom_minimum_size = Vector2(0.0, SKIN_FUEL_TRACK.size.y * s)
+	fuel_bar.size_flags_vertical = Control.SIZE_FILL
+	for st in [_fuel_style_healthy, _fuel_style_warning, _fuel_style_critical]:
+		if st:
+			st.set_corner_radius_all(6)
+
+	if is_instance_valid(fuel_percentage_label):
+		_skin_label(fuel_percentage_label, 20, SKIN_WHITE, 8)
+		fuel_percentage_label.size_flags_horizontal = Control.SIZE_SHRINK_END
+		fuel_percentage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		fuel_percentage_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	if is_instance_valid(_vehicle_ref) and "current_fuel" in _vehicle_ref and "max_fuel" in _vehicle_ref:
+		_on_fuel_updated(_vehicle_ref.current_fuel, _vehicle_ref.max_fuel)
+
+func _skin_stats_panel() -> void:
+	if not is_instance_valid(survival_panel) or not is_instance_valid(heart_container):
+		return
+	var src_size := Vector2(458.0, 146.0)
+	var sz := Vector2(380.0, 380.0 * src_size.y / src_size.x)
+	var s := sz.x / src_size.x
+	var panel := _skin_panel("SurvivalStatsPanel", "survival_hud_stats_panel", survival_panel, 0.5, 0.0, Vector2(-sz.x * 0.5, 6.0), sz)
+
+	heart_container.reparent(panel, false)
+	heart_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	heart_container.add_theme_constant_override("separation", int(10.0 * s))
+	_skin_rect(heart_container, Vector2(40.0, 18.0) * s, Vector2(378.0, 60.0) * s)
+	var heart_size := Vector2(60.0, 54.0) * s
+	for h in heart_container.get_children():
+		if h is TextureRect:
+			h.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			h.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			h.custom_minimum_size = heart_size
+			h.size = heart_size
+			h.pivot_offset = heart_size * 0.5
+
+	var stats_row: Control = survival_time_label.get_parent() as Control if is_instance_valid(survival_time_label) else null
+	if is_instance_valid(stats_row):
+		stats_row.reparent(panel, false)
+		if stats_row is BoxContainer:
+			stats_row.alignment = BoxContainer.ALIGNMENT_CENTER
+			stats_row.add_theme_constant_override("separation", int(46.0 * s))
+		_skin_rect(stats_row, Vector2(40.0, 78.0) * s, Vector2(378.0, 38.0) * s)
+		for lbl in [survival_time_label, survival_dist_label]:
+			if is_instance_valid(lbl):
+				_skin_label(lbl, 20, SKIN_YELLOW, 9)
+				lbl.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+				lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+	if is_instance_valid(_survival_controller_ref):
+		if "current_lives" in _survival_controller_ref and "max_lives" in _survival_controller_ref:
+			set_survival_lives(_survival_controller_ref.current_lives, _survival_controller_ref.max_lives)
+		if "survival_time" in _survival_controller_ref and "survival_distance" in _survival_controller_ref:
+			set_survival_stats(_survival_controller_ref.survival_time, _survival_controller_ref.survival_distance)
+
+func _skin_coin_panel() -> void:
+	if not is_instance_valid(coins_panel) or not is_instance_valid(coins_label):
+		return
+	var src_size := Vector2(232.0, 111.0)
+	var sz := Vector2(164.0, 164.0 * src_size.y / src_size.x)
+	var s := sz.x / src_size.x
+	# Under the MENU / pause row in the top-right corner.
+	var panel := _skin_panel("SurvivalCoinPanel", "survival_hud_coin_panel", coins_panel, 1.0, 0.0, Vector2(-14.0 - sz.x, 76.0), sz)
+	coins_label.reparent(panel, false)
+	_skin_label(coins_label, 28, SKIN_YELLOW, 10)
+	coins_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	coins_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_skin_rect(coins_label, Vector2(98.0, 18.0) * s, Vector2(120.0, 72.0) * s)
+
+func _skin_speedometer() -> void:
+	var src_size := Vector2(247.0, 215.0)
+	var sz := Vector2(150.0, 150.0 * src_size.y / src_size.x)
+	var s := sz.x / src_size.x
+	var gauge := get_node_or_null("SpeedometerGauge") as Control
+	if gauge == null:
+		return
+	# Bottom-right, just left of the gas pedal (gas occupies right -172..-32).
+	var dial := _skin_panel("SurvivalSpeedometer", "survival_hud_speedometer", gauge, 1.0, 1.0, Vector2(-186.0 - sz.x, -18.0 - sz.y), sz)
+
+	# Live needle: tapered red needle with dark outline and a white highlight, pivoting on the hub.
+	var pivot := Node2D.new()
+	pivot.name = "SurvivalNeedlePivot"
+	pivot.position = SKIN_SPEEDO_HUB * s
+	dial.add_child(pivot)
+	var length := SKIN_SPEEDO_NEEDLE_LEN * s
+	var outline := Polygon2D.new()
+	outline.color = SKIN_OUTLINE
+	outline.polygon = PackedVector2Array([Vector2(-4.6, 4.0), Vector2(4.6, 4.0), Vector2(2.2, -length - 2.0), Vector2(-2.2, -length - 2.0)])
+	pivot.add_child(outline)
+	var body := Polygon2D.new()
+	body.color = Color(0.93, 0.12, 0.08)
+	body.polygon = PackedVector2Array([Vector2(-3.2, 2.5), Vector2(3.2, 2.5), Vector2(1.1, -length), Vector2(-1.1, -length)])
+	pivot.add_child(body)
+	var shine := Line2D.new()
+	shine.width = 1.0
+	shine.default_color = Color(1.0, 0.95, 0.9, 0.9)
+	shine.points = PackedVector2Array([Vector2(-1.2, -4.0), Vector2(-0.5, -length + 3.0)])
+	pivot.add_child(shine)
+	pivot.rotation = deg_to_rad(-SKIN_SPEEDO_ARC_DEG)
+	_skin_needle_pivot = pivot
+
+	var hub := TextureRect.new()
+	hub.name = "SurvivalNeedleHub"
+	hub.texture = _skin_tex("survival_hud_speedo_hub")
+	hub.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	hub.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var hub_size := Vector2(29.0, 29.0) * s
+	dial.add_child(hub)
+	_skin_rect(hub, SKIN_SPEEDO_HUB * s - hub_size * 0.5, hub_size)
+
+	if is_instance_valid(speed_digital_label):
+		speed_digital_label.reparent(dial, false)
+		_skin_label(speed_digital_label, 19, SKIN_WHITE, 8)
+		speed_digital_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		speed_digital_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_skin_rect(speed_digital_label, Vector2(SKIN_SPEEDO_HUB.x - 40.0, 124.0) * s, Vector2(80.0, 36.0) * s)
+
+func _update_survival_skin_needle(delta: float) -> void:
+	if not is_instance_valid(_skin_needle_pivot) or not is_instance_valid(_vehicle_ref):
+		return
+	var speed_kmh: float = 0.0
+	if _vehicle_ref.has_method("get_speed_kmh"):
+		speed_kmh = maxf(0.0, _vehicle_ref.get_speed_kmh())
+	var ratio: float = clampf(speed_kmh / SKIN_SPEEDO_MAX_KMH, 0.0, 1.0)
+	var target := deg_to_rad(lerpf(-SKIN_SPEEDO_ARC_DEG, SKIN_SPEEDO_ARC_DEG, ratio))
+	_skin_needle_pivot.rotation = lerp_angle(_skin_needle_pivot.rotation, target, clampf(delta * 14.0, 0.0, 1.0))
 
 # =========================================================================
 # MODE-SPECIFIC PUBLIC APIS

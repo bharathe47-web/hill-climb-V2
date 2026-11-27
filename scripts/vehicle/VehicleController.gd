@@ -173,6 +173,7 @@ func _ready() -> void:
 	_ensure_nitro_visuals()
 
 func _process(_delta: float) -> void:
+	_update_wheel_visuals()
 	_update_struts()
 	_update_ground_shadow()
 
@@ -598,8 +599,13 @@ func _update_struts() -> void:
 		rear_mount = Vector2(-38, 4)
 		front_mount = Vector2(38, 4)
 
+	# Visual suspension: struts run from the (visually lifted/tilted) body mount to the
+	# DRAWN wheel position, so they always connect body and wheel. Render-only.
+	rear_mount = _vis_body_point(rear_mount)
+	front_mount = _vis_body_point(front_mount)
+
 	if rear_strut and rear_wheel:
-		var local_rear: Vector2 = to_local(rear_wheel.global_position)
+		var local_rear: Vector2 = _vis_rear_local if _vis_ready else to_local(rear_wheel.global_position)
 		rear_strut.points = PackedVector2Array([rear_mount, local_rear])
 		var rear_shock: Sprite2D = get_node_or_null("RearShock")
 		if is_instance_valid(rear_shock):
@@ -609,7 +615,7 @@ func _update_struts() -> void:
 			rear_shock.scale = Vector2(0.12, clampf(dist / 140.0, 0.08, 0.22))
 
 	if front_strut and front_wheel:
-		var local_front: Vector2 = to_local(front_wheel.global_position)
+		var local_front: Vector2 = _vis_front_local if _vis_ready else to_local(front_wheel.global_position)
 		front_strut.points = PackedVector2Array([front_mount, local_front])
 		var front_shock: Sprite2D = get_node_or_null("FrontShock")
 		if is_instance_valid(front_shock):
@@ -923,3 +929,107 @@ func reset_vehicle(at_position: Vector2) -> void:
 		engine_audio.play()
 	if skid_audio and skid_audio.playing:
 		skid_audio.stop()
+
+# =========================================================================
+# VISUAL SUSPENSION (render-only — car physics is NOT changed)
+# The physics wheels hang on soft PinJoint2Ds, so they drift relative to the chassis
+# (measured: up to ~18 px sideways and ~29 px up into the body on landings). The baked
+# body art cannot follow that, so wheels looked detached / pushed into the body.
+# This only re-positions SPRITES each frame:
+#  * sideways drift  -> the drawn wheel stays under its mount (±visual_wheel_slide px)
+#  * up/down         -> the drawn wheel stays where the physics wheel is (on the ground),
+#                       with a small visible suspension travel; anything beyond that is
+#                       absorbed by gently lifting/tilting the drawn body (body art, driver,
+#                       exhaust, nitro effects), so wheels never sink into the ground.
+# Wheel RigidBodies, joints, collision shapes, forces and the chassis are untouched.
+# =========================================================================
+
+@export_group("Visual Suspension (render only)")
+## Max sideways offset (px) of a drawn wheel from its mount.
+@export var visual_wheel_slide: float = 2.0
+## Visible suspension travel (px): how far a drawn wheel may move up into / down away from the body.
+@export var visual_travel_up: float = 7.0
+@export var visual_travel_down: float = 6.0
+## Max distance (px) the drawn body may be lifted/lowered to keep the wheels attached.
+@export var visual_body_max_offset: float = 20.0
+
+const _BODY_VISUAL_NODES: Array[String] = ["BodySprite", "DriverSprite", "ExhaustPipe", "ExhaustParticles", "BoostParticles", "NitroFlame", "NitroBurst", "NitroSparks"]
+
+var _vis_ready: bool = false
+var _vis_body_base: Dictionary = {}  # Node2D -> [base position, base rotation]
+var _vis_pivot: Vector2 = Vector2.ZERO
+var _vis_body_shift: float = 0.0
+var _vis_body_tilt: float = 0.0
+var _vis_rear_local: Vector2 = Vector2.ZERO
+var _vis_front_local: Vector2 = Vector2.ZERO
+
+## Maps a chassis-local point on the body to where it is currently DRAWN (lift + tilt).
+func _vis_body_point(p: Vector2) -> Vector2:
+	if not _vis_ready:
+		return p
+	return (p - _vis_pivot).rotated(_vis_body_tilt) + _vis_pivot + Vector2(0.0, _vis_body_shift)
+
+## Part of a wheel's vertical offset that is beyond the visible suspension travel.
+func _vis_excess(dy: float) -> float:
+	if dy < -visual_travel_up:
+		return dy + visual_travel_up
+	if dy > visual_travel_down:
+		return dy - visual_travel_down
+	return 0.0
+
+func _vis_place_wheel_sprites(wheel: RigidBody2D, local_pos: Vector2) -> void:
+	var target := to_global(local_pos)
+	for child in wheel.get_children():
+		if child is Node2D and not (child is CollisionShape2D or child is CollisionPolygon2D):
+			(child as Node2D).global_position = target
+
+func _update_wheel_visuals() -> void:
+	if not is_instance_valid(rear_wheel):
+		return
+	if not _vis_ready:
+		for n in _BODY_VISUAL_NODES:
+			var node := get_node_or_null(n) as Node2D
+			if node:
+				_vis_body_base[node] = [node.position, node.rotation]
+		_vis_ready = true
+
+	var rm: Vector2 = _initial_rear_wheel_offset
+	var fm: Vector2 = _initial_front_wheel_offset
+	var has_front := is_instance_valid(front_wheel)
+
+	var dr: Vector2 = to_local(rear_wheel.global_position) - rm
+	var er: float = _vis_excess(dr.y)
+	var er_c: float = clampf(er, -visual_body_max_offset, visual_body_max_offset)
+	var df := Vector2.ZERO
+	var ef := 0.0
+	var ef_c := 0.0
+	if has_front:
+		df = to_local(front_wheel.global_position) - fm
+		ef = _vis_excess(df.y)
+		ef_c = clampf(ef, -visual_body_max_offset, visual_body_max_offset)
+
+	# Body lift/tilt so each axle's mount follows its wheel's excess travel.
+	if has_front:
+		_vis_pivot = (rm + fm) * 0.5
+		_vis_body_shift = (er_c + ef_c) * 0.5
+		_vis_body_tilt = atan2(ef_c - er_c, maxf(1.0, fm.x - rm.x))
+	else:
+		_vis_pivot = rm
+		_vis_body_shift = er_c
+		_vis_body_tilt = 0.0
+
+	for node in _vis_body_base.keys():
+		if is_instance_valid(node):
+			var base: Array = _vis_body_base[node]
+			node.position = _vis_body_point(base[0])
+			node.rotation = base[1] + _vis_body_tilt
+
+	# Drawn wheels: sideways clamped under the (drawn) mount; vertically on the physics wheel,
+	# minus any excess the body could not absorb (extreme cases only).
+	var rmv := _vis_body_point(rm)
+	_vis_rear_local = Vector2(rmv.x + clampf(dr.x, -visual_wheel_slide, visual_wheel_slide), rm.y + dr.y - (er - er_c))
+	_vis_place_wheel_sprites(rear_wheel, _vis_rear_local)
+	if has_front:
+		var fmv := _vis_body_point(fm)
+		_vis_front_local = Vector2(fmv.x + clampf(df.x, -visual_wheel_slide, visual_wheel_slide), fm.y + df.y - (ef - ef_c))
+		_vis_place_wheel_sprites(front_wheel, _vis_front_local)
