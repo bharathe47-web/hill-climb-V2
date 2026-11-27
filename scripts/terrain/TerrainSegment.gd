@@ -957,21 +957,30 @@ func _build_decorations() -> void:
 		var slope_deg := absf(rad_to_deg(slope_angle))
 
 		if is_heaven:
-			# Heaven celestial gardens & planters: restrained, manicured, clean clearance
-			if slope_deg < 16.0 and rng.randf() < 0.60:
+			# Heaven celestial gardens, planters & flowering beds: restrained and manicured,
+			# but with the full flower variety already in the project (previously loaded and
+			# never actually used anywhere) now in the rotation for more roadside life.
+			if slope_deg < 18.0 and rng.randf() < 0.72:
 				var spr := Sprite2D.new()
 				spr.z_index = -1
 				spr.add_to_group(vis_group)
-				if rng.randf() < 0.5:
+				var pick := rng.randf()
+				if pick < 0.38:
 					spr.texture = TEX_HEAVEN_PLANTER
 					var sc := rng.randf_range(0.24, 0.28)
 					spr.scale = Vector2(sc, sc)
 					spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 4)
-				else:
+				elif pick < 0.66:
 					spr.texture = TEX_HEAVEN_GARDEN_BED
 					var sc := rng.randf_range(0.28, 0.34)
 					spr.scale = Vector2(sc, sc)
 					spr.offset = Vector2(0, -spr.texture.get_height() * 0.5 + 4)
+				else:
+					var flower_tex: Texture2D = TEX_HEAVEN_FLOWERS[rng.randi() % TEX_HEAVEN_FLOWERS.size()]
+					spr.texture = flower_tex
+					var sc := rng.randf_range(0.5, 0.68)
+					spr.scale = Vector2(sc, sc)
+					spr.offset = Vector2(0, -flower_tex.get_height() * 0.5 + 3)
 				spr.position = pt
 				spr.rotation = clampf(slope_angle * 0.25, -0.2, 0.2)
 				decorations_root.add_child(spr)

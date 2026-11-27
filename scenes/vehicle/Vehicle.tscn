@@ -200,10 +200,10 @@ texture = ExtResource("12_front_wheel")
 position = Vector2(-35, 16)
 node_a = NodePath("..")
 node_b = NodePath("../RearWheel")
-softness = 0.6
+softness = 0.15
 
 [node name="FrontJoint" type="PinJoint2D" parent="."]
 position = Vector2(35, 16)
 node_a = NodePath("..")
 node_b = NodePath("../FrontWheel")
-softness = 0.6
+softness = 0.15

@@ -18,6 +18,7 @@ signal run_paused(is_paused: bool)
 signal run_finished(final_distance: float, coins: int, reason: String)
 signal run_restarted
 signal distance_updated(new_distance: float)
+signal live_position_updated(position_m: float)
 signal fuel_updated(current: float, max_fuel: float)
 signal coins_updated(count: int)
 
@@ -58,7 +59,8 @@ func _on_vehicle_fuel_changed(curr: float, max_f: float) -> void:
 func _process(delta: float) -> void:
 	if current_state == RunState.PLAYING:
 		run_time += delta
-		consume_fuel(fuel_drain_rate * delta)
+		if Input.is_action_pressed("accelerate"):
+			consume_fuel(fuel_drain_rate * delta)
 
 func start_run() -> void:
 	current_state = RunState.PLAYING
@@ -123,6 +125,10 @@ func update_distance(dist: float) -> void:
 	if current_state != RunState.PLAYING:
 		return
 	var valid_dist: float = maxf(0.0, dist)
+	# Ignore background frame polls from an un-moved vehicle at spawn (0.0m) if distance was already progressed
+	if valid_dist == 0.0 and current_distance >= 10.0:
+		return
+	live_position_updated.emit(valid_dist)
 	if valid_dist > current_distance:
 		current_distance = valid_dist
 		distance_updated.emit(current_distance)

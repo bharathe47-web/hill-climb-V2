@@ -94,7 +94,9 @@ func connect_to_game_manager(gm: Node) -> void:
 		return
 	_game_manager_ref = gm
 
-	if gm.has_signal("distance_updated") and not gm.distance_updated.is_connected(_on_distance_updated):
+	if gm.has_signal("live_position_updated") and not gm.live_position_updated.is_connected(_on_distance_updated):
+		gm.live_position_updated.connect(_on_distance_updated)
+	elif gm.has_signal("distance_updated") and not gm.distance_updated.is_connected(_on_distance_updated):
 		gm.distance_updated.connect(_on_distance_updated)
 
 	if gm.has_signal("run_finished") and not gm.run_finished.is_connected(_on_run_finished):
@@ -177,9 +179,6 @@ func update_distance(new_distance_m: float) -> void:
 		return
 
 	var safe_dist := maxf(0.0, new_distance_m)
-	if safe_dist < current_cumulative_distance and not is_equal_approx(safe_dist, 0.0):
-		return
-
 	current_cumulative_distance = safe_dist
 
 	if is_branching_mode():
@@ -198,7 +197,15 @@ func _update_branching_distance(safe_dist: float) -> void:
 
 	var conf_realm: int = confirmed_realms.get(enc_idx, -1)
 	var info := schedule.resolve_branching_encounter(safe_dist, conf_realm)
+	var new_biome: int = info.get("active_biome", WorldCycleSchedule.BiomeType.NORMAL_LAND)
+	current_biome_index = new_biome
 	var new_cycle: int = info["cycle_index"]
+
+	if new_biome != _last_resolved_biome:
+		var old_b := _last_resolved_biome
+		_last_resolved_biome = new_biome
+		biome_changed.emit(old_b, new_biome, new_cycle)
+
 	var new_state: int = info["state"]
 	var new_trans_prog: float = info["transition_progress"]
 
