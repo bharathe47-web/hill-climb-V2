@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 360" width="1920" height="360">
+  <!-- Rounded Granite Boulders -->
+  <ellipse cx="280" cy="220" rx="90" ry="50" fill="#64748b"/>
+  <ellipse cx="380" cy="235" rx="70" ry="40" fill="#475569"/>
+  <ellipse cx="920" cy="210" rx="110" ry="60" fill="#64748b"/>
+  <ellipse cx="1040" cy="230" rx="80" ry="45" fill="#475569"/>
+  <ellipse cx="1560" cy="215" rx="95" ry="55" fill="#64748b"/>
+  <!-- Ground contour -->
+  <path d="M 0,235 Q 340,205 680,225 T 1360,215 T 1920,230 L 1920,360 L 0,360 Z" fill="#52525b" opacity="0.85"/>
+  <path d="M 0,280 Q 300,255 600,270 T 1200,260 T 1800,275 L 1920,270 L 1920,360 L 0,360 Z" fill="#27272a"/>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="sky04" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="50%" stop-color="#bae6fd"/>
+      <stop offset="100%" stop-color="#fed7aa"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#sky04)"/>
+  <!-- Hot afternoon sun -->
+  <circle cx="960" cy="180" r="70" fill="#fef08a" opacity="0.5"/>
+  <!-- Distant isolated rocky knolls -->
+  <path d="M 180,380 Q 280,330 380,380 Z" fill="#64748b" opacity="0.6"/>
+  <path d="M 820,385 Q 940,325 1060,385 Z" fill="#64748b" opacity="0.55"/>
+  <path d="M 1480,380 Q 1580,335 1680,380 Z" fill="#64748b" opacity="0.6"/>
+  <!-- Open dry farming plains (Peanut & sesame fields) -->
+  <path d="M 0,430 Q 360,400 720,420 T 1440,410 T 1920,425 L 1920,720 L 0,720 Z" fill="#ca8a04" opacity="0.75"/>
+  <path d="M 0,480 Q 320,450 640,470 T 1280,460 T 1920,475 L 1920,720 L 0,720 Z" fill="#b45309" opacity="0.85"/>
+  <path d="M 0,530 Q 380,505 760,520 T 1520,510 T 1920,525 L 1920,720 L 0,720 Z" fill="#854d0e"/>
+</svg>

@@ -30,14 +30,22 @@ var _wind_intensity: float = 0.0
 var _wind_time: float = 0.0
 var _wind_angular_vel: float = 0.0
 
+# Gentle idle sway so the board reads as genuinely hanging from its chains rather than
+# a static, pinned sprite. Small and slow enough to never interfere with the hover/press reads.
+var _idle_time: float = 0.0
+@export var idle_sway_degrees: float = 1.4
+@export var idle_sway_speed: float = 0.8
+
 func _ready() -> void:
 	ignore_texture_size = true
 	stretch_mode = TextureButton.STRETCH_SCALE
 	focus_mode = Control.FOCUS_ALL
 	_base_pos_x = position.x
-	# Pivot at the chain suspension point so chains stay anchored while the board swings.
+	# Pivot at the chain suspension point so chains stay anchored while the board swings
+	# (used by both the idle sway and the wind swing).
 	var hinge_y := minf(chain_top_y - position.y + 8.0, 6.0)
 	pivot_offset = Vector2(size.x * 0.5, hinge_y)
+	_idle_time = randf() * TAU
 	_build_chains()
 	if coming_soon:
 		modulate = Color(0.72, 0.72, 0.72, 1.0)
@@ -54,7 +62,8 @@ func _process(delta: float) -> void:
 	if not is_visible_in_tree():
 		return
 	var has_wind := _wind_intensity > 0.001
-	var at_rest := not has_wind and absf(rotation) < 0.0002 and absf(_wind_angular_vel) < 0.0005
+	var has_idle := idle_sway_degrees > 0.0
+	var at_rest := not has_wind and not has_idle and absf(rotation) < 0.0002 and absf(_wind_angular_vel) < 0.0005
 	if at_rest:
 		if rotation != 0.0:
 			rotation = 0.0
@@ -63,11 +72,17 @@ func _process(delta: float) -> void:
 
 	var dt := minf(delta, 0.05)
 	_wind_time += dt
+	_idle_time += dt
+	# Combined motion: a gentle idle sway (board hanging from its chains) that fades out as the
+	# wind picks up, plus the wind swing. The spring below follows this target, so switching
+	# between calm and windy is always smooth.
 	var target_angle := 0.0
+	if has_idle:
+		target_angle += sin(_idle_time * idle_sway_speed) * deg_to_rad(idle_sway_degrees) * (1.0 - _wind_intensity)
 	if has_wind:
 		# Left-to-right wind swings a bottom-hanging board counter-clockwise (negative angle in 2D).
 		var sway := 0.82 + 0.18 * sin(_wind_time * 3.1 + wind_phase_offset)
-		target_angle = -deg_to_rad(wind_max_angle_deg) * _wind_intensity * sway
+		target_angle += -deg_to_rad(wind_max_angle_deg) * _wind_intensity * sway
 
 	var accel := (target_angle - rotation) * wind_spring_stiffness - _wind_angular_vel * wind_spring_damping
 	_wind_angular_vel += accel * dt

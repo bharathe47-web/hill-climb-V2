@@ -1,0 +1,82 @@
+[gd_scene format=3 uid="uid://c2lndmrkv2001"]
+
+[ext_resource type="Script" path="res://scripts/modes/indian_roads/LandmarkV2.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/indian_locations/visual_upgrade_v2/tamil_nadu_madurai_meenakshi_temple.png" id="2_monument"]
+[ext_resource type="Texture2D" path="res://assets/indian_roads/visual_upgrade_v2/indian_roadside_milestone_km.png" id="3_milestone"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future.ttf" id="4_font_future"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future_Narrow.ttf" id="5_font_narrow"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trigger"]
+size = Vector2(160, 320)
+
+[node name="LandmarkV2" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="MonumentSprite" type="Sprite2D" parent="."]
+z_index = -1
+position = Vector2(0, -160)
+texture = ExtResource("2_monument")
+
+[node name="MilestoneSprite" type="Sprite2D" parent="."]
+visible = false
+z_index = -1
+position = Vector2(110, -26)
+texture = ExtResource("3_milestone")
+
+[node name="Signboard" type="Node2D" parent="."]
+z_index = -1
+position = Vector2(-130, -55)
+
+[node name="SignBg" type="ColorRect" parent="Signboard"]
+offset_left = -90.0
+offset_top = -26.0
+offset_right = 90.0
+offset_bottom = 22.0
+color = Color(0.06, 0.09, 0.16, 0.85)
+
+[node name="SignBorder" type="ReferenceRect" parent="Signboard"]
+offset_left = -90.0
+offset_top = -26.0
+offset_right = 90.0
+offset_bottom = 22.0
+border_color = Color(0.98, 0.78, 0.1, 1)
+border_width = 2.0
+editor_only = false
+
+[node name="SignPost" type="ColorRect" parent="Signboard"]
+offset_left = -2.0
+offset_top = 22.0
+offset_right = 2.0
+offset_bottom = 55.0
+color = Color(0.2, 0.25, 0.35, 1)
+
+[node name="TitleLabel" type="Label" parent="Signboard"]
+offset_left = -86.0
+offset_top = -22.0
+offset_right = 86.0
+offset_bottom = 0.0
+theme_override_fonts/font = ExtResource("4_font_future")
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+text = "MEENAKSHI TEMPLE"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="Signboard"]
+offset_left = -86.0
+offset_top = 0.0
+offset_right = 86.0
+offset_bottom = 18.0
+theme_override_fonts/font = ExtResource("5_font_narrow")
+theme_override_font_sizes/font_size = 9
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 0.9)
+text = "Madurai City Landmark"
+horizontal_alignment = 1
+
+[node name="TriggerArea" type="Area2D" parent="."]
+position = Vector2(0, -100)
+collision_layer = 0
+collision_mask = 7
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TriggerArea"]
+shape = SubResource("RectangleShape2D_trigger")

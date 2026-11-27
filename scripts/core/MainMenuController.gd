@@ -11,6 +11,7 @@ const SaveManager = preload("res://scripts/core/SaveManager.gd")
 signal start_game_requested
 signal start_survival_requested(difficulty: int)
 signal start_garage_requested
+signal start_indian_roads_requested
 signal quit_requested
 
 ## Design resolution of the home-screen art; the Stage node is scaled to fit the viewport width.
@@ -33,11 +34,32 @@ const QUIT_MARGIN_TOP := 56.0
 @onready var difficulty_layer: Control = %DifficultyLayer
 @onready var difficulty_menu: Control = %SurvivalDifficultyMenu
 
+# Idle parallax drift on the home screen's sky layers, so the scene feels alive while the
+# player reads the signboards rather than sitting perfectly static.
+var _parallax_time: float = 0.0
+var _clouds: Control = null
+var _distant_mountains: Control = null
+var _hills_forest: Control = null
+
 func _ready() -> void:
 	_connect_signals()
 	resized.connect(_layout)
 	_layout()
 	refresh_vehicle()
+	if is_instance_valid(stage):
+		_clouds = stage.get_node_or_null("Clouds")
+		_distant_mountains = stage.get_node_or_null("DistantMountains")
+		_hills_forest = stage.get_node_or_null("MidgroundHillsForest")
+	_parallax_time = randf() * TAU
+
+func _process(delta: float) -> void:
+	_parallax_time += delta
+	if is_instance_valid(_clouds):
+		_clouds.position.x = sin(_parallax_time * 0.12) * 16.0
+	if is_instance_valid(_distant_mountains):
+		_distant_mountains.position.x = sin(_parallax_time * 0.08 + 1.4) * 6.0
+	if is_instance_valid(_hills_forest):
+		_hills_forest.position.x = sin(_parallax_time * 0.18 + 2.6) * 3.0
 
 ## Shows the vehicle currently selected in the Garage (single source: SaveManager).
 func refresh_vehicle() -> void:
@@ -79,8 +101,7 @@ func _on_survival_pressed() -> void:
 	_open_difficulty_selection()
 
 func _on_indian_roads_pressed() -> void:
-	# Indian Roads is not implemented yet: no fake transition, just feedback.
-	indian_roads_sign.shake()
+	start_indian_roads_requested.emit()
 
 func _open_difficulty_selection() -> void:
 	difficulty_layer.visible = true

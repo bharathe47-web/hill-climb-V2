@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="sky03" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="50%" stop-color="#38bdf8"/>
+      <stop offset="85%" stop-color="#fed7aa"/>
+      <stop offset="100%" stop-color="#ffedd5"/>
+    </linearGradient>
+    <linearGradient id="redSoilFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#9a3412"/>
+      <stop offset="100%" stop-color="#7c2d12"/>
+    </linearGradient>
+    <linearGradient id="redSoilMid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c2410c"/>
+      <stop offset="100%" stop-color="#9a3412"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#sky03)"/>
+  <!-- Brilliant Afternoon Sun -->
+  <circle cx="960" cy="180" r="95" fill="#fef08a" opacity="0.4"/>
+  <circle cx="960" cy="180" r="60" fill="#ffffff" opacity="0.75"/>
+  <!-- Billowing cumulus puffs -->
+  <ellipse cx="260" cy="170" rx="140" ry="32" fill="#ffffff" opacity="0.6"/>
+  <ellipse cx="1660" cy="160" rx="160" ry="34" fill="#ffffff" opacity="0.6"/>
+  <!-- Distant Low Red-Granite Ridges -->
+  <path d="M 0,390 Q 240,340 480,375 T 960,350 T 1440,380 T 1920,360 L 1920,720 L 0,720 Z" fill="#64748b" opacity="0.45"/>
+  <!-- Middle Red Soil Tableland -->
+  <path d="M 0,440 Q 320,390 640,425 T 1280,410 T 1920,430 L 1920,720 L 0,720 Z" fill="url(#redSoilFar)" opacity="0.75"/>
+  <!-- Palmyra Palm Horizon Silhouettes -->
+  <!-- Repeating iconic Palmyra palm fans along the horizon -->
+  <g fill="#451a03" opacity="0.85">
+    <path d="M 120,440 L 123,380 L 126,440 Z"/>
+    <circle cx="123" cy="378" r="14"/>
+    <path d="M 280,435 L 283,370 L 286,435 Z"/>
+    <circle cx="283" cy="368" r="16"/>
+    <path d="M 450,445 L 453,385 L 456,445 Z"/>
+    <circle cx="453" cy="383" r="15"/>
+    <path d="M 720,430 L 723,365 L 726,430 Z"/>
+    <circle cx="723" cy="363" r="17"/>
+    <path d="M 1040,438 L 1043,375 L 1046,438 Z"/>
+    <circle cx="1043" cy="373" r="15"/>
+    <path d="M 1340,435 L 1343,370 L 1346,435 Z"/>
+    <circle cx="1343" cy="368" r="16"/>
+    <path d="M 1680,442 L 1683,380 L 1686,442 Z"/>
+    <circle cx="1683" cy="378" r="15"/>
+    <path d="M 1840,436 L 1843,372 L 1846,436 Z"/>
+    <circle cx="1843" cy="370" r="16"/>
+  </g>
+  <!-- Foreground Terracotta Red Laterite Horizon -->
+  <path d="M 0,510 Q 380,470 760,495 T 1520,480 T 1920,505 L 1920,720 L 0,720 Z" fill="url(#redSoilMid)"/>
+  <path d="M 0,570 Q 280,540 560,555 T 1120,545 T 1680,560 T 1920,550 L 1920,720 L 0,720 Z" fill="#78350f"/>
+</svg>

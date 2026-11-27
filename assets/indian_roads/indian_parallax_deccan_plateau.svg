@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="tSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#bae6fd"/>
+      <stop offset="100%" stop-color="#f0f9ff"/>
+    </linearGradient>
+    <linearGradient id="farHills" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <linearGradient id="graniteTor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#tSky)"/>
+  <!-- Distant Deccan Ridge -->
+  <path d="M 0,340 L 180,300 L 320,330 L 460,280 L 680,350 L 920,290 L 1150,330 L 1380,270 L 1600,340 L 1780,300 L 1920,330 L 1920,720 L 0,720 Z" fill="url(#farHills)" opacity="0.65"/>
+  <!-- Granite Boulder Hills & Formations -->
+  <path d="M 0,420 Q 200,360 400,410 T 800,380 T 1200,420 T 1600,370 T 1920,410 L 1920,720 L 0,720 Z" fill="url(#graniteTor)" opacity="0.85"/>
+  <!-- Fore-plateau Plateau Crags -->
+  <path d="M 0,490 Q 280,440 560,480 T 1120,460 T 1680,490 T 1920,480 L 1920,720 L 0,720 Z" fill="#334155"/>
+</svg>

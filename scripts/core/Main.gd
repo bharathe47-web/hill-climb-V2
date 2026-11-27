@@ -8,6 +8,7 @@ extends Node
 @export var default_menu_scene: PackedScene = preload("res://scenes/main/MainMenu.tscn")
 @export var default_survival_scene: PackedScene = preload("res://scenes/modes/survival/Survival.tscn")
 @export var default_garage_scene: PackedScene = preload("res://scenes/modes/garage/VintageCarGarage.tscn")
+@export var default_indian_roads_scene: PackedScene = preload("res://scenes/modes/indian_roads/visual_upgrade_v2/IndianRoadsModeV2.tscn")
 @export var start_with_menu: bool = true
 
 @onready var scene_container: Node = $SceneContainer
@@ -29,6 +30,8 @@ func load_menu() -> void:
 			current_scene_node.start_survival_requested.connect(load_survival)
 		if current_scene_node.has_signal("start_garage_requested") and not current_scene_node.start_garage_requested.is_connected(load_garage):
 			current_scene_node.start_garage_requested.connect(load_garage)
+		if current_scene_node.has_signal("start_indian_roads_requested") and not current_scene_node.start_indian_roads_requested.is_connected(load_indian_roads):
+			current_scene_node.start_indian_roads_requested.connect(load_indian_roads)
 
 func load_game() -> void:
 	if not is_instance_valid(scene_container):
@@ -96,6 +99,25 @@ func load_garage() -> void:
 		scene_container.add_child(garage_inst)
 		current_scene_node = garage_inst
 		
+		if current_scene_node.has_signal("return_to_main_menu_requested") and not current_scene_node.return_to_main_menu_requested.is_connected(load_menu):
+			current_scene_node.return_to_main_menu_requested.connect(load_menu)
+
+func load_indian_roads() -> void:
+	if not is_instance_valid(scene_container):
+		scene_container = get_node_or_null("SceneContainer")
+	if not is_instance_valid(scene_container):
+		push_error("MainController: SceneContainer is missing!")
+		return
+
+	if is_instance_valid(current_scene_node):
+		current_scene_node.queue_free()
+		current_scene_node = null
+
+	if default_indian_roads_scene:
+		var roads_inst = default_indian_roads_scene.instantiate()
+		scene_container.add_child(roads_inst)
+		current_scene_node = roads_inst
+
 		if current_scene_node.has_signal("return_to_main_menu_requested") and not current_scene_node.return_to_main_menu_requested.is_connected(load_menu):
 			current_scene_node.return_to_main_menu_requested.connect(load_menu)
 

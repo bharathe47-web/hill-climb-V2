@@ -185,6 +185,7 @@ func _init_transition_overlays() -> void:
 	_heaven_golden_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_heaven_golden_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_heaven_golden_flash.color = Color(1.0, 0.95, 0.75, 0.0)
+	_heaven_golden_flash.material = _make_radial_mask_material(false, 1.1)
 	_overlay_layer.add_child(_heaven_golden_flash)
 	
 	_hell_darkness_vignette = ColorRect.new()
@@ -192,6 +193,7 @@ func _init_transition_overlays() -> void:
 	_hell_darkness_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hell_darkness_vignette.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_hell_darkness_vignette.color = Color(0.12, 0.02, 0.02, 0.0)
+	_hell_darkness_vignette.material = _make_radial_mask_material(true, 0.85)
 	_overlay_layer.add_child(_hell_darkness_vignette)
 	
 	_cloud_tunnel_overlay = ColorRect.new()
@@ -199,6 +201,7 @@ func _init_transition_overlays() -> void:
 	_cloud_tunnel_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_cloud_tunnel_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_cloud_tunnel_overlay.color = Color(0.95, 0.98, 1.0, 0.0)
+	_cloud_tunnel_overlay.material = _make_radial_mask_material(false, 1.3)
 	_overlay_layer.add_child(_cloud_tunnel_overlay)
 	
 	_geyser_escape_flash = ColorRect.new()
@@ -206,9 +209,38 @@ func _init_transition_overlays() -> void:
 	_geyser_escape_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_geyser_escape_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_geyser_escape_flash.color = Color(1.0, 0.45, 0.15, 0.0)
+	_geyser_escape_flash.material = _make_radial_mask_material(true, 0.7)
 	_overlay_layer.add_child(_geyser_escape_flash)
 	
 	add_child(_overlay_layer)
+
+## Builds a ShaderMaterial that reshapes a flat ColorRect flash into a radial mask: edge-weighted
+## (dark/danger closing in from the screen's rim, used for Hell's descent and the geyser eruption)
+## or center-weighted (a radiant glow blooming outward, used for Heaven's light and the cloud
+## tunnel). Purely a spatial reshape of the existing tweened alpha — no other transition code
+## needs to change.
+func _make_radial_mask_material(edge_weighted: bool, falloff_softness: float) -> ShaderMaterial:
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://scripts/shaders/screen_radial_mask.gdshader")
+	mat.set_shader_parameter("edge_weighted", edge_weighted)
+	mat.set_shader_parameter("falloff_softness", falloff_softness)
+	return mat
+
+var _cached_vehicle_ref: Node = null
+
+## Lazily finds the active vehicle via its "vehicle" group membership (set in
+## VehicleController._ready), mirroring the lookup pattern already used for follow_camera.
+func _get_vehicle() -> Node:
+	if is_instance_valid(_cached_vehicle_ref):
+		return _cached_vehicle_ref
+	if is_inside_tree():
+		# The "vehicle" group also contains the wheel RigidBody2Ds, so match on a method only
+		# the vehicle body itself defines rather than assuming group-list ordering.
+		for n in get_tree().get_nodes_in_group("vehicle"):
+			if n.has_method("flash_realm_tint"):
+				_cached_vehicle_ref = n
+				break
+	return _cached_vehicle_ref
 
 func _resolve_environment_references() -> void:
 	if not follow_camera and is_inside_tree():
@@ -772,6 +804,11 @@ func _on_nitro_launch_activated(_cycle_idx: int) -> void:
 		tw.tween_property(_heaven_golden_flash, "color:a", 0.45, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tw.tween_property(_heaven_golden_flash, "color:a", 0.0, 0.75).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	play_stinger(STREAM_HEAVEN_STINGER)
+	if is_instance_valid(follow_camera):
+		follow_camera.trigger_heaven_launch_surge()
+	var veh := _get_vehicle()
+	if is_instance_valid(veh):
+		veh.flash_realm_tint(Color(1.3, 1.2, 0.75, 1.0))
 
 func _on_heaven_portal_entered(_portal_dist_m: float, _cycle_idx: int) -> void:
 	if is_instance_valid(_heaven_golden_flash):
@@ -779,6 +816,11 @@ func _on_heaven_portal_entered(_portal_dist_m: float, _cycle_idx: int) -> void:
 		tw.tween_property(_heaven_golden_flash, "color:a", 0.45, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tw.tween_property(_heaven_golden_flash, "color:a", 0.0, 0.75).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	play_stinger(STREAM_HEAVEN_STINGER)
+	if is_instance_valid(follow_camera):
+		follow_camera.trigger_heaven_launch_surge()
+	var veh := _get_vehicle()
+	if is_instance_valid(veh):
+		veh.flash_realm_tint(Color(1.3, 1.2, 0.75, 1.0))
 
 func _on_hell_portal_entered(_portal_dist_m: float, _cycle_idx: int) -> void:
 	if is_instance_valid(_hell_darkness_vignette):
@@ -790,12 +832,22 @@ func _on_hell_portal_entered(_portal_dist_m: float, _cycle_idx: int) -> void:
 		tw2.tween_property(_geyser_escape_flash, "color:a", 0.35, 0.1)
 		tw2.tween_property(_geyser_escape_flash, "color:a", 0.0, 0.5)
 	play_stinger(STREAM_HELL_RUMBLE)
+	if is_instance_valid(follow_camera):
+		follow_camera.trigger_hell_portal_slam()
+	var veh := _get_vehicle()
+	if is_instance_valid(veh):
+		veh.flash_realm_tint(Color(1.3, 0.55, 0.45, 1.0))
 
 func _on_return_portal_entered(_portal_dist_m: float, _cycle_idx: int) -> void:
 	if is_instance_valid(_cloud_tunnel_overlay):
 		var tw := create_tween()
 		tw.tween_property(_cloud_tunnel_overlay, "color:a", 0.4, 0.2)
 		tw.tween_property(_cloud_tunnel_overlay, "color:a", 0.0, 0.6)
+	if is_instance_valid(follow_camera):
+		follow_camera.trigger_return_portal_settle()
+	var veh := _get_vehicle()
+	if is_instance_valid(veh):
+		veh.flash_realm_tint(Color(0.85, 1.25, 0.9, 1.0))
 
 func _on_biome_changed(_old_biome: int, new_biome: int, _cycle_idx: int) -> void:
 	apply_biome_state(new_biome)

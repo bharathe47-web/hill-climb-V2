@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 360" width="1920" height="360">
+  <path d="M 0,220 Q 340,190 680,210 T 1360,200 T 1920,215 L 1920,360 L 0,360 Z" fill="#334155" opacity="0.85"/>
+  <!-- Suburban buildings & modern streetlight poles -->
+  <g fill="#1e293b">
+    <rect x="160" y="140" width="50" height="90"/>
+    <rect x="230" y="120" width="70" height="110"/>
+    <rect x="740" y="130" width="60" height="100"/>
+    <rect x="820" y="110" width="80" height="120"/>
+    <rect x="1340" y="135" width="65" height="95"/>
+    <rect x="1430" y="115" width="75" height="115"/>
+  </g>
+  <!-- Viaduct piers -->
+  <g fill="#475569">
+    <rect x="420" y="160" width="20" height="80"/>
+    <rect x="580" y="160" width="20" height="80"/>
+    <rect x="1060" y="160" width="20" height="80"/>
+    <rect x="1220" y="160" width="20" height="80"/>
+    <rect x="1680" y="160" width="20" height="80"/>
+    <rect x="1840" y="160" width="20" height="80"/>
+  </g>
+  <!-- Streetlight poles -->
+  <g stroke="#94a3b8" stroke-width="2.5" fill="none">
+    <path d="M 290,220 L 290,140 Q 290,130 305,130"/>
+    <path d="M 870,220 L 870,135 Q 870,125 885,125"/>
+    <path d="M 1480,220 L 1480,138 Q 1480,128 1495,128"/>
+  </g>
+  <path d="M 0,265 Q 360,240 720,255 T 1440,245 T 1920,260 L 1920,360 L 0,360 Z" fill="#0f172a"/>
+</svg>

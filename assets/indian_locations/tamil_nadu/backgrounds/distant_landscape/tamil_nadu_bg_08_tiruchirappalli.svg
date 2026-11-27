@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="sky08" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="55%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#fef08a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#sky08)"/>
+  <!-- THE ICONIC TRICHY ROCKFORT: 83m sheer monolithic rock rising over Cauvery plain -->
+  <g fill="#334155">
+    <!-- Sheer prehistoric rock monolith (1 billion years old) -->
+    <path d="M 720,420 L 750,220 L 780,180 L 860,180 L 890,230 L 920,420 Z" opacity="0.85"/>
+    <!-- Ucchi Pillayar Temple Crown perched on top -->
+    <rect x="790" y="155" width="60" height="25" fill="#f8fafc" opacity="0.9"/>
+    <polygon points="785,155 820,130 855,155" fill="#e2e8f0"/>
+    <rect x="816" y="118" width="8" height="12" fill="#f59e0b"/>
+    <!-- Main Thayumanaswamy rock-cut temple carved into mid-cliff -->
+    <rect x="760" y="270" width="40" height="30" fill="#1e293b"/>
+    <polygon points="755,270 780,250 805,270" fill="#cbd5e1"/>
+  </g>
+  <!-- Lush Cauvery River Basin & Srirangam Island Greenery -->
+  <path d="M 0,420 Q 360,380 720,405 T 1440,395 T 1920,415 L 1920,720 L 0,720 Z" fill="#15803d" opacity="0.75"/>
+  <path d="M 0,480 Q 320,450 640,470 T 1280,460 T 1920,475 L 1920,720 L 0,720 Z" fill="#166534" opacity="0.9"/>
+  <path d="M 0,530 Q 380,505 760,520 T 1520,510 T 1920,525 L 1920,720 L 0,720 Z" fill="#14532d"/>
+</svg>

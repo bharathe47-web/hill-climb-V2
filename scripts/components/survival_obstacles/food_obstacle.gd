@@ -324,7 +324,6 @@ func _trigger_bounce() -> void:
 	global_position.y = ground_y - bottom_offset - 1.0
 	_current_velocity.y = bounce_velocity * (0.65 ** (max_bounces - _bounces_left))
 	_current_velocity.x = randf_range(-60.0, 60.0)
-	print("[FoodObstacle] %s road contact bounce at (%0.1f, %0.1f), remaining: %d" % [obstacle_id.capitalize(), global_position.x, ground_y, _bounces_left])
 	
 	# Spawn small road-contact dust puff for bounce feedback
 	_spawn_bounce_dust(Vector2(global_position.x, ground_y))
@@ -341,7 +340,6 @@ func _handle_ground_impact() -> void:
 	_has_hit = true
 	var bottom_offset := get_bottom_offset()
 	global_position.y = ground_y - bottom_offset
-	print("[FoodObstacle] Ground impact for '%s' at (%0.1f, %0.1f)" % [obstacle_id, global_position.x, ground_y])
 	_spawn_ground_impact_visual(Vector2(global_position.x, ground_y))
 	if is_instance_valid(ground_shadow):
 		ground_shadow.fade_and_free(0.2)

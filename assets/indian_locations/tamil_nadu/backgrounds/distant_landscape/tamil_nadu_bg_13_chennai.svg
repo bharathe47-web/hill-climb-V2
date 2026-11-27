@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="sky13" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="35%" stop-color="#1e293b"/>
+      <stop offset="70%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#sky13)"/>
+  <!-- Golden evening glow over Coromandel Coast -->
+  <circle cx="1600" cy="280" r="120" fill="#fef08a" opacity="0.3"/>
+  <circle cx="1600" cy="280" r="60" fill="#ffffff" opacity="0.6"/>
+  <!-- Distant High-Rise Commercial Towers & Modern Urban Skyline -->
+  <g fill="#1e293b" opacity="0.85">
+    <rect x="180" y="240" width="45" height="180"/>
+    <rect x="235" y="210" width="55" height="210"/>
+    <polygon points="235,210 262,170 290,210"/>
+    <rect x="300" y="260" width="50" height="160"/>
+    <rect x="420" y="230" width="65" height="190"/>
+    <rect x="495" y="200" width="70" height="220"/>
+    <polygon points="495,200 530,165 565,200"/>
+    <rect x="575" y="250" width="55" height="170"/>
+    <!-- Central Chennai IT Corridor towers -->
+    <rect x="740" y="190" width="80" height="230"/>
+    <rect x="830" y="220" width="60" height="200"/>
+    <rect x="900" y="180" width="90" height="240"/>
+    <polygon points="900,180 945,140 990,180"/>
+    <rect x="1000" y="230" width="70" height="190"/>
+    <!-- Iconic Marina Beach Lighthouse silhouette -->
+    <rect x="1140" y="170" width="30" height="250"/>
+    <polygon points="1135,170 1155,140 1175,170"/>
+    <circle cx="1155" cy="140" r="6" fill="#fef08a"/>
+    <rect x="1240" y="240" width="60" height="180"/>
+    <rect x="1310" y="210" width="75" height="210"/>
+    <rect x="1395" y="250" width="65" height="170"/>
+  </g>
+  <!-- Modern illuminated window grids on skyline buildings -->
+  <g fill="#fef08a" opacity="0.55">
+    <circle cx="250" cy="230" r="2"/><circle cx="270" cy="230" r="2"/>
+    <circle cx="250" cy="250" r="2"/><circle cx="270" cy="250" r="2"/>
+    <circle cx="520" cy="220" r="2.5"/><circle cx="545" cy="220" r="2.5"/>
+    <circle cx="520" cy="245" r="2.5"/><circle cx="545" cy="245" r="2.5"/>
+    <circle cx="770" cy="210" r="2.5"/><circle cx="800" cy="210" r="2.5"/>
+    <circle cx="770" cy="235" r="2.5"/><circle cx="800" cy="235" r="2.5"/>
+    <circle cx="930" cy="200" r="2.5"/><circle cx="965" cy="200" r="2.5"/>
+    <circle cx="930" cy="225" r="2.5"/><circle cx="965" cy="225" r="2.5"/>
+  </g>
+  <!-- Kathipara Flyover Cloverleaf Curved Arches & Highway Viaduct -->
+  <path d="M 0,420 Q 480,360 960,390 T 1920,380 L 1920,440 L 0,440 Z" fill="#475569" opacity="0.9"/>
+  <!-- Coromandel Coastal Marina Beach Shoreline & Port Cranes -->
+  <path d="M 0,440 Q 360,410 720,430 T 1440,420 T 1920,435 L 1920,720 L 0,720 Z" fill="#0f172a"/>
+  <!-- Streetlights & Marina Beach Promenade Lights -->
+  <path d="M 0,430 Q 360,405 720,425 T 1440,415 T 1920,430" stroke="#fef08a" stroke-width="3" stroke-dasharray="15 35" opacity="0.85" fill="none"/>
+  <path d="M 0,510 Q 380,485 760,500 T 1520,490 T 1920,505 L 1920,720 L 0,720 Z" fill="#020617"/>
+</svg>
