@@ -1,17 +1,15 @@
-[gd_scene load_steps=18 format=3 uid="uid://survival_difficulty_menu_001"]
+[gd_scene load_steps=16 format=3 uid="uid://survival_difficulty_menu_001"]
 
 [ext_resource type="Script" path="res://scripts/ui/survival/SurvivalDifficultyMenu.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/survival_mode_title.png" id="2_title"]
+[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/survival_mode_wooden_header.png" id="2_title"]
 [ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/signboard_easy.png" id="3_sign_easy"]
 [ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/signboard_easy_highlight.png" id="4_hl_easy"]
 [ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/signboard_medium.png" id="5_sign_med"]
 [ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/signboard_medium_highlight.png" id="6_hl_med"]
 [ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/signboard_hard.png" id="7_sign_hard"]
 [ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/signboard_hard_highlight.png" id="8_hl_hard"]
-[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/start_survival_button.png" id="9_btn_start_n"]
-[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/start_survival_button_pressed.png" id="10_btn_start_p"]
-[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/back_button.png" id="11_btn_back_n"]
-[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/back_button_pressed.png" id="12_btn_back_p"]
+[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/start_survival_wooden_button.png" id="9_btn_start_n"]
+[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/back_wooden_button.png" id="11_btn_back_n"]
 [ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future.ttf" id="13_font_future"]
 [ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future_Narrow.ttf" id="14_font_narrow"]
 
@@ -105,18 +103,19 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 [node name="Margin" type="MarginContainer" parent="PanelContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 18
+theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_bottom = 16
 
 [node name="VBox" type="VBoxContainer" parent="PanelContainer/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 alignment = 1
 
 [node name="TitleTexture" type="TextureRect" parent="PanelContainer/Margin/VBox"]
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(320, 86)
 layout_mode = 2
+size_flags_horizontal = 4
 texture = ExtResource("2_title")
 expand_mode = 1
 stretch_mode = 5
@@ -495,23 +494,29 @@ horizontal_alignment = 1
 
 [node name="ButtonsHBox" type="HBoxContainer" parent="PanelContainer/Margin/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 28
-alignment = 1
+theme_override_constants/separation = 16
 
 [node name="BackButton" type="TextureButton" parent="PanelContainer/Margin/VBox/ButtonsHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(140, 50)
+custom_minimum_size = Vector2(170, 70)
 layout_mode = 2
+size_flags_vertical = 4
+mouse_default_cursor_shape = 2
 texture_normal = ExtResource("11_btn_back_n")
-texture_pressed = ExtResource("12_btn_back_p")
 ignore_texture_size = true
 stretch_mode = 5
 
+[node name="Spacer" type="Control" parent="PanelContainer/Margin/VBox/ButtonsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
 [node name="StartSurvivalButton" type="TextureButton" parent="PanelContainer/Margin/VBox/ButtonsHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(245, 56)
+custom_minimum_size = Vector2(270, 74)
 layout_mode = 2
+size_flags_vertical = 4
+mouse_default_cursor_shape = 2
 texture_normal = ExtResource("9_btn_start_n")
-texture_pressed = ExtResource("10_btn_start_p")
 ignore_texture_size = true
 stretch_mode = 5

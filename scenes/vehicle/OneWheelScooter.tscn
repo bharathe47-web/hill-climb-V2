@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://scooter_root_001"]
+[gd_scene load_steps=16 format=3 uid="uid://scooter_root_001"]
 
 [ext_resource type="Script" path="res://scripts/vehicle/OneWheelScooterController.gd" id="1_controller"]
 [ext_resource type="Texture2D" path="res://assets/vehicles/effects/exhaust_smoke_particle_01.png" id="2_smoke"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://assets/vehicles/one_wheel_scooter/one_wheel_scooter_body.png" id="7_scooter_body"]
 [ext_resource type="Texture2D" path="res://assets/vehicles/one_wheel_scooter/one_wheel_scooter_wheel.png" id="8_scooter_wheel"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/engine/engine_acceleration_rev_high.wav" id="9_turbo"]
+[ext_resource type="Texture2D" path="res://assets/vehicles/drivers/indian_driver_full.png" id="10_driver"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_chassis"]
 friction = 0.5
@@ -42,6 +43,12 @@ shape = SubResource("RectangleShape2D_chassis")
 
 [node name="RearWheelMount" type="Marker2D" parent="."]
 position = Vector2(0, 14)
+
+[node name="DriverSprite" type="Sprite2D" parent="."]
+z_index = 0
+position = Vector2(-2, -27)
+scale = Vector2(0.095, 0.095)
+texture = ExtResource("10_driver")
 
 [node name="BodySprite" type="Sprite2D" parent="."]
 position = Vector2(0, -2)

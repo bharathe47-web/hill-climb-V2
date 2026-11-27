@@ -37,6 +37,7 @@ const SurvivalDifficultyConfig = preload("res://scripts/modes/survival/SurvivalD
 var current_difficulty: int = 0
 var _card_tweens: Dictionary = {}
 var _sign_tweens: Dictionary = {}
+var _button_tweens: Dictionary = {}
 
 var _style_normal: StyleBoxFlat
 var _style_easy_sel: StyleBoxFlat
@@ -107,10 +108,59 @@ func _connect_signals() -> void:
 		if not hard_button.mouse_exited.is_connected(_on_card_unhover):
 			hard_button.mouse_exited.connect(_on_card_unhover)
 
-	if is_instance_valid(start_button) and not start_button.pressed.is_connected(_on_start_pressed):
-		start_button.pressed.connect(_on_start_pressed)
-	if is_instance_valid(back_button) and not back_button.pressed.is_connected(_on_back_pressed):
-		back_button.pressed.connect(_on_back_pressed)
+	if is_instance_valid(start_button):
+		if not start_button.pressed.is_connected(_on_start_pressed):
+			start_button.pressed.connect(_on_start_pressed)
+		_setup_wooden_button(start_button)
+	if is_instance_valid(back_button):
+		if not back_button.pressed.is_connected(_on_back_pressed):
+			back_button.pressed.connect(_on_back_pressed)
+		_setup_wooden_button(back_button)
+
+## Connects subtle hover and press-down feedback without rotating or shaking the wooden button.
+func _setup_wooden_button(btn: BaseButton) -> void:
+	btn.pivot_offset = btn.size * 0.5
+	if not btn.resized.is_connected(_on_wooden_button_resized.bind(btn)):
+		btn.resized.connect(_on_wooden_button_resized.bind(btn))
+	if not btn.mouse_entered.is_connected(_on_wooden_button_hover.bind(btn, true)):
+		btn.mouse_entered.connect(_on_wooden_button_hover.bind(btn, true))
+	if not btn.mouse_exited.is_connected(_on_wooden_button_hover.bind(btn, false)):
+		btn.mouse_exited.connect(_on_wooden_button_hover.bind(btn, false))
+	if not btn.button_down.is_connected(_on_wooden_button_press.bind(btn, true)):
+		btn.button_down.connect(_on_wooden_button_press.bind(btn, true))
+	if not btn.button_up.is_connected(_on_wooden_button_press.bind(btn, false)):
+		btn.button_up.connect(_on_wooden_button_press.bind(btn, false))
+
+func _on_wooden_button_resized(btn: BaseButton) -> void:
+	if is_instance_valid(btn):
+		btn.pivot_offset = btn.size * 0.5
+
+func _on_wooden_button_hover(btn: BaseButton, hovered: bool) -> void:
+	if not is_instance_valid(btn) or btn.disabled:
+		return
+	var target_scale := Vector2(1.03, 1.03) if hovered else Vector2.ONE
+	var target_mod := Color(1.09, 1.06, 1.02, 1.0) if hovered else Color.WHITE
+	_animate_wooden_button(btn, target_scale, target_mod, 0.09)
+
+func _on_wooden_button_press(btn: BaseButton, pressed: bool) -> void:
+	if not is_instance_valid(btn) or btn.disabled:
+		return
+	if pressed:
+		_animate_wooden_button(btn, Vector2(0.96, 0.96), Color(0.90, 0.87, 0.84, 1.0), 0.06)
+	else:
+		var hovered := btn.is_hovered()
+		var target_scale := Vector2(1.03, 1.03) if hovered else Vector2.ONE
+		var target_mod := Color(1.09, 1.06, 1.02, 1.0) if hovered else Color.WHITE
+		_animate_wooden_button(btn, target_scale, target_mod, 0.08)
+
+func _animate_wooden_button(btn: BaseButton, target_scale: Vector2, target_mod: Color, duration: float) -> void:
+	btn.pivot_offset = btn.size * 0.5
+	if _button_tweens.has(btn) and is_instance_valid(_button_tweens[btn]):
+		_button_tweens[btn].kill()
+	var tw := create_tween().set_parallel(true)
+	_button_tweens[btn] = tw
+	tw.tween_property(btn, "scale", target_scale, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(btn, "modulate", target_mod, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 func select_difficulty(diff: int, animate: bool = true) -> void:
 	current_difficulty = clampi(diff, 0, 2)

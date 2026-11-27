@@ -86,7 +86,10 @@ func _test_2_heart_assets_and_sequential_reduction(root: Window) -> void:
 				diff_pixels += 1
 	assert(diff_pixels > 2000, "hud_heart_empty.png must be visibly distinct from full heart (%d diff pixels)" % diff_pixels)
 
-	# Verify sequential HUD life updates
+	# Verify sequential HUD life updates.
+	# The Survival HUD now uses the wooden Survival heart art (GameHUD.HEART_*_TEX).
+	full_tex = GameHUD.HEART_FULL_TEX
+	empty_tex = GameHUD.HEART_EMPTY_TEX
 	var surv: SurvivalController = SurvivalScene.instantiate()
 	root.add_child(surv)
 	var hud: GameHUD = surv.hud as GameHUD

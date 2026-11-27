@@ -7,8 +7,8 @@
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/vehicle/vehicle_landing_thud.wav" id="5_landing"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/vehicle/tire_rolling_skid_loop.wav" id="6_skid"]
 [ext_resource type="Texture2D" path="res://assets/vehicles/suspension/suspension_shock_absorber.png" id="7_shock"]
-[ext_resource type="Texture2D" path="res://assets/vehicles/girl_buggy/driver.png" id="8_buggy_driver"]
-[ext_resource type="Texture2D" path="res://assets/vehicles/girl_buggy/body.png" id="9_buggy_body"]
+[ext_resource type="Texture2D" path="res://assets/vehicles/drivers/indian_driver_cabin.png" id="8_buggy_driver"]
+[ext_resource type="Texture2D" path="res://assets/vehicles/girl_buggy/dune_buggy_body.png" id="9_buggy_body"]
 [ext_resource type="Texture2D" path="res://assets/vehicles/exhaust/exhaust_pipe.png" id="10_exhaust"]
 [ext_resource type="Texture2D" path="res://assets/vehicles/girl_buggy/wheel_rear.png" id="11_buggy_rear_wheel"]
 [ext_resource type="Texture2D" path="res://assets/vehicles/girl_buggy/wheel_front.png" id="12_buggy_front_wheel"]
@@ -88,9 +88,9 @@ scale = Vector2(0.1, 0.12)
 texture = ExtResource("7_shock")
 
 [node name="DriverSprite" type="Sprite2D" parent="."]
-z_index = -1
-position = Vector2(-4, -18)
-scale = Vector2(0.125, 0.125)
+z_index = 0
+position = Vector2(-3, -24)
+scale = Vector2(0.088, 0.088)
 texture = ExtResource("8_buggy_driver")
 
 [node name="ExhaustPipe" type="Sprite2D" parent="."]

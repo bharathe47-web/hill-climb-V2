@@ -120,6 +120,9 @@ func _setup_camera() -> void:
 
 func _setup_ui() -> void:
 	if is_instance_valid(hud):
+		# Endless mode uses the wooden arcade HUD look (opt-in; HUD.tscn itself is unchanged).
+		if hud.has_method("apply_wooden_skin"):
+			hud.apply_wooden_skin()
 		if is_instance_valid(game_manager):
 			hud.bind_game_manager(game_manager)
 		if is_instance_valid(vehicle):

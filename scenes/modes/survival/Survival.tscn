@@ -41,6 +41,7 @@ script = ExtResource("7_terrain_gen")
 target = NodePath("../VehicleSlot")
 terrain_theme = 1
 enable_pickups = false
+enable_biome_cycle = false
 
 [node name="VehicleSlot" type="Node2D" parent="."]
 

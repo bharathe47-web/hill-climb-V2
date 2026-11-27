@@ -32,7 +32,7 @@ const VEHICLES: Dictionary = {
 		"display_name": "Orc Racer",
 		"description": "Aggressive, high-revving wasteland buggy built for rapid sprints and wild air stunt flips.",
 		"scene_path": "res://scenes/vehicle/OrcRacer.tscn",
-		"preview_path": "res://assets/vehicles/orc_racer/body.png",
+		"preview_path": "res://assets/vehicles/orc_racer/preview.png",
 		"unlock_cost": 350,
 		"mass": 7.5,
 		"stat_ratings": {
@@ -62,7 +62,7 @@ const VEHICLES: Dictionary = {
 		"display_name": "Electric Dune Buggy",
 		"description": "Ultralight tubular roll-cage racer built for agile airtime, rapid tilts, and stunt flips.",
 		"scene_path": "res://scenes/vehicle/DuneBuggy.tscn",
-		"preview_path": "res://assets/vehicles/alternate/girl_buggy/body.png",
+		"preview_path": "res://assets/vehicles/girl_buggy/dune_buggy_preview.png",
 		"unlock_cost": 450,
 		"mass": 6.0,
 		"stat_ratings": {

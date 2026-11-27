@@ -4,6 +4,8 @@ extends RigidBody2D
 ## VehicleController: 2D physics-based vehicle controller.
 ## Dual-wheel suspension joints, dynamic RPM audio, air tilt flips, stunts & airtime detection, and upgrade tiers.
 
+const LandingDustEffectClass = preload("res://scripts/components/effects/landing_dust_effect.gd")
+
 signal crashed
 signal fuel_changed(current: float, max_fuel: float)
 signal nitro_changed(current: float, max_nitro: float)
@@ -112,6 +114,9 @@ signal clean_landed(bonus_coins: int)
 var nitro_flame: Node2D = null
 var nitro_burst: Sprite2D = null
 var nitro_sparks: CPUParticles2D = null
+var _cached_follow_camera: Node = null
+var _skid_dust: CPUParticles2D = null
+var _ground_shadow: Sprite2D = null
 
 var current_fuel: float = 100.0
 var is_nitro_active: bool = false
@@ -169,6 +174,48 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_update_struts()
+	_update_ground_shadow()
+
+## Lazily creates a flat, elliptical ground-contact shadow beneath the vehicle. There's no
+## ground raycast here, so "distance to ground" is approximated from air_time instead of a
+## true height check: it stays solid while grounded and eases out the longer the vehicle has
+## been airborne, which reads convincingly for this game's jump/stunt-driven arcs without the
+## cost or risk of adding a new raycast system.
+func _ensure_ground_shadow() -> void:
+	if is_instance_valid(_ground_shadow):
+		return
+	if not is_inside_tree():
+		return
+	var img := Image.create(4, 4, false, Image.FORMAT_RGBA8)
+	img.fill(Color.WHITE)
+	var shadow := Sprite2D.new()
+	shadow.name = "GroundContactShadow"
+	shadow.texture = ImageTexture.create_from_image(img)
+	shadow.modulate = Color(0.0, 0.0, 0.0, 0.3)
+	shadow.scale = Vector2(16.0, 4.0)
+	shadow.position = Vector2(2.0, 30.0)
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://scripts/shaders/soft_blob_shadow.gdshader")
+	mat.set_shader_parameter("inner_radius", 0.25)
+	mat.set_shader_parameter("outer_radius", 1.0)
+	shadow.material = mat
+	add_child(shadow)
+	move_child(shadow, 0) # Draw behind the chassis/wheel sprites, same z as the ground beneath
+	_ground_shadow = shadow
+
+func _update_ground_shadow() -> void:
+	_ensure_ground_shadow()
+	if not is_instance_valid(_ground_shadow):
+		return
+	# Counter the chassis's own rotation so the shadow stays flat against the ground
+	# regardless of how tilted or flipped the vehicle currently is.
+	_ground_shadow.rotation = -rotation
+	var air_fade: float = clampf(air_time / 0.6, 0.0, 1.0)
+	var target_alpha: float = lerpf(0.3, 0.0, air_fade)
+	var target_scale: float = lerpf(1.0, 0.65, air_fade)
+	_ground_shadow.modulate.a = lerpf(_ground_shadow.modulate.a, target_alpha, 0.25)
+	var base_scale := Vector2(16.0, 4.0)
+	_ground_shadow.scale = _ground_shadow.scale.lerp(base_scale * target_scale, 0.25)
 
 func _physics_process(delta: float) -> void:
 	if not is_active:
@@ -285,6 +332,30 @@ func _ensure_nitro_visuals() -> void:
 	add_child(sparks)
 	nitro_sparks = sparks
 
+## Lazily finds the FollowCamera once (mirrors the pattern used by pothole_hazard.gd) rather
+## than requiring a wired export, so this works across every mode's scene tree unmodified.
+func _get_follow_camera() -> Node:
+	if is_instance_valid(_cached_follow_camera):
+		return _cached_follow_camera
+	if is_inside_tree():
+		var cam := get_tree().root.find_child("FollowCamera", true, false)
+		if is_instance_valid(cam):
+			_cached_follow_camera = cam
+	return _cached_follow_camera
+
+var _realm_flash_tween: Tween = null
+
+## A brief color pulse on the vehicle itself (not just the background) at the instant it
+## crosses a biome portal, so the car visibly reacts to being pulled into the new realm
+## instead of only the screen around it changing.
+func flash_realm_tint(tint: Color) -> void:
+	if _realm_flash_tween and _realm_flash_tween.is_valid():
+		_realm_flash_tween.kill()
+	modulate = Color.WHITE
+	_realm_flash_tween = create_tween()
+	_realm_flash_tween.tween_property(self, "modulate", tint, 0.1).set_trans(Tween.TRANS_SINE)
+	_realm_flash_tween.tween_property(self, "modulate", Color.WHITE, 0.4).set_trans(Tween.TRANS_SINE)
+
 func _activate_nitro() -> void:
 	is_nitro_active = true
 	nitro_state_changed.emit(true)
@@ -306,6 +377,14 @@ func _activate_nitro() -> void:
 			tw.tween_callback(func(): if is_instance_valid(nitro_burst): nitro_burst.visible = false)
 	if is_inside_tree() and nitro_audio and not nitro_audio.playing:
 		nitro_audio.play()
+
+	# Camera punch only (the cyan screen-flash overlay was removed): just for the vehicle
+	# under active player control, so showcase/preview instances (e.g. the Garage/home-screen
+	# display) never trigger it.
+	if is_active:
+		var cam := _get_follow_camera()
+		if is_instance_valid(cam) and cam.has_method("trigger_nitro_punch"):
+			cam.trigger_nitro_punch()
 
 func _deactivate_nitro() -> void:
 	if is_nitro_active:
@@ -386,7 +465,24 @@ func _check_ground_contact() -> void:
 		var impact_y: float = _previous_linear_velocity.y
 		if impact_y > 140.0:
 			_play_landing_sound()
-			hard_landed.emit(clampf((impact_y - 140.0) / 300.0, 0.2, 1.0))
+			var severity: float = clampf((impact_y - 140.0) / 300.0, 0.2, 1.0)
+			hard_landed.emit(severity)
+			_spawn_landing_dust(severity)
+
+## Spawns the (previously unused) LandingDustEffect at the wheel contact point on a hard
+## landing, with size/ring/opacity scaled continuously by impact severity: a light bounce
+## gets a small poof, a hard slam gets a bigger cloud plus a ground ring.
+func _spawn_landing_dust(severity: float) -> void:
+	var contact_point: Vector2 = global_position + Vector2(0, 26)
+	if is_instance_valid(rear_wheel) and is_instance_valid(front_wheel):
+		contact_point = (rear_wheel.global_position + front_wheel.global_position) * 0.5
+	elif is_instance_valid(rear_wheel):
+		contact_point = rear_wheel.global_position
+	var dust_parent: Node = get_parent() if is_instance_valid(get_parent()) else get_tree().root
+	var anim_name: String = "mushroom_cloud" if severity > 0.45 else "impact_poof"
+	var eff_scale: float = lerpf(0.14, 0.3, severity)
+	var with_ring: bool = severity > 0.65
+	LandingDustEffectClass.spawn_at(dust_parent, contact_point, anim_name, eff_scale, with_ring, true)
 
 func _track_stunts(delta: float) -> void:
 	var rear_contact: bool = (rear_wheel.contact_monitor and rear_wheel.get_colliding_bodies().size() > 0) if rear_wheel else false
@@ -532,6 +628,43 @@ func _update_particles() -> void:
 	if rear_dust:
 		var wheel_spinning: bool = rear_wheel and absf(rear_wheel.angular_velocity) > 10.0
 		rear_dust.emitting = is_grounded and (wheel_spinning or linear_velocity.length() > 30.0)
+
+	# Distinct skid dust puff: reuses the exact same hard-braking / wheel-spin conditions
+	# that already drive SkidAudio, so the visual and audio skid cues trigger in lockstep.
+	var is_braking_hard: bool = accel_input < -0.15 and is_grounded and linear_velocity.length() > 60.0
+	var is_wheel_spinning_in_place: bool = is_grounded and rear_wheel and absf(rear_wheel.angular_velocity) > 40.0 and linear_velocity.length() < 70.0
+	if (is_braking_hard or is_wheel_spinning_in_place) and is_active:
+		_ensure_skid_dust()
+		if _skid_dust:
+			_skid_dust.emitting = true
+	elif is_instance_valid(_skid_dust):
+		_skid_dust.emitting = false
+
+## Lazily creates a dedicated skid-dust puff emitter, separate from the continuous rolling
+## RearDust, so a hard-braking skid reads as a distinctly punchier burst of ground debris.
+func _ensure_skid_dust() -> void:
+	if is_instance_valid(_skid_dust):
+		return
+	var anchor_pos: Vector2 = Vector2(-35, 28)
+	if rear_wheel_mount:
+		anchor_pos = rear_wheel_mount.position + Vector2(0, 20)
+	var puff := CPUParticles2D.new()
+	puff.name = "SkidDustPuff"
+	puff.position = anchor_pos
+	puff.emitting = false
+	puff.amount = 16
+	puff.lifetime = 0.45
+	puff.texture = load("res://assets/vehicles/effects/dust_effects/ground_movement_dust/ground_dust_01.png")
+	puff.direction = Vector2(-1, -0.25)
+	puff.spread = 40.0
+	puff.gravity = Vector2(0, 70)
+	puff.initial_velocity_min = 55.0
+	puff.initial_velocity_max = 120.0
+	puff.scale_amount_min = 0.1
+	puff.scale_amount_max = 0.26
+	puff.color = Color(0.8, 0.72, 0.58, 0.85)
+	add_child(puff)
+	_skid_dust = puff
 
 ## Modulate engine pitch (RPM) dynamically based on wheel angular velocity and throttle
 func _update_audio(delta: float) -> void:

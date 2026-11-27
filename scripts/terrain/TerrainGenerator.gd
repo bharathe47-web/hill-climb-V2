@@ -54,6 +54,9 @@ signal segment_despawned(segment: TerrainSegment)
 		active_terrain_profile = val
 
 @export_group("Biome Profiles & Portals (Phase 2.3)")
+## Endless-mode Normal -> Heaven -> Hell 300m cycle (portals + biome terrain).
+## Leave ON for Endless. Set OFF for modes that must stay in a single biome (e.g. Survival).
+@export var enable_biome_cycle: bool = true
 @export var normal_terrain_profile: Resource = preload("res://assets/terrain/profiles/normal_land_profile.tres")
 @export var heaven_terrain_profile: Resource = preload("res://assets/terrain/profiles/heaven_terrain_profile.tres")
 @export var hell_terrain_profile: Resource = preload("res://assets/terrain/profiles/hell_terrain_profile.tres")
@@ -205,6 +208,8 @@ func _update_generation(target_x: float) -> void:
 		_attach_segment(seg, enable_pickups)
 
 func _is_recurring_900m_mode() -> bool:
+	if not enable_biome_cycle:
+		return false
 	if _is_branching_mode_enabled():
 		return false
 	if is_instance_valid(progression_controller) and progression_controller.schedule:
@@ -212,6 +217,8 @@ func _is_recurring_900m_mode() -> bool:
 	return true
 
 func get_biome_type_for_world_x(world_x: float) -> int:
+	if not enable_biome_cycle:
+		return 0 # Single-biome mode: always Normal Land
 	var safe_x := maxf(0.0, world_x)
 	var cycle_pos_m := fposmod(safe_x / 100.0, 900.0)
 	if cycle_pos_m < 300.0:
@@ -222,6 +229,8 @@ func get_biome_type_for_world_x(world_x: float) -> int:
 		return 2 # WorldCycleSchedule.BiomeType.HELL
 
 func get_distance_to_next_biome_boundary(world_x: float) -> float:
+	if not enable_biome_cycle:
+		return 1.0e12 # No biome boundaries in single-biome mode
 	var safe_x := maxf(0.0, world_x)
 	var cycle_pos_px := fposmod(safe_x, 90000.0)
 	if cycle_pos_px < 30000.0:

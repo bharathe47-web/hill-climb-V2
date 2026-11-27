@@ -5,7 +5,10 @@ extends RefCounted
 ## Isolates gameplay logic from external third-party ad networks (AdMob, Unity Ads, etc.).
 ## In Phase 2, functions as a deterministic mock and test seam.
 
-var mock_should_succeed: bool = false
+## No ad SDK is integrated yet, so "Watch Ad" is simulated as a completed ad and grants the
+## extra life. (Was false, which made the Watch Ad button always end the run.)
+## Tests that need the failure path set this to false explicitly.
+var mock_should_succeed: bool = true
 var mock_delay_seconds: float = 0.0
 
 ## Requests a reward. Invokes callback with Dictionary: {"success": bool, "reward_type": String}

@@ -895,9 +895,9 @@ func _update_heart_display() -> void:
 		var heart_rect = hearts[i] as TextureRect
 		if is_instance_valid(heart_rect):
 			if i < current_lives:
-				heart_rect.texture = load("res://assets/ui/hud/hearts/hud_heart_full.png")
+				heart_rect.texture = GameHUD.HEART_FULL_TEX
 			else:
-				heart_rect.texture = load("res://assets/ui/hud/hearts/hud_heart_empty.png")
+				heart_rect.texture = GameHUD.HEART_EMPTY_TEX
 
 func _clear_active_obstacles() -> void:
 	if is_instance_valid(obstacle_container):
