@@ -287,6 +287,8 @@ func _setup_vehicle() -> void:
 		veh.global_position = Vector2(0.0, spawn_surface_y - 38.0)
 		vehicle_slot.add_child(veh)
 		vehicle = veh
+		if "allow_reverse" in veh:
+			veh.allow_reverse = false
 		_start_x = veh.global_position.x
 		if is_instance_valid(terrain_generator):
 			terrain_generator.target = veh
@@ -375,6 +377,8 @@ func start_run() -> void:
 				vehicle.linear_velocity = Vector2.ZERO
 				vehicle.angular_velocity = 0.0
 				vehicle.rotation = 0.0
+		if "allow_reverse" in vehicle:
+			vehicle.allow_reverse = false
 		_start_x = vehicle.global_position.x
 		if is_instance_valid(terrain_generator):
 			terrain_generator.target = vehicle

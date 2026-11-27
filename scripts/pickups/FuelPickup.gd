@@ -18,6 +18,7 @@ signal collected(amount: float)
 			apply_biome_theme(value)
 
 @onready var visual: Node2D = $Visual
+@onready var fuel_animated_sprite: AnimatedSprite2D = get_node_or_null("Visual/FuelAnimatedSprite")
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var popup_label: Label = $PopupLabel
 @onready var vapor_particles: CPUParticles2D = get_node_or_null("VaporParticles")
@@ -28,6 +29,22 @@ var is_collected: bool = false
 var _elapsed: float = 0.0
 var _initial_visual_y: float = 0.0
 
+const FUEL_DIR := "res://assets/survival/collectibles/fuel/"
+static var _fuel_frames_cache: SpriteFrames = null
+
+static func _get_frames() -> SpriteFrames:
+	if _fuel_frames_cache != null:
+		return _fuel_frames_cache
+	var sf := SpriteFrames.new()
+	sf.remove_animation(&"default")
+	sf.add_animation(&"default")
+	sf.set_animation_speed(&"default", 6.0)
+	sf.set_animation_loop(&"default", true)
+	for i in range(1, 7):
+		sf.add_frame(&"default", load("%sfuel_frame_%02d.png" % [FUEL_DIR, i]))
+	_fuel_frames_cache = sf
+	return sf
+
 func _ready() -> void:
 	collision_layer = 4
 	collision_mask = 2 # Vehicle layer
@@ -35,6 +52,11 @@ func _ready() -> void:
 	monitorable = true
 	body_entered.connect(_on_body_entered)
 	area_entered.connect(_on_area_entered)
+	if not is_nitro_pickup and is_instance_valid(fuel_animated_sprite):
+		if fuel_animated_sprite.sprite_frames == null:
+			fuel_animated_sprite.sprite_frames = _get_frames()
+		if not fuel_animated_sprite.is_playing():
+			fuel_animated_sprite.play(&"default")
 	if is_instance_valid(visual):
 		_initial_visual_y = visual.position.y
 	if is_instance_valid(popup_label):
@@ -142,6 +164,8 @@ func reset_pickup() -> void:
 		visual.visible = true
 		visual.position.y = _initial_visual_y
 		visual.scale = Vector2.ONE
+	if is_instance_valid(fuel_animated_sprite):
+		fuel_animated_sprite.play(&"default")
 	if is_instance_valid(popup_label):
 		popup_label.visible = false
 	if is_instance_valid(vapor_particles):

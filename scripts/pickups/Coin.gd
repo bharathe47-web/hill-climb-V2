@@ -16,6 +16,7 @@ signal collected(value: int)
 			apply_biome_theme(value)
 
 @onready var visual: Node2D = $Visual
+@onready var coin_animated_sprite: AnimatedSprite2D = get_node_or_null("Visual/CoinAnimatedSprite")
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var popup_label: Label = $PopupLabel
 @onready var sparkle_particles: CPUParticles2D = get_node_or_null("SparkleParticles")
@@ -26,6 +27,22 @@ var is_collected: bool = false
 var _elapsed: float = 0.0
 var _initial_visual_y: float = 0.0
 
+const COIN_DIR := "res://assets/survival/collectibles/coins/"
+static var _coin_frames_cache: SpriteFrames = null
+
+static func _get_frames() -> SpriteFrames:
+	if _coin_frames_cache != null:
+		return _coin_frames_cache
+	var sf := SpriteFrames.new()
+	sf.remove_animation(&"default")
+	sf.add_animation(&"default")
+	sf.set_animation_speed(&"default", 9.0)
+	sf.set_animation_loop(&"default", true)
+	for i in range(1, 7):
+		sf.add_frame(&"default", load("%scoin_rotate_%02d.png" % [COIN_DIR, i]))
+	_coin_frames_cache = sf
+	return sf
+
 func _ready() -> void:
 	collision_layer = 4
 	collision_mask = 2 # Vehicle layer
@@ -33,6 +50,11 @@ func _ready() -> void:
 	monitorable = true
 	body_entered.connect(_on_body_entered)
 	area_entered.connect(_on_area_entered)
+	if is_instance_valid(coin_animated_sprite):
+		if coin_animated_sprite.sprite_frames == null:
+			coin_animated_sprite.sprite_frames = _get_frames()
+		if not coin_animated_sprite.is_playing():
+			coin_animated_sprite.play(&"default")
 	if is_instance_valid(visual):
 		_initial_visual_y = visual.position.y
 	if is_instance_valid(popup_label):
@@ -44,8 +66,6 @@ func _process(delta: float) -> void:
 	if not is_collected and is_instance_valid(visual):
 		_elapsed += delta
 		visual.position.y = _initial_visual_y - (sin(_elapsed * bob_frequency) * 0.5 + 0.5) * bob_height
-		# Subtle horizontal scale shimmer simulating 3D coin spin
-		visual.scale.x = sin(_elapsed * 3.0)
 		if is_instance_valid(glow_aura):
 			var pulse := (sin(_elapsed * 5.0) * 0.15) + 0.85
 			glow_aura.scale = Vector2(pulse, pulse)
@@ -116,6 +136,8 @@ func reset_pickup() -> void:
 		visual.visible = true
 		visual.position.y = _initial_visual_y
 		visual.scale = Vector2.ONE
+	if is_instance_valid(coin_animated_sprite):
+		coin_animated_sprite.play(&"default")
 	if is_instance_valid(popup_label):
 		popup_label.visible = false
 	if is_instance_valid(sparkle_particles):

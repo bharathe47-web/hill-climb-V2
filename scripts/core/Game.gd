@@ -69,6 +69,8 @@ func _setup_vehicle() -> void:
 	if is_instance_valid(vehicle):
 		vehicle.global_position = spawn_position
 		start_x = spawn_position.x
+		if "is_reverse_blocked" in vehicle:
+			vehicle.is_reverse_blocked = true
 		if not vehicle.crashed.is_connected(_on_vehicle_crashed):
 			vehicle.crashed.connect(_on_vehicle_crashed)
 		if vehicle.has_signal("hard_landed") and not vehicle.hard_landed.is_connected(_on_vehicle_hard_landed):
@@ -224,6 +226,8 @@ func _process(delta: float) -> void:
 		if dist_meters < 0.005:
 			dist_meters = 0.0
 		game_manager.update_distance(dist_meters)
+		if "is_reverse_blocked" in vehicle:
+			vehicle.is_reverse_blocked = dist_meters < 10.0
 		
 		# Check Out of Fuel game-over condition:
 		# When fuel is depleted and vehicle has naturally coasted to a halt
@@ -248,10 +252,16 @@ func _on_vehicle_crashed() -> void:
 		game_manager.finish_run("crashed")
 
 func _on_run_restarted() -> void:
-	if is_instance_valid(music_player):
-		music_player.volume_db = -12.0
-		if not music_player.playing:
-			music_player.play()
+	# When BiomeEnvironmentHost is active, IT owns music for the whole run (it crossfades
+	# between Normal/Heaven/Hell tracks). This standalone player was only ever meant to be the
+	# simple default for modes without a biome host, so it must stay silent here too — resuming
+	# it unconditionally on every restart was exactly what caused Normal Land's music to keep
+	# playing underneath Heaven/Hell forever after the first retry of a run.
+	if not is_instance_valid(biome_environment_host):
+		if is_instance_valid(music_player):
+			music_player.volume_db = -12.0
+			if not music_player.playing:
+				music_player.play()
 	_stopped_timer = 0.0
 
 ## Authoritative 8-Phase atomic restart transaction
@@ -310,6 +320,8 @@ func execute_restart_transaction() -> void:
 	start_x = spawn_position.x
 	if is_instance_valid(vehicle):
 		vehicle.reset_vehicle(spawn_position)
+		if "is_reverse_blocked" in vehicle:
+			vehicle.is_reverse_blocked = true
 		if vehicle.has_method("set_active"):
 			vehicle.set_active(true)
 	if is_instance_valid(follow_camera) and is_instance_valid(vehicle):
