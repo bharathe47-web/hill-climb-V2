@@ -41,3 +41,6 @@ position_smoothing_speed = 6.0
 script = ExtResource("2_camera")
 
 [node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Music"

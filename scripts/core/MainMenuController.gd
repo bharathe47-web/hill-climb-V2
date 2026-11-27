@@ -13,6 +13,7 @@ signal start_survival_requested(difficulty: int)
 signal start_garage_requested
 signal start_indian_roads_requested
 signal quit_requested
+signal settings_requested
 
 ## Design resolution of the home-screen art; the Stage node is scaled to fit the viewport width.
 const DESIGN_SIZE := Vector2(1920.0, 1080.0)
@@ -28,6 +29,7 @@ const QUIT_MARGIN_TOP := 56.0
 @onready var garage_sign: HomeSignboard = %GarageSign
 @onready var endless_sign: HomeSignboard = %EndlessSign
 @onready var quit_button: TextureButton = %QuitButton
+@onready var settings_button: TextureButton = %SettingsButton
 @onready var quit_dialog: Control = %QuitDialog
 @onready var quit_yes_button: Button = %QuitYesButton
 @onready var quit_no_button: Button = %QuitNoButton
@@ -73,6 +75,8 @@ func _connect_signals() -> void:
 	quit_button.pressed.connect(_on_quit_pressed)
 	quit_yes_button.pressed.connect(_on_quit_confirmed)
 	quit_no_button.pressed.connect(_close_quit_dialog)
+	if is_instance_valid(settings_button):
+		settings_button.pressed.connect(_on_settings_pressed)
 	if not difficulty_menu.start_survival_pressed.is_connected(_on_difficulty_start_survival_pressed):
 		difficulty_menu.start_survival_pressed.connect(_on_difficulty_start_survival_pressed)
 	if not difficulty_menu.back_pressed.is_connected(_close_difficulty_selection):
@@ -90,6 +94,10 @@ func _layout() -> void:
 	quit_button.size = Vector2(q, q)
 	quit_button.position = Vector2(size.x - QUIT_MARGIN_RIGHT * s - q, maxf(QUIT_MARGIN_TOP * s, 8.0))
 	quit_button.pivot_offset = quit_button.size * 0.5
+	if is_instance_valid(settings_button):
+		settings_button.size = Vector2(q, q)
+		settings_button.position = Vector2(quit_button.position.x - q - 16.0 * s, quit_button.position.y)
+		settings_button.pivot_offset = settings_button.size * 0.5
 
 func _on_endless_pressed() -> void:
 	start_game_requested.emit()
@@ -120,6 +128,9 @@ func _on_difficulty_start_survival_pressed(difficulty: int) -> void:
 func _on_quit_pressed() -> void:
 	quit_dialog.visible = true
 	quit_no_button.grab_focus()
+
+func _on_settings_pressed() -> void:
+	settings_requested.emit()
 
 func _close_quit_dialog() -> void:
 	quit_dialog.visible = false

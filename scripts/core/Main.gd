@@ -9,17 +9,41 @@ extends Node
 @export var default_survival_scene: PackedScene = preload("res://scenes/modes/survival/Survival.tscn")
 @export var default_garage_scene: PackedScene = preload("res://scenes/modes/garage/VintageCarGarage.tscn")
 @export var default_indian_roads_scene: PackedScene = preload("res://scenes/modes/indian_roads/visual_upgrade_v2/IndianRoadsModeV2.tscn")
+@export var default_settings_scene: PackedScene = preload("res://scenes/main/SettingsMenu.tscn")
 @export var start_with_menu: bool = true
+
+const SaveManager = preload("res://scripts/core/SaveManager.gd")
 
 @onready var scene_container: Node = $SceneContainer
 
 var current_scene_node: Node = null
+var _settings_instance: Node = null
 
 func _ready() -> void:
+	_apply_startup_audio_settings()
 	if start_with_menu and default_menu_scene != null:
 		load_menu()
 	else:
 		load_game()
+
+func _apply_startup_audio_settings() -> void:
+	var music_vol := SaveManager.get_music_volume()
+	var sound_vol := SaveManager.get_sound_volume()
+	var music_db: float = linear_to_db(music_vol) if music_vol > 0.0001 else -80.0
+	var sound_db: float = linear_to_db(sound_vol) if sound_vol > 0.0001 else -80.0
+
+	var music_bus := AudioServer.get_bus_index("Music")
+	if music_bus >= 0:
+		AudioServer.set_bus_volume_db(music_bus, music_db)
+	var amb_bus := AudioServer.get_bus_index("Ambience")
+	if amb_bus >= 0:
+		AudioServer.set_bus_volume_db(amb_bus, music_db)
+	var sfx_bus := AudioServer.get_bus_index("SFX")
+	if sfx_bus >= 0:
+		AudioServer.set_bus_volume_db(sfx_bus, sound_db)
+	var ui_bus := AudioServer.get_bus_index("UI")
+	if ui_bus >= 0:
+		AudioServer.set_bus_volume_db(ui_bus, sound_db)
 
 func load_menu() -> void:
 	_switch_scene(default_menu_scene)
@@ -32,6 +56,8 @@ func load_menu() -> void:
 			current_scene_node.start_garage_requested.connect(load_garage)
 		if current_scene_node.has_signal("start_indian_roads_requested") and not current_scene_node.start_indian_roads_requested.is_connected(load_indian_roads):
 			current_scene_node.start_indian_roads_requested.connect(load_indian_roads)
+		if current_scene_node.has_signal("settings_requested") and not current_scene_node.settings_requested.is_connected(open_settings):
+			current_scene_node.settings_requested.connect(open_settings)
 
 func load_game() -> void:
 	if not is_instance_valid(scene_container):
@@ -122,6 +148,7 @@ func load_indian_roads() -> void:
 			current_scene_node.return_to_main_menu_requested.connect(load_menu)
 
 func _switch_scene(new_scene: PackedScene) -> void:
+	close_settings()
 	if not is_instance_valid(scene_container):
 		scene_container = get_node_or_null("SceneContainer")
 	if not is_instance_valid(scene_container):
@@ -135,3 +162,20 @@ func _switch_scene(new_scene: PackedScene) -> void:
 	if new_scene:
 		current_scene_node = new_scene.instantiate()
 		scene_container.add_child(current_scene_node)
+
+func open_settings() -> void:
+	if is_instance_valid(_settings_instance):
+		return
+	if default_settings_scene:
+		_settings_instance = default_settings_scene.instantiate()
+		if _settings_instance.has_signal("close_requested"):
+			_settings_instance.close_requested.connect(close_settings)
+		if is_instance_valid(scene_container):
+			scene_container.add_child(_settings_instance)
+		else:
+			add_child(_settings_instance)
+
+func close_settings() -> void:
+	if is_instance_valid(_settings_instance):
+		_settings_instance.queue_free()
+		_settings_instance = null

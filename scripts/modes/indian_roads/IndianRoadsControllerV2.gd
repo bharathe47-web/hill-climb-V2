@@ -6,6 +6,73 @@ extends IndianRoadsController
 ## and organic, zone-based roadside scenery without repetitive looped textures.
 
 const IndianRoadTerrainV2Scene = preload("res://scenes/modes/indian_roads/visual_upgrade_v2/IndianRoadTerrainV2.tscn")
+const BGM_INDIAN_ROADS: AudioStream = preload("res://assets/audio/indian_roads/music/hitslab-indian-indian-music-634358.mp3")
+
+@onready var music_player: AudioStreamPlayer = get_node_or_null("MusicPlayer")
+
+func _ready() -> void:
+	_setup_audio()
+	super._ready()
+
+func _setup_audio() -> void:
+	if not is_instance_valid(music_player):
+		music_player = get_node_or_null("MusicPlayer")
+	if not is_instance_valid(music_player):
+		music_player = AudioStreamPlayer.new()
+		music_player.name = "MusicPlayer"
+		music_player.bus = &"Music"
+		add_child(music_player)
+
+	music_player.stream = BGM_INDIAN_ROADS
+	music_player.volume_db = -6.0
+	music_player.bus = &"Music"
+	if not music_player.finished.is_connected(_on_music_finished):
+		music_player.finished.connect(_on_music_finished)
+	if not music_player.playing:
+		music_player.play()
+
+func _on_music_finished() -> void:
+	if is_instance_valid(music_player) and is_inside_tree():
+		music_player.play()
+
+func _on_pause_requested() -> void:
+	super._on_pause_requested()
+	if is_instance_valid(music_player) and music_player.playing:
+		music_player.stream_paused = true
+
+func _on_resume_requested() -> void:
+	super._on_resume_requested()
+	if is_instance_valid(music_player) and music_player.stream_paused:
+		music_player.stream_paused = false
+
+func _on_restart_from_pause() -> void:
+	super._on_restart_from_pause()
+	if is_instance_valid(music_player):
+		music_player.stream_paused = false
+		if not music_player.playing:
+			music_player.play()
+
+func _on_main_menu_from_pause() -> void:
+	if is_instance_valid(music_player):
+		music_player.stop()
+	super._on_main_menu_from_pause()
+
+func _on_map_requested() -> void:
+	super._on_map_requested()
+	if is_instance_valid(music_player) and music_player.playing:
+		music_player.stream_paused = true
+
+func _on_map_closed() -> void:
+	super._on_map_closed()
+	if is_instance_valid(music_player) and music_player.stream_paused:
+		music_player.stream_paused = false
+
+func start_route(route: RouteData) -> void:
+	super.start_route(route)
+	if is_instance_valid(music_player):
+		music_player.stream_paused = false
+		if not music_player.playing:
+			music_player.play()
 
 func _setup_terrain() -> void:
 	if not is_instance_valid(terrain_slot):
