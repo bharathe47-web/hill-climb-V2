@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://main_menu_scene_001"]
+[gd_scene load_steps=30 format=3 uid="uid://main_menu_scene_001"]
 
 [ext_resource type="Script" path="res://scripts/core/MainMenuController.gd" id="1_controller"]
 [ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future.ttf" id="4_font_future"]
@@ -21,6 +21,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/home_screen/navigation/signboard_my_cars_garage.png" id="31_sign_garage"]
 [ext_resource type="Texture2D" path="res://assets/ui/home_screen/navigation/signboard_endless_map.png" id="32_sign_endless"]
 [ext_resource type="Texture2D" path="res://assets/ui/home_screen/navigation/button_quit_sky_cyan.png" id="33_quit"]
+[ext_resource type="Texture2D" path="res://assets/ui/home_screen/navigation/button_settings_sky_cyan.png" id="39_settings"]
 [ext_resource type="Texture2D" path="res://assets/ui/home_screen/navigation/timber_frame_left.png" id="35_frame_l"]
 [ext_resource type="Texture2D" path="res://assets/ui/home_screen/navigation/timber_frame_right.png" id="36_frame_r"]
 
@@ -244,6 +245,18 @@ chain_top_y = 600.0
 wind_max_angle_deg = 3.3
 wind_phase_offset = 1.25
 wind_delay_seconds = 0.46
+
+[node name="SettingsButton" type="TextureButton" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1050.0
+offset_top = 30.0
+offset_right = 1140.0
+offset_bottom = 120.0
+focus_mode = 2
+texture_normal = ExtResource("39_settings")
+ignore_texture_size = true
+stretch_mode = 0
 
 [node name="QuitButton" type="TextureButton" parent="."]
 unique_name_in_owner = true

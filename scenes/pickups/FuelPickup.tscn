@@ -1,12 +1,12 @@
 [gd_scene load_steps=14 format=3 uid="uid://fuel_pickup_001"]
 
 [ext_resource type="Script" path="res://scripts/pickups/FuelPickup.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/pickups/fuel/fuel_can_animation_frames/fuel_can_frame_01.png" id="2_frame1"]
-[ext_resource type="Texture2D" path="res://assets/pickups/fuel/fuel_can_animation_frames/fuel_can_frame_02.png" id="3_frame2"]
-[ext_resource type="Texture2D" path="res://assets/pickups/fuel/fuel_can_animation_frames/fuel_can_frame_03.png" id="4_frame3"]
-[ext_resource type="Texture2D" path="res://assets/pickups/fuel/fuel_can_animation_frames/fuel_can_frame_04.png" id="5_frame4"]
-[ext_resource type="Texture2D" path="res://assets/pickups/fuel/fuel_can_animation_frames/fuel_can_frame_05.png" id="6_frame5"]
-[ext_resource type="Texture2D" path="res://assets/pickups/fuel/fuel_can_animation_frames/fuel_can_frame_06.png" id="7_frame6"]
+[ext_resource type="Texture2D" path="res://assets/survival/collectibles/fuel/fuel_frame_01.png" id="2_frame1"]
+[ext_resource type="Texture2D" path="res://assets/survival/collectibles/fuel/fuel_frame_02.png" id="3_frame2"]
+[ext_resource type="Texture2D" path="res://assets/survival/collectibles/fuel/fuel_frame_03.png" id="4_frame3"]
+[ext_resource type="Texture2D" path="res://assets/survival/collectibles/fuel/fuel_frame_04.png" id="5_frame4"]
+[ext_resource type="Texture2D" path="res://assets/survival/collectibles/fuel/fuel_frame_05.png" id="6_frame5"]
+[ext_resource type="Texture2D" path="res://assets/survival/collectibles/fuel/fuel_frame_06.png" id="7_frame6"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/pickups/fuel_collection_sound.wav" id="8_audio"]
 [ext_resource type="FontFile" path="res://assets/fonts/Boxy-Bold.ttf" id="9_font"]
 
@@ -39,7 +39,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"default",
-"speed": 8.0
+"speed": 6.0
 }]
 
 [node name="FuelPickup" type="Area2D"]
@@ -57,7 +57,7 @@ color = Color(0.2, 0.9, 0.35, 0.22)
 polygon = PackedVector2Array(-20, 20, 20, 20, 20, -14, 12, -22, -12, -22, -20, -14)
 
 [node name="FuelAnimatedSprite" type="AnimatedSprite2D" parent="Visual"]
-scale = Vector2(0.24, 0.24)
+scale = Vector2(0.2, 0.2)
 sprite_frames = SubResource("SpriteFrames_fuel")
 autoplay = "default"
 

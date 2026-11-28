@@ -45,9 +45,10 @@ signal clean_landed(bonus_coins: int)
 @export_group("Base Stats (Level 1)")
 @export var base_motor_torque: float = 75000.0
 @export var base_brake_torque: float = 45000.0
+@export var base_reverse_torque: float = 67500.0
 @export var base_max_wheel_speed: float = 80.0
 @export var base_wheel_friction: float = 1.6
-@export var base_suspension_softness: float = 0.6
+@export var base_suspension_softness: float = 0.15
 @export var base_max_fuel: float = 100.0
 
 @export_group("Current Active Physics")
@@ -55,6 +56,12 @@ signal clean_landed(bonus_coins: int)
 @export var motor_torque: float = 75000.0
 ## Effective braking torque applied when reversing
 @export var brake_torque: float = 45000.0
+## Effective motor torque applied when driving backward
+@export var reverse_torque: float = 67500.0
+## Whether the vehicle is allowed to drive in reverse (false = brake only, no backward drive)
+@export var allow_reverse: bool = true
+## Whether reverse input is temporarily blocked (e.g. within 10m of spawn)
+var is_reverse_blocked: bool = false
 ## Maximum rotational wheel velocity in radians/sec
 @export var max_wheel_speed: float = 80.0
 ## Rotational torque applied for mid-air flips and tilt balancing
@@ -80,13 +87,16 @@ signal clean_landed(bonus_coins: int)
 ## Nitro burn rate in units per second of boost
 @export var nitro_consumption_rate: float = 25.0
 ## Nitro passive recharge rate in units per second when inactive
-@export var nitro_recharge_rate: float = 14.0
+@export var nitro_recharge_rate: float = 5.0
+## Delay in seconds after releasing nitro before passive recharge begins
+@export var nitro_recharge_cooldown: float = 0.5
+var _nitro_cooldown_timer: float = 0.0
 ## Forward thrust applied directly along vehicle forward heading (transform.x)
 @export var nitro_boost_force: float = 18000.0
 ## Motor torque multiplier while nitro is engaged
 @export var nitro_torque_multiplier: float = 1.6
 ## Max wheel rotational speed multiplier while nitro is engaged
-@export var nitro_max_speed_multiplier: float = 1.35
+@export var nitro_max_speed_multiplier: float = 1.08
 ## Traction friction increase while nitro is engaged to climb steep pothole dips
 @export var nitro_traction_boost: float = 0.5
 ## Minimum nitro energy required to start activation
@@ -245,6 +255,7 @@ func _update_nitro(delta: float) -> void:
 	var can_boost: bool = is_active and action_pressed and (is_nitro_active or current_nitro >= nitro_min_activation_energy) and current_nitro > 0.0
 	
 	if can_boost:
+		_nitro_cooldown_timer = nitro_recharge_cooldown
 		if not is_nitro_active:
 			_activate_nitro()
 		current_nitro = maxf(0.0, current_nitro - nitro_consumption_rate * delta)
@@ -254,8 +265,16 @@ func _update_nitro(delta: float) -> void:
 	else:
 		if is_nitro_active:
 			_deactivate_nitro()
-		if current_nitro < max_nitro:
-			current_nitro = minf(max_nitro, current_nitro + nitro_recharge_rate * delta)
+		var recharge_delta: float = delta
+		if _nitro_cooldown_timer > 0.0:
+			if delta >= _nitro_cooldown_timer:
+				recharge_delta = delta - _nitro_cooldown_timer
+				_nitro_cooldown_timer = 0.0
+			else:
+				_nitro_cooldown_timer -= delta
+				recharge_delta = 0.0
+		if recharge_delta > 0.0 and current_nitro < max_nitro:
+			current_nitro = minf(max_nitro, current_nitro + nitro_recharge_rate * recharge_delta)
 			nitro_changed.emit(current_nitro, max_nitro)
 
 func _ensure_nitro_visuals() -> void:
@@ -558,12 +577,25 @@ func _handle_input(delta: float) -> void:
 				
 	elif accel_input < -0.05:
 		# Brake / Reverse
-		if rear_wheel and rear_wheel.angular_velocity > -active_max_speed * 0.5:
-			var rear_brake_factor: float = clampf((active_max_speed * 0.5 + rear_wheel.angular_velocity) / (active_max_speed * 0.2), 0.0, 1.0)
-			rear_wheel.apply_torque(brake_torque * accel_input * rear_brake_factor)
-		if front_wheel and front_wheel.angular_velocity > -active_max_speed * 0.5:
-			var front_brake_factor: float = clampf((active_max_speed * 0.5 + front_wheel.angular_velocity) / (active_max_speed * 0.2), 0.0, 1.0)
-			front_wheel.apply_torque(brake_torque * 0.75 * accel_input * front_brake_factor)
+		var can_reverse: bool = allow_reverse and not is_reverse_blocked
+		if rear_wheel:
+			if rear_wheel.angular_velocity > 0.0:
+				# Braking from forward motion
+				var rear_brake_factor: float = clampf((active_max_speed * 0.5 + rear_wheel.angular_velocity) / (active_max_speed * 0.2), 0.0, 1.0)
+				rear_wheel.apply_torque(brake_torque * accel_input * rear_brake_factor)
+			elif can_reverse and rear_wheel.angular_velocity > -active_max_speed * 0.5:
+				# Reversing backward with stronger reverse torque
+				var rear_reverse_factor: float = clampf((active_max_speed * 0.5 + rear_wheel.angular_velocity) / (active_max_speed * 0.2), 0.0, 1.0)
+				rear_wheel.apply_torque(reverse_torque * accel_input * rear_reverse_factor)
+		if front_wheel:
+			if front_wheel.angular_velocity > 0.0:
+				# Braking from forward motion
+				var front_brake_factor: float = clampf((active_max_speed * 0.5 + front_wheel.angular_velocity) / (active_max_speed * 0.2), 0.0, 1.0)
+				front_wheel.apply_torque(brake_torque * 0.75 * accel_input * front_brake_factor)
+			elif can_reverse and front_wheel.angular_velocity > -active_max_speed * 0.5:
+				# Reversing backward with stronger reverse torque
+				var front_reverse_factor: float = clampf((active_max_speed * 0.5 + front_wheel.angular_velocity) / (active_max_speed * 0.2), 0.0, 1.0)
+				front_wheel.apply_torque(reverse_torque * 0.75 * accel_input * front_reverse_factor)
 	
 	# Air rotation and flip control
 	if not is_grounded:
@@ -740,6 +772,7 @@ func _recalculate_upgrades() -> void:
 	# 1. Engine Power: +20% torque and +12% top speed per level
 	motor_torque = base_motor_torque * (1.0 + (engine_level - 1) * 0.20)
 	brake_torque = base_brake_torque * (1.0 + (engine_level - 1) * 0.15)
+	reverse_torque = base_reverse_torque * (1.0 + (engine_level - 1) * 0.15)
 	max_wheel_speed = base_max_wheel_speed * (1.0 + (engine_level - 1) * 0.12)
 	
 	# 2. Tire Grip: +22% friction per level
@@ -747,8 +780,8 @@ func _recalculate_upgrades() -> void:
 	_current_base_friction = eff_friction
 	_apply_wheel_friction(_current_base_friction + (nitro_traction_boost if is_nitro_active else 0.0))
 	
-	# 3. Suspension: firmer damping, reduces softness by 0.08 per level
-	var eff_softness: float = maxf(0.18, base_suspension_softness - (suspension_level - 1) * 0.08)
+	# 3. Suspension: firmer damping, reduces softness by 0.015 per level
+	var eff_softness: float = maxf(0.08, base_suspension_softness - (suspension_level - 1) * 0.015)
 	if rear_joint:
 		rear_joint.softness = eff_softness
 	if front_joint:
@@ -882,6 +915,7 @@ func reset_vehicle(at_position: Vector2) -> void:
 	current_fuel = max_fuel
 	current_nitro = max_nitro
 	is_nitro_requested = false
+	_nitro_cooldown_timer = 0.0
 	_deactivate_nitro()
 	_pothole_stuck_timer = 0.0
 	_pothole_hint_active = false

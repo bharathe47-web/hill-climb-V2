@@ -90,6 +90,9 @@ signal warning_requested(target_position: Vector2, duration: float)
 var _rollover_timer: float = 0.0
 
 const BGM_SURVIVAL_LOOP: AudioStream = preload("res://assets/audio/survival/music/survival_main_theme_loop.ogg")
+const BGM_SURVIVAL_EASY: AudioStream = preload("res://assets/audio/survival/music/easy-survial.mp3")
+const BGM_SURVIVAL_MEDIUM: AudioStream = preload("res://assets/audio/survival/music/survival-mid.mp3")
+const BGM_SURVIVAL_HARD: AudioStream = preload("res://assets/audio/survival/music/hard.mp3")
 
 const SFX_ASTEROID_NORMAL: AudioStream = preload("res://assets/audio/survival/sfx/asteroids/normal_asteroid_impact.wav")
 const SFX_ASTEROID_FLAMING: AudioStream = preload("res://assets/audio/survival/sfx/asteroids/flaming_asteroid_impact.wav")
@@ -146,6 +149,17 @@ func _ready() -> void:
 	_setup_collectibles()
 	start_run()
 
+func _get_bgm_for_difficulty(diff: int) -> AudioStream:
+	match diff:
+		SurvivalDifficultyConfig.Difficulty.EASY:
+			return BGM_SURVIVAL_EASY
+		SurvivalDifficultyConfig.Difficulty.MEDIUM:
+			return BGM_SURVIVAL_MEDIUM
+		SurvivalDifficultyConfig.Difficulty.HARD:
+			return BGM_SURVIVAL_HARD
+		_:
+			return BGM_SURVIVAL_EASY
+
 func _init_audio() -> void:
 	# Ensure music player is available
 	if not is_instance_valid(music_player):
@@ -153,12 +167,12 @@ func _init_audio() -> void:
 	if not is_instance_valid(music_player):
 		music_player = AudioStreamPlayer.new()
 		music_player.name = "SurvivalMusicPlayer"
-		music_player.stream = BGM_SURVIVAL_LOOP
 		music_player.volume_db = -6.0
 		music_player.bus = &"Music"
 		add_child(music_player)
 
 	if is_instance_valid(music_player):
+		music_player.stream = _get_bgm_for_difficulty(selected_difficulty)
 		if not music_player.finished.is_connected(_on_music_finished):
 			music_player.finished.connect(_on_music_finished)
 
@@ -235,6 +249,13 @@ func _apply_difficulty_config() -> void:
 	difficulty_config = SurvivalDifficultyConfig.get_config(selected_difficulty)
 	_schedule_next_unburned_asteroid()
 	_schedule_next_burning_asteroid()
+	if is_instance_valid(music_player):
+		var target_stream := _get_bgm_for_difficulty(selected_difficulty)
+		if music_player.stream != target_stream:
+			var was_playing: bool = music_player.playing and not music_player.stream_paused
+			music_player.stream = target_stream
+			if was_playing or current_state == RunState.PLAYING:
+				music_player.play()
 
 func _schedule_next_unburned_asteroid() -> void:
 	var min_i: float = float(difficulty_config.get("unburned_asteroid_interval_min", 3.0))
@@ -287,6 +308,8 @@ func _setup_vehicle() -> void:
 		veh.global_position = Vector2(0.0, spawn_surface_y - 38.0)
 		vehicle_slot.add_child(veh)
 		vehicle = veh
+		if "allow_reverse" in veh:
+			veh.allow_reverse = false
 		_start_x = veh.global_position.x
 		if is_instance_valid(terrain_generator):
 			terrain_generator.target = veh
@@ -378,6 +401,8 @@ func start_run() -> void:
 				vehicle.linear_velocity = Vector2.ZERO
 				vehicle.angular_velocity = 0.0
 				vehicle.rotation = 0.0
+		if "allow_reverse" in vehicle:
+			vehicle.allow_reverse = false
 		_start_x = vehicle.global_position.x
 		if is_instance_valid(terrain_generator):
 			terrain_generator.target = vehicle

@@ -28,22 +28,22 @@ signal audio_crossfade_completed(bus_name: String, stream_name: String)
 @export var enable_audio_crossfade: bool = true
 @export var music_crossfade_duration: float = 2.0
 @export var ambience_crossfade_duration: float = 2.0
-@export var normal_music_volume_db: float = -10.0
-@export var heaven_music_volume_db: float = -10.0
-@export var hell_music_volume_db: float = -8.0
+@export var normal_music_volume_db: float = -4.0
+@export var heaven_music_volume_db: float = -4.0
+@export var hell_music_volume_db: float = -3.0
 @export var normal_ambience_volume_db: float = -14.0
 @export var heaven_ambience_volume_db: float = -14.0
 @export var hell_ambience_volume_db: float = -12.0
 
 # Preloaded Audio Streams
-const STREAM_NORMAL_MUSIC: AudioStream = preload("res://assets/audio/music/background_music_happy_adventure.mp3")
+const STREAM_NORMAL_MUSIC: AudioStream = preload("res://assets/audio/music/normal.mp3")
 const STREAM_NORMAL_AMBIENCE: AudioStream = preload("res://assets/audio/ambience/countryside_wind_ambience.wav")
 
-const STREAM_HEAVEN_MUSIC: AudioStream = preload("res://assets/environments/heaven/audio/heavenly_loop.ogg")
+const STREAM_HEAVEN_MUSIC: AudioStream = preload("res://assets/environments/heaven/audio/heaven.mp3")
 const STREAM_HEAVEN_AMBIENCE: AudioStream = preload("res://assets/environments/heaven/audio/ambience_wind_soft.mp3")
 const STREAM_HEAVEN_STINGER: AudioStream = preload("res://assets/environments/heaven/audio/wind_chimes_settle.mp3")
 
-const STREAM_HELL_MUSIC: AudioStream = preload("res://assets/environments/hell/audio/hell_insistent_loop.ogg")
+const STREAM_HELL_MUSIC: AudioStream = preload("res://assets/environments/hell/audio/hell.mp3")
 const STREAM_HELL_AMBIENCE: AudioStream = preload("res://assets/environments/hell/audio/hell_fire_crackle.ogg")
 const STREAM_HELL_RUMBLE: AudioStream = preload("res://assets/environments/hell/audio/hell_dark_ambient.ogg")
 const STREAM_LANDING_THUD: AudioStream = preload("res://assets/audio/sfx/vehicle/vehicle_landing_thud.wav")
