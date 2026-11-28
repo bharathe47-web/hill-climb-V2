@@ -131,6 +131,8 @@ var _ground_shadow: Sprite2D = null
 var current_fuel: float = 100.0
 var is_nitro_active: bool = false
 var is_nitro_requested: bool = false
+## When false (e.g. Survival mode) nitro can never fire, from the HUD button or the keyboard.
+var nitro_enabled: bool = true
 var is_grounded: bool = false
 var was_grounded: bool = false
 var is_active: bool = true
@@ -252,7 +254,7 @@ func _update_nitro(delta: float) -> void:
 	if not action_pressed and (Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_SPACE)):
 		action_pressed = true
 	
-	var can_boost: bool = is_active and action_pressed and (is_nitro_active or current_nitro >= nitro_min_activation_energy) and current_nitro > 0.0
+	var can_boost: bool = nitro_enabled and is_active and action_pressed and (is_nitro_active or current_nitro >= nitro_min_activation_energy) and current_nitro > 0.0
 	
 	if can_boost:
 		_nitro_cooldown_timer = nitro_recharge_cooldown

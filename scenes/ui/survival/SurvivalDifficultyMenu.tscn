@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://survival_difficulty_menu_001"]
+[gd_scene load_steps=25 format=3 uid="uid://survival_difficulty_menu_001"]
 
 [ext_resource type="Script" path="res://scripts/ui/survival/SurvivalDifficultyMenu.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/survival_mode_wooden_header.png" id="2_title"]
@@ -12,6 +12,18 @@
 [ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/back_wooden_button.png" id="11_btn_back_n"]
 [ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future.ttf" id="13_font_future"]
 [ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future_Narrow.ttf" id="14_font_narrow"]
+
+[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/survival_menu_wooden_board.png" id="board"]
+[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/survival_menu_glow_easy.png" id="glow_easy"]
+[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/survival_menu_glow_medium.png" id="glow_medium"]
+[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/survival_menu_glow_hard.png" id="glow_hard"]
+[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/survival_menu_glow_back.png" id="glow_back"]
+[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/survival_menu_glow_start.png" id="glow_start"]
+[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/survival_menu_press_back.png" id="press_back"]
+[ext_resource type="Texture2D" path="res://assets/ui/survival_difficulty/survival_menu_press_start.png" id="press_start"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_board"]
+texture = ExtResource("board")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.06, 0.09, 0.14, 0.96)
@@ -85,60 +97,65 @@ grow_vertical = 2
 script = ExtResource("1_script")
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(1180, 580)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -590.0
-offset_top = -290.0
-offset_right = 590.0
-offset_bottom = 290.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+custom_minimum_size = Vector2(1180, 605)
+offset_left = -590.0
+offset_top = -302.5
+offset_right = 590.0
+offset_bottom = 302.5
+theme_override_styles/panel = SubResource("StyleBoxTexture_board")
 
 [node name="Margin" type="MarginContainer" parent="PanelContainer"]
 layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
 
-[node name="VBox" type="VBoxContainer" parent="PanelContainer/Margin"]
+[node name="VBox" type="Control" parent="PanelContainer/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 8
-alignment = 1
+mouse_filter = 2
 
 [node name="TitleTexture" type="TextureRect" parent="PanelContainer/Margin/VBox"]
-custom_minimum_size = Vector2(320, 86)
-layout_mode = 2
-size_flags_horizontal = 4
 texture = ExtResource("2_title")
 expand_mode = 1
 stretch_mode = 5
+visible = false
+layout_mode = 0
 
 [node name="SubTitle" type="Label" parent="PanelContainer/Margin/VBox"]
-layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.88, 1, 1)
 theme_override_fonts/font = ExtResource("14_font_narrow")
 theme_override_font_sizes/font_size = 13
 text = "CHOOSE YOUR SURVIVAL DIFFICULTY LEVEL"
 horizontal_alignment = 1
+visible = false
+layout_mode = 0
 
-[node name="CardsHBox" type="HBoxContainer" parent="PanelContainer/Margin/VBox"]
-custom_minimum_size = Vector2(0, 255)
-layout_mode = 2
-theme_override_constants/separation = 28
-alignment = 1
+[node name="CardsHBox" type="Control" parent="PanelContainer/Margin/VBox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="EasyCard" type="Control" parent="PanelContainer/Margin/VBox/CardsHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(340, 255)
-layout_mode = 2
-pivot_offset = Vector2(170, 0)
+layout_mode = 0
+offset_left = 87.0
+offset_top = 258.0
+offset_right = 405.0
+offset_bottom = 416.0
+pivot_offset = Vector2(159.0, 0)
 
 [node name="CardVBox" type="VBoxContainer" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard"]
 layout_mode = 1
@@ -151,10 +168,10 @@ mouse_filter = 2
 theme_override_constants/separation = 8
 
 [node name="SignboardContainer" type="Control" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard/CardVBox"]
-custom_minimum_size = Vector2(340, 138)
 layout_mode = 2
 mouse_filter = 2
-pivot_offset = Vector2(170, 0)
+custom_minimum_size = Vector2(318, 158)
+pivot_offset = Vector2(159.0, 0)
 
 [node name="EasyHighlight" type="TextureRect" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard/CardVBox/SignboardContainer"]
 unique_name_in_owner = true
@@ -165,9 +182,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("4_hl_easy")
+texture = ExtResource("glow_easy")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 0
 
 [node name="CardImage" type="TextureRect" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard/CardVBox/SignboardContainer"]
 layout_mode = 1
@@ -180,62 +197,7 @@ mouse_filter = 2
 texture = ExtResource("3_sign_easy")
 expand_mode = 1
 stretch_mode = 5
-
-[node name="EasyInfoPanel" type="PanelContainer" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard/CardVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(340, 106)
-layout_mode = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_info_easy_selected")
-
-[node name="Margin" type="MarginContainer" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard/CardVBox/EasyInfoPanel"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 8
-
-[node name="InfoVBox" type="VBoxContainer" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard/CardVBox/EasyInfoPanel/Margin"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 4
-alignment = 1
-
-[node name="HeaderHBox" type="HBoxContainer" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard/CardVBox/EasyInfoPanel/Margin/InfoVBox"]
-layout_mode = 2
-mouse_filter = 2
-
-[node name="BadgeLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard/CardVBox/EasyInfoPanel/Margin/InfoVBox/HeaderHBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.35, 0.9, 0.45, 1)
-theme_override_fonts/font = ExtResource("14_font_narrow")
-theme_override_font_sizes/font_size = 12
-text = "LEVEL 1 · NORMAL HAZARDS"
-
-[node name="MultiplierLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard/CardVBox/EasyInfoPanel/Margin/InfoVBox/HeaderHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
-theme_override_fonts/font = ExtResource("13_font_future")
-theme_override_font_sizes/font_size = 11
-text = "1.0x"
-
-[node name="DescLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard/CardVBox/EasyInfoPanel/Margin/InfoVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.94, 0.98, 1)
-theme_override_fonts/font = ExtResource("14_font_narrow")
-theme_override_font_sizes/font_size = 12
-text = "Survive the falling obstacles."
-autowrap_mode = 2
-
-[node name="ObstaclesLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard/CardVBox/EasyInfoPanel/Margin/InfoVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.75, 0.88, 0.85)
-theme_override_fonts/font = ExtResource("14_font_narrow")
-theme_override_font_sizes/font_size = 11
-text = "• Indian Street Foods  • Warning Markers"
-autowrap_mode = 2
+self_modulate = Color(1, 1, 1, 0)
 
 [node name="EasyButton" type="Button" parent="PanelContainer/Margin/VBox/CardsHBox/EasyCard"]
 unique_name_in_owner = true
@@ -250,9 +212,12 @@ flat = true
 
 [node name="MediumCard" type="Control" parent="PanelContainer/Margin/VBox/CardsHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(340, 255)
-layout_mode = 2
-pivot_offset = Vector2(170, 0)
+layout_mode = 0
+offset_left = 439.0
+offset_top = 258.0
+offset_right = 754.0
+offset_bottom = 416.0
+pivot_offset = Vector2(157.5, 0)
 
 [node name="CardVBox" type="VBoxContainer" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard"]
 layout_mode = 1
@@ -265,10 +230,10 @@ mouse_filter = 2
 theme_override_constants/separation = 8
 
 [node name="SignboardContainer" type="Control" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard/CardVBox"]
-custom_minimum_size = Vector2(340, 138)
 layout_mode = 2
 mouse_filter = 2
-pivot_offset = Vector2(170, 0)
+custom_minimum_size = Vector2(315, 158)
+pivot_offset = Vector2(157.5, 0)
 
 [node name="MediumHighlight" type="TextureRect" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard/CardVBox/SignboardContainer"]
 unique_name_in_owner = true
@@ -280,9 +245,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("6_hl_med")
+texture = ExtResource("glow_medium")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 0
 
 [node name="CardImage" type="TextureRect" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard/CardVBox/SignboardContainer"]
 layout_mode = 1
@@ -295,62 +260,7 @@ mouse_filter = 2
 texture = ExtResource("5_sign_med")
 expand_mode = 1
 stretch_mode = 5
-
-[node name="MediumInfoPanel" type="PanelContainer" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard/CardVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(340, 106)
-layout_mode = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_info_normal")
-
-[node name="Margin" type="MarginContainer" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard/CardVBox/MediumInfoPanel"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 8
-
-[node name="InfoVBox" type="VBoxContainer" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard/CardVBox/MediumInfoPanel/Margin"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 4
-alignment = 1
-
-[node name="HeaderHBox" type="HBoxContainer" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard/CardVBox/MediumInfoPanel/Margin/InfoVBox"]
-layout_mode = 2
-mouse_filter = 2
-
-[node name="BadgeLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard/CardVBox/MediumInfoPanel/Margin/InfoVBox/HeaderHBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_fonts/font = ExtResource("14_font_narrow")
-theme_override_font_sizes/font_size = 12
-text = "LEVEL 2 · ASTEROID IMPACTS"
-
-[node name="MultiplierLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard/CardVBox/MediumInfoPanel/Margin/InfoVBox/HeaderHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
-theme_override_fonts/font = ExtResource("13_font_future")
-theme_override_font_sizes/font_size = 11
-text = "1.5x"
-
-[node name="DescLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard/CardVBox/MediumInfoPanel/Margin/InfoVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.94, 0.98, 1)
-theme_override_fonts/font = ExtResource("14_font_narrow")
-theme_override_font_sizes/font_size = 12
-text = "Watch out for unexpected asteroids."
-autowrap_mode = 2
-
-[node name="ObstaclesLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard/CardVBox/MediumInfoPanel/Margin/InfoVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.75, 0.88, 0.85)
-theme_override_fonts/font = ExtResource("14_font_narrow")
-theme_override_font_sizes/font_size = 11
-text = "• Unburned Asteroids  • Sudden Aerial Impacts"
-autowrap_mode = 2
+self_modulate = Color(1, 1, 1, 0)
 
 [node name="MediumButton" type="Button" parent="PanelContainer/Margin/VBox/CardsHBox/MediumCard"]
 unique_name_in_owner = true
@@ -365,9 +275,12 @@ flat = true
 
 [node name="HardCard" type="Control" parent="PanelContainer/Margin/VBox/CardsHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(340, 255)
-layout_mode = 2
-pivot_offset = Vector2(170, 0)
+layout_mode = 0
+offset_left = 781.0
+offset_top = 258.0
+offset_right = 1106.0
+offset_bottom = 416.0
+pivot_offset = Vector2(162.5, 0)
 
 [node name="CardVBox" type="VBoxContainer" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard"]
 layout_mode = 1
@@ -380,10 +293,10 @@ mouse_filter = 2
 theme_override_constants/separation = 8
 
 [node name="SignboardContainer" type="Control" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard/CardVBox"]
-custom_minimum_size = Vector2(340, 138)
 layout_mode = 2
 mouse_filter = 2
-pivot_offset = Vector2(170, 0)
+custom_minimum_size = Vector2(325, 158)
+pivot_offset = Vector2(162.5, 0)
 
 [node name="HardHighlight" type="TextureRect" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard/CardVBox/SignboardContainer"]
 unique_name_in_owner = true
@@ -395,9 +308,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("8_hl_hard")
+texture = ExtResource("glow_hard")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 0
 
 [node name="CardImage" type="TextureRect" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard/CardVBox/SignboardContainer"]
 layout_mode = 1
@@ -410,62 +323,7 @@ mouse_filter = 2
 texture = ExtResource("7_sign_hard")
 expand_mode = 1
 stretch_mode = 5
-
-[node name="HardInfoPanel" type="PanelContainer" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard/CardVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(340, 106)
-layout_mode = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_info_normal")
-
-[node name="Margin" type="MarginContainer" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard/CardVBox/HardInfoPanel"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 8
-
-[node name="InfoVBox" type="VBoxContainer" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard/CardVBox/HardInfoPanel/Margin"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 4
-alignment = 1
-
-[node name="HeaderHBox" type="HBoxContainer" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard/CardVBox/HardInfoPanel/Margin/InfoVBox"]
-layout_mode = 2
-mouse_filter = 2
-
-[node name="BadgeLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard/CardVBox/HardInfoPanel/Margin/InfoVBox/HeaderHBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
-theme_override_fonts/font = ExtResource("14_font_narrow")
-theme_override_font_sizes/font_size = 12
-text = "LEVEL 3 · APOCALYPTIC HELL"
-
-[node name="MultiplierLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard/CardVBox/HardInfoPanel/Margin/InfoVBox/HeaderHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
-theme_override_fonts/font = ExtResource("13_font_future")
-theme_override_font_sizes/font_size = 11
-text = "2.0x"
-
-[node name="DescLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard/CardVBox/HardInfoPanel/Margin/InfoVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.94, 0.98, 1)
-theme_override_fonts/font = ExtResource("14_font_narrow")
-theme_override_font_sizes/font_size = 12
-text = "Survive asteroids, fire and damaged roads."
-autowrap_mode = 2
-
-[node name="ObstaclesLabel" type="Label" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard/CardVBox/HardInfoPanel/Margin/InfoVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.75, 0.88, 0.85)
-theme_override_fonts/font = ExtResource("14_font_narrow")
-theme_override_font_sizes/font_size = 11
-text = "• Burning Asteroids  • Fire Craters & Potholes"
-autowrap_mode = 2
+self_modulate = Color(1, 1, 1, 0)
 
 [node name="HardButton" type="Button" parent="PanelContainer/Margin/VBox/CardsHBox/HardCard"]
 unique_name_in_owner = true
@@ -479,44 +337,57 @@ mouse_default_cursor_shape = 2
 flat = true
 
 [node name="CardsSpacer" type="Control" parent="PanelContainer/Margin/VBox"]
-custom_minimum_size = Vector2(0, 4)
-layout_mode = 2
 mouse_filter = 2
+visible = false
+layout_mode = 0
 
 [node name="SelectedStatusLabel" type="Label" parent="PanelContainer/Margin/VBox"]
+visible = false
 unique_name_in_owner = true
-layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 1, 0.5, 1)
 theme_override_fonts/font = ExtResource("14_font_narrow")
 theme_override_font_sizes/font_size = 14
 text = "DIFFICULTY: EASY (1.0x)  —  Survive falling obstacles!  •  Indian Street Foods & Warnings"
 horizontal_alignment = 1
+layout_mode = 0
 
-[node name="ButtonsHBox" type="HBoxContainer" parent="PanelContainer/Margin/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 16
+[node name="ButtonsHBox" type="Control" parent="PanelContainer/Margin/VBox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="BackButton" type="TextureButton" parent="PanelContainer/Margin/VBox/ButtonsHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(170, 70)
-layout_mode = 2
-size_flags_vertical = 4
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("11_btn_back_n")
 ignore_texture_size = true
-stretch_mode = 5
+layout_mode = 0
+offset_left = 55.0
+offset_top = 451.0
+offset_right = 274.0
+offset_bottom = 558.0
+texture_hover = ExtResource("glow_back")
+texture_pressed = ExtResource("press_back")
+stretch_mode = 0
 
 [node name="Spacer" type="Control" parent="PanelContainer/Margin/VBox/ButtonsHBox"]
-layout_mode = 2
-size_flags_horizontal = 3
 mouse_filter = 2
+visible = false
+layout_mode = 0
 
 [node name="StartSurvivalButton" type="TextureButton" parent="PanelContainer/Margin/VBox/ButtonsHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(270, 74)
-layout_mode = 2
-size_flags_vertical = 4
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("9_btn_start_n")
 ignore_texture_size = true
-stretch_mode = 5
+layout_mode = 0
+offset_left = 735.0
+offset_top = 450.0
+offset_right = 1132.0
+offset_bottom = 561.0
+texture_hover = ExtResource("glow_start")
+texture_pressed = ExtResource("press_start")
+stretch_mode = 0
+

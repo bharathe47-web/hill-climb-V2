@@ -11,7 +11,7 @@ extends Camera2D
 
 ## Subtle speed-sensitive zoom: camera eases out slightly at high speed for a sense of velocity,
 ## and eases back in near a stop so close-quarters driving still reads clearly.
-@export var base_zoom: float = 1.0
+@export var base_zoom: float = 1.2
 @export var max_zoom_out: float = 0.085
 @export var zoom_speed_reference: float = 420.0
 @export var zoom_smoothing_speed: float = 2.4
