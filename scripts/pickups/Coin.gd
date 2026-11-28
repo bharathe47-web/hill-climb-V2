@@ -34,6 +34,14 @@ func _ready() -> void:
 		popup_label.visible = false
 	if is_instance_valid(sparkle_particles):
 		sparkle_particles.emitting = false
+	# PERF: disable _process when coin is not visible on screen (saves GDScript per-frame work
+	# for all off-screen coins — typically 60-85% of coins at any given moment)
+	set_process(false)
+	var vsn := VisibleOnScreenNotifier2D.new()
+	vsn.rect = Rect2(-16, -16, 32, 32)
+	add_child(vsn)
+	vsn.screen_entered.connect(func(): if not is_collected: set_process(true))
+	vsn.screen_exited.connect(func(): set_process(false))
 
 func _process(delta: float) -> void:
 	if not is_collected and is_instance_valid(visual):

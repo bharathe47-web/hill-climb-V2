@@ -8,11 +8,13 @@ const WaypointData = preload("res://resources/routes/WaypointData.gd")
 
 @export var state_id: String = "tamil_nadu"
 @export var state_name: String = "Tamil Nadu"
+@export var city_display_name: String = ""
 @export var start_city: String = "Kanyakumari"
 @export var destination_city: String = "Chennai"
 @export var total_distance_m: float = 1800.0
 @export var description: String = "Drive from Kanyakumari through the Meenakshi Temple city of Madurai to Marina Beach in Chennai along NH44."
 @export var state_map_path: String = "res://assets/indian_locations/tamil_nadu_state_map.svg"
+@export var route_map_path: String = ""
 @export var state_card_icon_path: String = "res://assets/indian_locations/state_select_tamil_nadu.png"
 @export var sky_texture_path: String = "res://assets/indian_roads/indian_sky_tropical.png"
 @export var parallax_bg_path: String = "res://assets/indian_roads/indian_parallax_rural_plains.png"

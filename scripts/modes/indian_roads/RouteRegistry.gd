@@ -26,6 +26,24 @@ const STATE_NAMES: Dictionary = {
 	"telangana": "Telangana"
 }
 
+const CITY_DISPLAY_NAMES: Dictionary = {
+	"telangana": "Hyderabad"
+}
+
+static func get_state_display_name(state_id: String) -> String:
+	return STATE_NAMES.get(state_id, state_id.capitalize().replace("_", " "))
+
+static func get_city_display_name(state_id: String) -> String:
+	return CITY_DISPLAY_NAMES.get(state_id, "")
+
+static func get_discovery_region_display_name(state_id: String, fallback_state_name: String = "") -> String:
+	var city := get_city_display_name(state_id)
+	if city != "":
+		return city
+	if STATE_NAMES.has(state_id):
+		return STATE_NAMES[state_id]
+	return fallback_state_name if fallback_state_name != "" else get_state_display_name(state_id)
+
 static func get_state_order() -> Array[String]:
 	return STATE_ORDER
 
@@ -108,8 +126,8 @@ static func get_tamil_nadu_route() -> RouteData:
 	r.description = "Complete 13-location grand road journey from Kanyakumari to Chennai on NH44 and NH45."
 	r.state_map_path = "res://assets/indian_locations/tamil_nadu_state_map.svg"
 	r.state_card_icon_path = "res://assets/indian_locations/state_select_tamil_nadu.png"
-	r.sky_texture_path = "res://assets/indian_roads/indian_sky_tropical.png"
-	r.parallax_bg_path = "res://assets/indian_roads/indian_parallax_tamil_nadu_coast.png"
+	r.sky_texture_path = "res://assets/indian_locations/tamil_nadu/v3/parallax/sky_tn_01_sunrise.png"
+	r.parallax_bg_path = "res://assets/indian_locations/tamil_nadu/v3/parallax/dist_01_kanyakumari.png"
 	r.is_unlocked = true
 	r.completion_reward_coins = 500
 
@@ -120,7 +138,7 @@ static func get_tamil_nadu_route() -> RouteData:
 	wp0.subtitle = "Cape Comorin & Coastal Starting Point"
 	wp0.distance_m = 0.0
 	wp0.waypoint_type = WaypointData.WaypointType.START
-	wp0.landmark_texture_path = "res://assets/indian_locations/tamil_nadu_thiruvalluvar_statue.png"
+	wp0.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/v3/landmarks/thiruvalluvar_statue.png"
 	wp0.announcement_text = "ROUTE STARTED: KANYAKUMARI (TN-01)"
 	wp0.coins_reward = 0
 	r.waypoints.append(wp0)
@@ -132,7 +150,7 @@ static func get_tamil_nadu_route() -> RouteData:
 	wp1.subtitle = "Padmanabhapuram Palace & Coconut Groves"
 	wp1.distance_m = 100.0
 	wp1.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp1.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_padmanabhapuram_palace.png"
+	wp1.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/v3/landmarks/padmanabhapuram_palace.png"
 	wp1.announcement_text = "TOWN REACHED: NAGERCOIL (TN-02)"
 	wp1.coins_reward = 50
 	r.waypoints.append(wp1)
@@ -144,7 +162,7 @@ static func get_tamil_nadu_route() -> RouteData:
 	wp2.subtitle = "Nellaiappar Temple & Thamirabarani Plains"
 	wp2.distance_m = 200.0
 	wp2.waypoint_type = WaypointData.WaypointType.CHECKPOINT
-	wp2.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_nellaiappar_temple.png"
+	wp2.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/v3/landmarks/nellaiappar_temple.png"
 	wp2.announcement_text = "CHECKPOINT 1 CLEARED: TIRUNELVELI (TN-03)"
 	wp2.coins_reward = 100
 	wp2.set_meta("is_toll_plaza", false)
@@ -169,7 +187,7 @@ static func get_tamil_nadu_route() -> RouteData:
 	wp4.subtitle = "Srivilliputhur Andal Temple Gateway"
 	wp4.distance_m = 400.0
 	wp4.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp4.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_srivilliputhur_andal_temple.png"
+	wp4.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/v3/landmarks/srivilliputhur_andal_temple.png"
 	wp4.announcement_text = "TOWN REACHED: VIRUDHUNAGAR (TN-05)"
 	wp4.coins_reward = 60
 	r.waypoints.append(wp4)
@@ -181,7 +199,7 @@ static func get_tamil_nadu_route() -> RouteData:
 	wp5.subtitle = "Meenakshi Amman Temple & Pandyan Capital"
 	wp5.distance_m = 500.0
 	wp5.waypoint_type = WaypointData.WaypointType.CHECKPOINT
-	wp5.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/madurai_meenakshi_amman_temple_supplied.png"
+	wp5.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/v3/landmarks/meenakshi_amman_temple.png"
 	wp5.announcement_text = "CHECKPOINT 2 CLEARED: MADURAI (TN-06)"
 	wp5.coins_reward = 120
 	wp5.set_meta("is_toll_plaza", false)
@@ -194,7 +212,7 @@ static func get_tamil_nadu_route() -> RouteData:
 	wp6.subtitle = "Granite Hills & Samanar Malai Transition"
 	wp6.distance_m = 600.0
 	wp6.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp6.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/scenery/tamil_nadu_samanar_hills.png"
+	wp6.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/v3/landmarks/samanar_hills.png"
 	wp6.announcement_text = "TOWN REACHED: MELUR (TN-07)"
 	wp6.coins_reward = 50
 	r.waypoints.append(wp6)
@@ -206,7 +224,7 @@ static func get_tamil_nadu_route() -> RouteData:
 	wp7.subtitle = "Rockfort & Srirangam Temple Town"
 	wp7.distance_m = 700.0
 	wp7.waypoint_type = WaypointData.WaypointType.CHECKPOINT
-	wp7.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_rockfort_trichy.png"
+	wp7.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/v3/landmarks/rockfort_temple.png"
 	wp7.announcement_text = "CHECKPOINT 3 CLEARED: TIRUCHIRAPPALLI (TN-08)"
 	wp7.coins_reward = 120
 	wp7.set_meta("is_toll_plaza", false)
@@ -219,7 +237,7 @@ static func get_tamil_nadu_route() -> RouteData:
 	wp8.subtitle = "Temple Gopuram & Agricultural Highway"
 	wp8.distance_m = 800.0
 	wp8.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp8.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_perambalur_temple_gopuram.png"
+	wp8.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/v3/landmarks/perambalur_gopuram.png"
 	wp8.announcement_text = "TOWN REACHED: PERAMBALUR (TN-09)"
 	wp8.coins_reward = 50
 	r.waypoints.append(wp8)
@@ -231,7 +249,7 @@ static func get_tamil_nadu_route() -> RouteData:
 	wp9.subtitle = "Whitewashed Gopuram & GST Highway Corridor"
 	wp9.distance_m = 900.0
 	wp9.waypoint_type = WaypointData.WaypointType.CHECKPOINT
-	wp9.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_villupuram_gopuram.png"
+	wp9.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/v3/landmarks/villupuram_gopuram.png"
 	wp9.announcement_text = "CHECKPOINT 4 CLEARED: VILLUPURAM (TN-10)"
 	wp9.coins_reward = 100
 	wp9.set_meta("is_toll_plaza", false)
@@ -256,7 +274,7 @@ static func get_tamil_nadu_route() -> RouteData:
 	wp11.subtitle = "Paranur NH45 Toll Plaza & Gateway to Chennai"
 	wp11.distance_m = 1100.0
 	wp11.waypoint_type = WaypointData.WaypointType.CHECKPOINT
-	wp11.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_mahabalipuram_shore_temple.png"
+	wp11.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/v3/landmarks/mahabalipuram_shore_temple.png"
 	wp11.announcement_text = "CHECKPOINT 5 CLEARED: CHENGALPATTU (TN-12)"
 	wp11.coins_reward = 120
 	wp11.set_meta("is_toll_plaza", true)
@@ -269,7 +287,7 @@ static func get_tamil_nadu_route() -> RouteData:
 	wp12.subtitle = "San Thome, Fort St. George & Marina Beach"
 	wp12.distance_m = 1200.0
 	wp12.waypoint_type = WaypointData.WaypointType.DESTINATION
-	wp12.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/landmarks/tamil_nadu_san_thome_basilica.png"
+	wp12.landmark_texture_path = "res://assets/indian_locations/tamil_nadu/v3/landmarks/san_thome_basilica.png"
 	wp12.announcement_text = "DESTINATION REACHED: CHENNAI (TN-13)!"
 	wp12.coins_reward = 500
 	r.waypoints.append(wp12)
@@ -280,68 +298,68 @@ static func get_goa_route() -> RouteData:
 	var r := RouteData.new()
 	r.state_id = "goa"
 	r.state_name = "Goa"
-	r.start_city = "Panaji"
-	r.destination_city = "Margao"
-	r.total_distance_m = 950.0
-	r.description = "Scenic coastal highway along Calangute Beach, Mandovi River, and Portuguese heritage churches."
+	r.start_city = "North Goa"
+	r.destination_city = "South Goa"
+	r.total_distance_m = 1200.0
+	r.description = "Scenic 4-region coastal and Western Ghats adventure from North Goa forts through Panaji, Dudhsagar Falls, to Palolem Beach."
 	r.state_map_path = "res://assets/indian_locations/goa_state_map.svg"
 	r.state_card_icon_path = "res://assets/indian_locations/state_select_goa.png"
-	r.sky_texture_path = "res://assets/indian_roads/indian_sky_tropical.png"
-	r.parallax_bg_path = "res://assets/indian_roads/indian_parallax_western_ghats.png"
+	r.sky_texture_path = "res://assets/indian_locations/goa/v3/parallax/sky_goa_tropical.png"
+	r.parallax_bg_path = "res://assets/indian_locations/goa/v3/parallax/dist_north_goa.png"
 	r.is_unlocked = is_state_unlocked("goa")
 	r.completion_reward_coins = 600
 
-	# Waypoints
+	# Waypoints across Sections A -> B -> C -> D
 	var wp0 := WaypointData.new()
 	wp0.id = "goa_start"
-	wp0.title = "Panaji Waterfront"
-	wp0.subtitle = "Mandovi River Promenade"
+	wp0.title = "North Goa Coast"
+	wp0.subtitle = "Tropical Coastal Highway & Portuguese Forts"
 	wp0.distance_m = 0.0
 	wp0.waypoint_type = WaypointData.WaypointType.START
-	wp0.announcement_text = "ROUTE STARTED: PANAJI"
+	wp0.announcement_text = "SECTION A: NORTH GOA COAST"
 	r.waypoints.append(wp0)
 
 	var wp1 := WaypointData.new()
-	wp1.id = "goa_calangute"
-	wp1.title = "Calangute Beach Road"
-	wp1.subtitle = "Golden Sands & Palm Groves"
-	wp1.distance_m = 250.0
-	wp1.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp1.landmark_texture_path = "res://assets/indian_locations/goa/north_goa/calangute_beach.png"
-	wp1.announcement_text = "LANDMARK: CALANGUTE COAST"
-	wp1.coins_reward = 60
+	wp1.id = "goa_mandovi_cp"
+	wp1.title = "Central Goa: Panaji"
+	wp1.subtitle = "Mandovi Gateway & Old Goa Heritage"
+	wp1.distance_m = 330.0
+	wp1.waypoint_type = WaypointData.WaypointType.CHECKPOINT
+	wp1.announcement_text = "SECTION B: CENTRAL GOA HERITAGE"
+	wp1.coins_reward = 100
+	wp1.set_meta("is_toll_plaza", false)
 	r.waypoints.append(wp1)
 
 	var wp2 := WaypointData.new()
-	wp2.id = "goa_mandovi_cp"
-	wp2.title = "Mandovi Bridge Toll"
-	wp2.subtitle = "NH66 Coastal Highway Gate"
-	wp2.distance_m = 500.0
+	wp2.id = "goa_east_cp"
+	wp2.title = "East Goa: Western Ghats"
+	wp2.subtitle = "Ponda Temples, Mollem Forest & Waterfalls"
+	wp2.distance_m = 620.0
 	wp2.waypoint_type = WaypointData.WaypointType.CHECKPOINT
-	wp2.landmark_texture_path = "res://assets/indian_roads/indian_checkpoint_toll_booth.png"
-	wp2.announcement_text = "CHECKPOINT 1 CLEARED: MANDOVI TOLL"
+	wp2.announcement_text = "SECTION C: EAST GOA FORESTS"
 	wp2.coins_reward = 120
+	wp2.set_meta("is_toll_plaza", false)
 	r.waypoints.append(wp2)
 
 	var wp3 := WaypointData.new()
-	wp3.id = "goa_bom_jesus"
-	wp3.title = "Old Goa Heritage Site"
-	wp3.subtitle = "Basilica & Colonial Architecture"
-	wp3.distance_m = 750.0
-	wp3.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp3.landmark_texture_path = "res://assets/indian_locations/goa/old_goa/basilica_of_bom_jesus.png"
-	wp3.announcement_text = "LANDMARK: OLD GOA HERITAGE"
-	wp3.coins_reward = 80
+	wp3.id = "goa_south_cp"
+	wp3.title = "South Goa Coast"
+	wp3.subtitle = "Cabo de Rama Cliffs & Palolem Coconut Bays"
+	wp3.distance_m = 915.0
+	wp3.waypoint_type = WaypointData.WaypointType.CHECKPOINT
+	wp3.announcement_text = "SECTION D: SOUTH GOA BEACHES"
+	wp3.coins_reward = 120
+	wp3.set_meta("is_toll_plaza", false)
 	r.waypoints.append(wp3)
 
 	var wp4 := WaypointData.new()
 	wp4.id = "goa_destination"
-	wp4.title = "Margao City"
-	wp4.subtitle = "Destination: South Goa Victory Arch"
-	wp4.distance_m = 950.0
+	wp4.title = "South Goa Victory Arch"
+	wp4.subtitle = "Palolem & Margao Coastal Finale"
+	wp4.distance_m = 1200.0
 	wp4.waypoint_type = WaypointData.WaypointType.DESTINATION
-	wp4.announcement_text = "DESTINATION REACHED: MARGAO!"
-	wp4.coins_reward = 350
+	wp4.announcement_text = "GOA ROUTE COMPLETED: SOUTH GOA!"
+	wp4.coins_reward = 400
 	r.waypoints.append(wp4)
 
 	return r
@@ -352,65 +370,65 @@ static func get_kerala_route() -> RouteData:
 	r.state_name = "Kerala"
 	r.start_city = "Kochi"
 	r.destination_city = "Munnar"
-	r.total_distance_m = 1050.0
-	r.description = "From Kochi coastal backwaters through misty Western Ghats tea plantations to Munnar."
+	r.total_distance_m = 1800.0
+	r.description = "Drive from Kochi coastal harbour through Muvattupuzha, Neriamangalam Bridge, Valara & Cheeyappara Waterfalls, Adimali, and Pallivasal tea hills to Munnar."
 	r.state_map_path = "res://assets/indian_locations/kerala_state_map.svg"
 	r.state_card_icon_path = "res://assets/indian_locations/state_select_kerala.png"
-	r.sky_texture_path = "res://assets/indian_roads/indian_sky_tropical.png"
-	r.parallax_bg_path = "res://assets/indian_roads/indian_parallax_western_ghats.png"
+	r.sky_texture_path = "res://assets/indian_locations/kerala/v3/parallax/sky_kerala_coastal.png"
+	r.parallax_bg_path = "res://assets/indian_locations/kerala/v3/parallax/dist_01_kochi.png"
 	r.is_unlocked = is_state_unlocked("kerala")
-	r.completion_reward_coins = 700
+	r.completion_reward_coins = 900
 
 	var wp0 := WaypointData.new()
 	wp0.id = "ker_start"
 	wp0.title = "Kochi Harbour"
-	wp0.subtitle = "Queen of Arabian Sea Starting Point"
+	wp0.subtitle = "Queen of the Arabian Sea Starting Point"
 	wp0.distance_m = 0.0
 	wp0.waypoint_type = WaypointData.WaypointType.START
 	wp0.announcement_text = "ROUTE STARTED: KOCHI"
 	r.waypoints.append(wp0)
 
 	var wp1 := WaypointData.new()
-	wp1.id = "ker_alleppey"
-	wp1.title = "Alleppey Backwaters"
-	wp1.subtitle = "Serene Canals & Houseboat Vista"
-	wp1.distance_m = 280.0
-	wp1.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp1.landmark_texture_path = "res://assets/indian_locations/kerala/alleppey_houseboat_backwaters.png"
-	wp1.announcement_text = "LANDMARK: ALLEPPEY BACKWATERS"
-	wp1.coins_reward = 70
+	wp1.id = "ker_muvattupuzha_cp"
+	wp1.title = "Muvattupuzha Midland Checkpost"
+	wp1.subtitle = "Rubber Estates & Three-River Heartland"
+	wp1.distance_m = 210.0
+	wp1.waypoint_type = WaypointData.WaypointType.CHECKPOINT
+	wp1.landmark_texture_path = "res://assets/indian_roads/indian_checkpoint_gate.png"
+	wp1.announcement_text = "CHECKPOINT 1 CLEARED: MUVATTUPUZHA"
+	wp1.coins_reward = 100
 	r.waypoints.append(wp1)
 
 	var wp2 := WaypointData.new()
-	wp2.id = "ker_ghat_cp"
-	wp2.title = "Western Ghats Checkpoint"
-	wp2.subtitle = "Mountain Pass Toll Plaza"
-	wp2.distance_m = 550.0
+	wp2.id = "ker_neriamangalam_cp"
+	wp2.title = "Neriamangalam Forest Checkpost"
+	wp2.subtitle = "Gateway to High Range & Periyar Arch Bridge"
+	wp2.distance_m = 615.0
 	wp2.waypoint_type = WaypointData.WaypointType.CHECKPOINT
 	wp2.landmark_texture_path = "res://assets/indian_roads/indian_checkpoint_gate.png"
-	wp2.announcement_text = "CHECKPOINT 1 CLEARED: GHATS ENTRY"
+	wp2.announcement_text = "CHECKPOINT 2 CLEARED: NERIAMANGALAM"
 	wp2.coins_reward = 140
 	r.waypoints.append(wp2)
 
 	var wp3 := WaypointData.new()
-	wp3.id = "ker_tea_estate"
-	wp3.title = "Munnar Tea Gardens"
-	wp3.subtitle = "High Elevation Tea Plantations"
-	wp3.distance_m = 820.0
-	wp3.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp3.landmark_texture_path = "res://assets/indian_locations/kerala/munnar_tea_plantations.png"
-	wp3.announcement_text = "LANDMARK: TEA ESTATES"
-	wp3.coins_reward = 80
+	wp3.id = "ker_adimali_cp"
+	wp3.title = "Adimali High Range Gate"
+	wp3.subtitle = "Cardamom & Pepper Hills Ascent"
+	wp3.distance_m = 1215.0
+	wp3.waypoint_type = WaypointData.WaypointType.CHECKPOINT
+	wp3.landmark_texture_path = "res://assets/indian_roads/indian_checkpoint_gate.png"
+	wp3.announcement_text = "CHECKPOINT 3 CLEARED: ADIMALI SPICE HILLS"
+	wp3.coins_reward = 160
 	r.waypoints.append(wp3)
 
 	var wp4 := WaypointData.new()
 	wp4.id = "ker_destination"
 	wp4.title = "Munnar Hill Station"
 	wp4.subtitle = "Destination: Anamudi Valley Finish Arch"
-	wp4.distance_m = 1050.0
+	wp4.distance_m = 1800.0
 	wp4.waypoint_type = WaypointData.WaypointType.DESTINATION
 	wp4.announcement_text = "DESTINATION REACHED: MUNNAR!"
-	wp4.coins_reward = 400
+	wp4.coins_reward = 500
 	r.waypoints.append(wp4)
 
 	return r
@@ -422,59 +440,59 @@ static func get_rajasthan_route() -> RouteData:
 	r.start_city = "Jaipur"
 	r.destination_city = "Jaisalmer"
 	r.total_distance_m = 1200.0
-	r.description = "Golden highway crossing from the Pink City of Jaipur through Jodhpur to the Thar desert fort of Jaisalmer."
+	r.description = "Golden desert highway crossing from Jaipur's Pink City and Aravalli hills past Thar sand dunes and Jodhpur's Blue City to Jaisalmer."
 	r.state_map_path = "res://assets/indian_locations/rajasthan_state_map.svg"
 	r.state_card_icon_path = "res://assets/indian_locations/state_select_rajasthan.png"
-	r.sky_texture_path = "res://assets/indian_roads/indian_sky_tropical.png"
-	r.parallax_bg_path = "res://assets/indian_roads/indian_parallax_thar_desert.png"
+	r.sky_texture_path = "res://assets/indian_locations/rajasthan/v3/parallax/sky_rj_01_sunrise.png"
+	r.parallax_bg_path = "res://assets/indian_locations/rajasthan/v3/parallax/dist_01_jaipur.png"
 	r.is_unlocked = is_state_unlocked("rajasthan")
 	r.completion_reward_coins = 800
 
 	var wp0 := WaypointData.new()
 	wp0.id = "raj_start"
 	wp0.title = "Jaipur Pink City"
-	wp0.subtitle = "Hawa Mahal Boulevard"
+	wp0.subtitle = "Hawa Mahal Heritage Boulevard"
 	wp0.distance_m = 0.0
 	wp0.waypoint_type = WaypointData.WaypointType.START
 	wp0.announcement_text = "ROUTE STARTED: JAIPUR"
 	r.waypoints.append(wp0)
 
 	var wp1 := WaypointData.new()
-	wp1.id = "raj_amber"
-	wp1.title = "Amber Fort Gateway"
-	wp1.subtitle = "Historic Hilltop Citadel"
-	wp1.distance_m = 300.0
-	wp1.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp1.landmark_texture_path = "res://assets/indian_locations/rajasthan/amber_fort_gateway.png"
-	wp1.announcement_text = "LANDMARK: AMBER FORT"
-	wp1.coins_reward = 80
+	wp1.id = "raj_aravalli_cp"
+	wp1.title = "Aravalli Foothill Pass"
+	wp1.subtitle = "Jaipur — Ajmer Mountain Corridor"
+	wp1.distance_m = 295.0
+	wp1.waypoint_type = WaypointData.WaypointType.CHECKPOINT
+	wp1.landmark_texture_path = "res://assets/indian_roads/indian_checkpoint_gate.png"
+	wp1.announcement_text = "CHECKPOINT 1 CLEARED: ARAVALLI PASS"
+	wp1.coins_reward = 100
 	r.waypoints.append(wp1)
 
 	var wp2 := WaypointData.new()
 	wp2.id = "raj_desert_cp"
-	wp2.title = "Thar Expressway Toll"
-	wp2.subtitle = "Desert Highway Checkpoint"
-	wp2.distance_m = 600.0
+	wp2.title = "Thar Expressway Gate"
+	wp2.subtitle = "Golden Sand Dunes Desert Highway"
+	wp2.distance_m = 635.0
 	wp2.waypoint_type = WaypointData.WaypointType.CHECKPOINT
 	wp2.landmark_texture_path = "res://assets/indian_roads/indian_checkpoint_gate.png"
-	wp2.announcement_text = "CHECKPOINT 1 CLEARED: THAR EXPRESSWAY"
-	wp2.coins_reward = 160
+	wp2.announcement_text = "CHECKPOINT 2 CLEARED: THAR EXPRESSWAY"
+	wp2.coins_reward = 140
 	r.waypoints.append(wp2)
 
 	var wp3 := WaypointData.new()
-	wp3.id = "raj_jodhpur"
-	wp3.title = "Mehrangarh Fort Vista"
-	wp3.subtitle = "Sun City Jodhpur Horizon"
-	wp3.distance_m = 900.0
-	wp3.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp3.landmark_texture_path = "res://assets/indian_locations/rajasthan/mehrangarh_fort_vista.png"
-	wp3.announcement_text = "LANDMARK: MEHRANGARH"
-	wp3.coins_reward = 80
+	wp3.id = "raj_jodhpur_cp"
+	wp3.title = "Jodhpur Blue City Gate"
+	wp3.subtitle = "Marwar Citadel Highway Checkpost"
+	wp3.distance_m = 915.0
+	wp3.waypoint_type = WaypointData.WaypointType.CHECKPOINT
+	wp3.landmark_texture_path = "res://assets/indian_roads/indian_checkpoint_gate.png"
+	wp3.announcement_text = "CHECKPOINT 3 CLEARED: JODHPUR MARWAR"
+	wp3.coins_reward = 160
 	r.waypoints.append(wp3)
 
 	var wp4 := WaypointData.new()
 	wp4.id = "raj_destination"
-	wp4.title = "Jaisalmer Golden Fort"
+	wp4.title = "Jaisalmer Golden City"
 	wp4.subtitle = "Destination: Sonar Qila Finish Arch"
 	wp4.distance_m = 1200.0
 	wp4.waypoint_type = WaypointData.WaypointType.DESTINATION
@@ -557,20 +575,22 @@ static func get_telangana_route() -> RouteData:
 	var r := RouteData.new()
 	r.state_id = "telangana"
 	r.state_name = "Telangana"
+	r.city_display_name = "Hyderabad"
 	r.start_city = "Hyderabad"
-	r.destination_city = "Warangal"
+	r.destination_city = "Golconda Fort, Hyderabad"
 	r.total_distance_m = 1000.0
-	r.description = "Drive from Charminar along the modern Outer Ring Road to the historic Kakatiya Gate in Warangal."
+	r.description = "Discover the historic Charminar, Hussain Sagar, iconic palaces and the legendary Golconda Fort."
 	r.state_map_path = "res://assets/indian_locations/telangana_state_map.svg"
+	r.route_map_path = "res://assets/indian_locations/telangana/v3/maps/hyderabad_city_map.png"
 	r.state_card_icon_path = "res://assets/indian_locations/state_select_telangana.png"
-	r.sky_texture_path = "res://assets/indian_roads/indian_sky_tropical.png"
-	r.parallax_bg_path = "res://assets/indian_roads/indian_parallax_deccan_plateau.png"
+	r.sky_texture_path = "res://assets/indian_locations/telangana/v3/parallax/sky_hyd_01_morning.png"
+	r.parallax_bg_path = "res://assets/indian_locations/telangana/v3/parallax/dist_01_old_hyderabad.png"
 	r.is_unlocked = is_state_unlocked("telangana")
 	r.completion_reward_coins = 1000
 
 	var wp0 := WaypointData.new()
 	wp0.id = "tel_start"
-	wp0.title = "Hyderabad Charminar"
+	wp0.title = "Charminar, Old Hyderabad"
 	wp0.subtitle = "Historic Monument Starting Point"
 	wp0.distance_m = 0.0
 	wp0.waypoint_type = WaypointData.WaypointType.START
@@ -578,45 +598,46 @@ static func get_telangana_route() -> RouteData:
 	r.waypoints.append(wp0)
 
 	var wp1 := WaypointData.new()
-	wp1.id = "tel_golconda"
-	wp1.title = "Golconda Fort Bastion"
-	wp1.subtitle = "Ancient Diamond Citadel"
-	wp1.distance_m = 260.0
+	wp1.id = "tel_salar_jung"
+	wp1.title = "Salar Jung Museum"
+	wp1.subtitle = "City Heritage District"
+	wp1.distance_m = 262.0
 	wp1.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp1.landmark_texture_path = "res://assets/indian_locations/telangana/golconda_fort_bastion.png"
-	wp1.announcement_text = "LANDMARK: GOLCONDA FORT"
-	wp1.coins_reward = 80
+	wp1.landmark_texture_path = "res://assets/indian_locations/telangana/v3/landmarks/salar_jung_museum.png"
+	wp1.announcement_text = "LANDMARK: SALAR JUNG MUSEUM"
+	wp1.coins_reward = 100
 	r.waypoints.append(wp1)
 
 	var wp2 := WaypointData.new()
-	wp2.id = "tel_orr_cp"
-	wp2.title = "Outer Ring Road Toll"
-	wp2.subtitle = "Express Highway Toll Plaza"
-	wp2.distance_m = 520.0
+	wp2.id = "tel_hussain_cp"
+	wp2.title = "Tank Bund / Necklace Road Toll"
+	wp2.subtitle = "Hussain Sagar Lakefront Checkpoint"
+	wp2.distance_m = 498.0
 	wp2.waypoint_type = WaypointData.WaypointType.CHECKPOINT
 	wp2.landmark_texture_path = "res://assets/indian_roads/indian_checkpoint_gate.png"
-	wp2.announcement_text = "CHECKPOINT 1 CLEARED: ORR EXPRESSWAY"
+	wp2.announcement_text = "CHECKPOINT CLEARED: TANK BUND LAKEFRONT"
 	wp2.coins_reward = 180
 	r.waypoints.append(wp2)
 
 	var wp3 := WaypointData.new()
-	wp3.id = "tel_kakatiya"
-	wp3.title = "Kakatiya Dynasty Torana"
-	wp3.subtitle = "Warangal Heritage Gateway"
-	wp3.distance_m = 780.0
+	wp3.id = "tel_qutb_shahi"
+	wp3.title = "Qutb Shahi Tombs"
+	wp3.subtitle = "Golconda Heritage Avenue"
+	wp3.distance_m = 735.0
 	wp3.waypoint_type = WaypointData.WaypointType.LANDMARK
-	wp3.landmark_texture_path = "res://assets/indian_locations/telangana/kakatiya_dynasty_torana.png"
-	wp3.announcement_text = "LANDMARK: KAKATIYA TORANA"
-	wp3.coins_reward = 90
+	wp3.landmark_texture_path = "res://assets/indian_locations/telangana/v3/landmarks/qutb_shahi_tombs.png"
+	wp3.announcement_text = "LANDMARK: QUTB SHAHI TOMBS"
+	wp3.coins_reward = 120
 	r.waypoints.append(wp3)
 
 	var wp4 := WaypointData.new()
 	wp4.id = "tel_destination"
-	wp4.title = "Thousand Pillar Temple"
-	wp4.subtitle = "Destination: Warangal Finish Arch"
+	wp4.title = "Golconda Fort, Hyderabad"
+	wp4.subtitle = "Destination: Grand Citadel Finish"
 	wp4.distance_m = 1000.0
 	wp4.waypoint_type = WaypointData.WaypointType.DESTINATION
-	wp4.announcement_text = "DESTINATION REACHED: WARANGAL!"
+	wp4.landmark_texture_path = "res://assets/indian_locations/telangana/v3/landmarks/golconda_fort.png"
+	wp4.announcement_text = "WELCOME TO GOLCONDA FORT, HYDERABAD!"
 	wp4.coins_reward = 500
 	r.waypoints.append(wp4)
 

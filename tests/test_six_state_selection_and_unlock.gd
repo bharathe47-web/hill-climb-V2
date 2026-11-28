@@ -82,7 +82,7 @@ func _run_unlock_and_selection_tests() -> void:
 	print("  Waypoints Count: %d" % tel_route.waypoints.size())
 	print("  Checkpoints: %d" % tel_route.get_checkpoint_count())
 	assert(tel_route.start_city == "Hyderabad", "Telangana start city should be Hyderabad")
-	assert(tel_route.destination_city == "Warangal", "Telangana destination should be Warangal")
+	assert(tel_route.destination_city == "Golconda Fort, Hyderabad", "Telangana destination should be Golconda Fort, Hyderabad")
 	assert(tel_route.is_unlocked, "Telangana route must be unlocked")
 	print("  [PASS] Telangana route verified.")
 

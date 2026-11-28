@@ -6,6 +6,14 @@ extends IndianRoadsController
 ## and organic, zone-based roadside scenery without repetitive looped textures.
 
 const IndianRoadTerrainV2Scene = preload("res://scenes/modes/indian_roads/visual_upgrade_v2/IndianRoadTerrainV2.tscn")
+const KeralaLocationManager = preload("res://scripts/modes/indian_roads/KeralaLocationManager.gd")
+const KeralaTerrainHelper = preload("res://scripts/modes/indian_roads/KeralaTerrainHelper.gd")
+const RajasthanLocationManager = preload("res://scripts/modes/indian_roads/RajasthanLocationManager.gd")
+const RajasthanTerrainHelper = preload("res://scripts/modes/indian_roads/RajasthanTerrainHelper.gd")
+const TelanganaLocationManager = preload("res://scripts/modes/indian_roads/TelanganaLocationManager.gd")
+const TelanganaTerrainHelper = preload("res://scripts/modes/indian_roads/TelanganaTerrainHelper.gd")
+const TamilNaduLocationManager = preload("res://scripts/modes/indian_roads/TamilNaduLocationManager.gd")
+const TamilNaduTerrainHelper = preload("res://scripts/modes/indian_roads/TamilNaduTerrainHelper.gd")
 
 func _setup_terrain() -> void:
 	if not is_instance_valid(terrain_slot):
@@ -28,6 +36,21 @@ func _setup_terrain() -> void:
 		terr_inst.fuel_collected.connect(_on_fuel_collected)
 
 var _goa_env_zone: String = ""
+var _kerala_env_zone: String = ""
+var _kerala_announced_zones: Dictionary = {}
+var _kerala_loc_mgr: KeralaLocationManager = KeralaLocationManager.new()
+var _rj_env_zone: String = ""
+var _rj_announced_zones: Dictionary = {}
+var _rj_loc_mgr: RajasthanLocationManager = RajasthanLocationManager.new()
+var _tg_env_zone: String = ""
+var _tg_announced_zones: Dictionary = {}
+var _tg_loc_mgr: TelanganaLocationManager = TelanganaLocationManager.new()
+var _tn_announced_zones: Dictionary = {}
+var _tn_loc_mgr: TamilNaduLocationManager = TamilNaduLocationManager.new()
+
+# PERF: Goa parallax texture cache — all 9 Goa parallax PNGs loaded once at route start
+# so _update_goa_environment_zones() never calls synchronous load() during gameplay.
+var _goa_tex_cache: Dictionary = {}
 
 func _setup_parallax_textures() -> void:
 	if active_route == null or not is_instance_valid(parallax_bg):
@@ -39,67 +62,114 @@ func _setup_parallax_textures() -> void:
 	var mid_path := ""
 	var cloud_path := ""
 	_goa_env_zone = ""
+	_kerala_env_zone = ""
+	_kerala_announced_zones.clear()
+	_rj_env_zone = ""
+	_rj_announced_zones.clear()
+	_tg_env_zone = ""
+	_tg_announced_zones.clear()
+	_tn_env_zone = ""
+	_tn_announced_zones.clear()
 
 	match state_id:
 		"tamil_nadu":
-			sky_path = "res://assets/indian_locations/tamil_nadu/backgrounds/sky/kanyakumari_sky_coastal.png"
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_01_cape_comorin.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_01_coastal_groves.png"
-			cloud_path = "res://assets/indian_locations/common/clouds/cloud_cumulus_soft_01.png"
-			_tn_env_zone = "kanyakumari"
+			_tn_loc_mgr.reset(0.0)
+			var tn_cfg := _tn_loc_mgr.get_zone_config(0)
+			sky_path = tn_cfg["sky"]
+			bg_path = tn_cfg["dist"]
+			mid_path = tn_cfg["mid"]
+			cloud_path = "res://assets/indian_locations/tamil_nadu/v3/parallax/clouds_tn_natural.png"
+			_tn_env_zone = tn_cfg["id"]
+			_tn_announced_zones[_tn_env_zone] = true
 		"goa":
-			sky_path = "res://assets/indian_locations/goa/backgrounds/sky/goa_tropical_sky.png"
-			bg_path = "res://assets/indian_locations/goa/backgrounds/distant_landscape/goa_western_ghats_lush.png"
-			mid_path = "res://assets/indian_locations/goa/backgrounds/village/goa_portuguese_village_row.png"
-			cloud_path = "res://assets/indian_locations/common/clouds/cloud_cumulus_soft_02.png"
-			_goa_env_zone = "heritage"
+			sky_path = "res://assets/indian_locations/goa/v3/parallax/sky_goa_tropical.png"
+			bg_path = "res://assets/indian_locations/goa/v3/parallax/dist_north_goa.png"
+			mid_path = "res://assets/indian_locations/goa/v3/parallax/mid_north_goa.png"
+			cloud_path = "res://assets/indian_locations/goa/v3/parallax/clouds_goa_natural.png"
+			_goa_env_zone = "north_goa"
+			# PERF: preload all Goa parallax textures NOW (at route start, not during gameplay)
+			_goa_tex_cache.clear()
+			var _goa_all_paths: Array[String] = [
+				"res://assets/indian_locations/goa/v3/parallax/sky_goa_tropical.png",
+				"res://assets/indian_locations/goa/v3/parallax/dist_north_goa.png",
+				"res://assets/indian_locations/goa/v3/parallax/dist_central_goa.png",
+				"res://assets/indian_locations/goa/v3/parallax/dist_east_goa.png",
+				"res://assets/indian_locations/goa/v3/parallax/dist_south_goa.png",
+				"res://assets/indian_locations/goa/v3/parallax/mid_north_goa.png",
+				"res://assets/indian_locations/goa/v3/parallax/mid_central_goa.png",
+				"res://assets/indian_locations/goa/v3/parallax/mid_east_goa.png",
+				"res://assets/indian_locations/goa/v3/parallax/mid_south_goa.png",
+				"res://assets/indian_locations/goa/v3/parallax/clouds_goa_natural.png",
+			]
+			for _p in _goa_all_paths:
+				if ResourceLoader.exists(_p):
+					_goa_tex_cache[_p] = load(_p) as Texture2D
 		"kerala":
-			sky_path = "res://assets/indian_locations/kerala/backgrounds/sky/kerala_sky_monsoon.png"
-			bg_path = "res://assets/indian_locations/kerala/backgrounds/distant_landscape/kerala_western_ghats_peaks.png"
-			mid_path = "res://assets/indian_locations/kerala/backgrounds/distant_landscape/kerala_backwater_canal_midground.png"
-			cloud_path = "res://assets/indian_locations/common/clouds/cloud_cumulus_soft_01.png"
+			_kerala_loc_mgr.reset(0.0)
+			var k_cfg := _kerala_loc_mgr.get_zone_config(0)
+			sky_path = k_cfg["sky"]
+			bg_path = k_cfg["dist"]
+			mid_path = k_cfg["mid"]
+			cloud_path = "res://assets/indian_locations/kerala/v3/parallax/clouds_kerala.png"
+			_kerala_env_zone = k_cfg["id"]
+			_kerala_announced_zones[_kerala_env_zone] = true
 		"rajasthan":
-			sky_path = "res://assets/indian_locations/rajasthan/backgrounds/sky/rajasthan_sky_desert_dawn.png"
-			bg_path = "res://assets/indian_locations/rajasthan/backgrounds/distant_landscape/rajasthan_thar_sand_dunes.png"
-			mid_path = "res://assets/indian_locations/rajasthan/backgrounds/distant_landscape/rajasthan_aravalli_hills_midground.png"
-			cloud_path = "res://assets/indian_locations/common/clouds/cloud_cirrus_wispy.png"
+			_rj_loc_mgr.reset(0.0)
+			var r_cfg := _rj_loc_mgr.get_zone_config(0)
+			sky_path = r_cfg["sky"]
+			bg_path = r_cfg["dist"]
+			mid_path = r_cfg["mid"]
+			cloud_path = "res://assets/indian_locations/rajasthan/v3/parallax/clouds_rj_natural.png"
+			_rj_env_zone = r_cfg["id"]
+			_rj_announced_zones[_rj_env_zone] = true
 		"gujarat":
 			sky_path = "res://assets/indian_locations/gujarat/backgrounds/sky/gujarat_sky_pale_azure.png"
 			bg_path = "res://assets/indian_locations/gujarat/backgrounds/distant_landscape/gujarat_great_rann_white_salt.png"
 			mid_path = "res://assets/indian_locations/gujarat/backgrounds/distant_landscape/gujarat_saurashtra_savanna_midground.png"
 			cloud_path = "res://assets/indian_locations/common/clouds/cloud_stratus_horizon.png"
 		"telangana":
-			sky_path = "res://assets/indian_locations/telangana/backgrounds/sky/telangana_sky_deccan_twilight.png"
-			bg_path = "res://assets/indian_locations/telangana/backgrounds/distant_landscape/telangana_granite_boulder_ridges.png"
-			mid_path = "res://assets/indian_locations/telangana/backgrounds/distant_landscape/telangana_plateau_countryside_midground.png"
-			cloud_path = "res://assets/indian_locations/common/clouds/cloud_cumulus_soft_02.png"
+			_tg_loc_mgr.reset(0.0)
+			var t_cfg := _tg_loc_mgr.get_zone_config(0)
+			sky_path = t_cfg["sky"]
+			bg_path = t_cfg["dist"]
+			mid_path = t_cfg["mid"]
+			cloud_path = "res://assets/indian_locations/telangana/v3/parallax/clouds_hyd_natural.png"
+			_tg_env_zone = t_cfg["id"]
+			_tg_announced_zones[_tg_env_zone] = true
 		_:
 			sky_path = active_route.sky_texture_path
 			bg_path = active_route.parallax_bg_path
 
-	# 1. Sky Plane (motion_scale 0.02, centered at w * 0.5, h * 0.5)
+	var is_scenic_v3 := (state_id in ["goa", "kerala", "rajasthan", "telangana", "tamil_nadu"])
+
+	# 1. Sky Plane (motion_scale 0.01 for Goa/Kerala, 0.02 for others, centered at w * 0.5, h * 0.5)
 	var sky_layer: ParallaxLayer = parallax_bg.get_node_or_null("SkyLayer")
 	if is_instance_valid(sky_layer):
-		sky_layer.motion_scale = Vector2(0.02, 0)
+		sky_layer.motion_scale = Vector2(0.01, 0) if is_scenic_v3 else Vector2(0.02, 0)
 	if is_instance_valid(parallax_sky_sprite) and ResourceLoader.exists(sky_path):
 		var sky_tex: Texture2D = load(sky_path)
 		parallax_sky_sprite.texture = sky_tex
 		var w: float = float(sky_tex.get_width())
 		var h: float = float(sky_tex.get_height())
+		parallax_sky_sprite.scale = Vector2.ONE
 		parallax_sky_sprite.position = Vector2(w * 0.5, h * 0.5)
 		if is_instance_valid(sky_layer):
 			sky_layer.motion_mirroring = Vector2(w, 0)
 
-	# 2. Distant Horizon Plane (motion_scale 0.12, centered at w * 0.5, h * 0.5)
+	# 2. Distant Horizon Plane
 	var plains_layer: ParallaxLayer = parallax_bg.get_node_or_null("PlainsLayer")
 	if is_instance_valid(plains_layer):
-		plains_layer.motion_scale = Vector2(0.10, 0) if state_id == "goa" else Vector2(0.12, 0)
+		plains_layer.motion_scale = Vector2(0.11, 0) if is_scenic_v3 else Vector2(0.12, 0)
 	if is_instance_valid(parallax_plains_sprite) and ResourceLoader.exists(bg_path):
 		var bg_tex: Texture2D = load(bg_path)
 		parallax_plains_sprite.texture = bg_tex
 		var w: float = float(bg_tex.get_width())
 		var h: float = float(bg_tex.get_height())
-		if state_id in ["goa", "tamil_nadu"]:
+		if is_scenic_v3:
+			# Natural 1:1 ratio, baseline extends to y=600 (540px after 0.9 zoom) so zero gap ever appears on road dips
+			parallax_plains_sprite.scale = Vector2.ONE
+			parallax_plains_sprite.position = Vector2(w * 0.5, 595.0 - h * 0.5)
+		elif state_id == "tamil_nadu":
 			# Keep sky open: place distant hills/sea lower, not as full-screen wall.
 			parallax_plains_sprite.scale = Vector2(1.0, 0.78)
 			parallax_plains_sprite.position = Vector2(w * 0.5, 520.0 - (h * 0.78) * 0.5)
@@ -120,223 +190,149 @@ func _setup_parallax_textures() -> void:
 	if is_instance_valid(old_village):
 		old_village.visible = false
 
+func _setup_ui() -> void:
+	super._setup_ui()
+	if is_instance_valid(hud) and active_route != null:
+		if active_route.state_id == "goa" and hud.has_method("set_section_badge"):
+			hud.set_section_badge("North Goa • Coastal Forts")
+		elif active_route.state_id == "kerala" and hud.has_method("set_section_badge"):
+			hud.set_section_badge("1. Kochi • Arabian Sea Coast")
+		elif active_route.state_id == "rajasthan" and hud.has_method("set_section_badge"):
+			hud.set_section_badge("1. Jaipur • Pink City Heritage")
+		elif active_route.state_id == "telangana" and hud.has_method("set_section_badge"):
+			hud.set_section_badge("OLD HYDERABAD")
+			if hud.has_method("show_announcement_toast"):
+				hud.show_announcement_toast("ROUTE STARTED: HYDERABAD", "Old Hyderabad • Charminar to Golconda Fort")
+		elif active_route.state_id == "tamil_nadu" and hud.has_method("set_section_badge"):
+			hud.set_section_badge("1. Kanyakumari Coast")
+		elif hud.has_method("set_section_badge"):
+			hud.set_section_badge("")
+
 func _process(delta: float) -> void:
 	super._process(delta)
+	if current_state == ModeState.PLAYING and active_route != null and active_route.state_id in ["goa", "kerala", "rajasthan"]:
+		if is_instance_valid(active_vehicle) and active_vehicle.is_active:
+			var accel := Input.get_action_strength("accelerate")
+			if accel > 0.1:
+				var rate := 1.45 if active_route.state_id == "goa" else (1.25 if active_route.state_id == "kerala" else 1.20)
+				active_vehicle.consume_fuel(rate * accel * delta)
+	if active_route != null and active_route.state_id == "kerala":
+		_kerala_loc_mgr.update_streaming(session_distance_m)
+		if is_instance_valid(active_terrain) and is_instance_valid(active_vehicle):
+			KeralaTerrainHelper.update_visible_chunks(active_terrain as IndianRoadTerrainV2, active_vehicle.global_position.x)
+	elif active_route != null and active_route.state_id == "rajasthan":
+		_rj_loc_mgr.update_streaming(session_distance_m)
+		if is_instance_valid(active_terrain) and is_instance_valid(active_vehicle):
+			RajasthanTerrainHelper.update_visible_chunks(active_terrain as IndianRoadTerrainV2, active_vehicle.global_position.x)
+	elif active_route != null and active_route.state_id == "telangana":
+		_tg_loc_mgr.update_streaming(session_distance_m)
+		if is_instance_valid(active_terrain) and is_instance_valid(active_vehicle):
+			TelanganaTerrainHelper.update_visible_chunks(active_terrain as IndianRoadTerrainV2, active_vehicle.global_position.x)
+	elif active_route != null and active_route.state_id == "tamil_nadu":
+		_tn_loc_mgr.update_streaming(session_distance_m)
+		if is_instance_valid(active_terrain) and is_instance_valid(active_vehicle):
+			TamilNaduTerrainHelper.update_visible_chunks(active_terrain as IndianRoadTerrainV2, active_vehicle.global_position.x)
 	_update_goa_environment_zones()
+	_update_kerala_environment_zones()
+	_update_rajasthan_environment_zones()
+	_update_telangana_environment_zones()
 	_update_tamil_nadu_environment_zones()
 
 var _tn_env_zone: String = ""
 
 func _update_tamil_nadu_environment_zones() -> void:
-	if active_route == null or active_route.state_id != "tamil_nadu" or not is_instance_valid(parallax_bg):
+	if current_state != ModeState.PLAYING or active_route == null or active_route.state_id != "tamil_nadu" or not is_instance_valid(parallax_bg):
 		return
 
-	var d: float = session_distance_m
-	var zone := "kanyakumari"
-	if d < 60.0:
-		zone = "kanyakumari"
-	elif d < 150.0:
-		zone = "nagercoil"
-	elif d < 250.0:
-		zone = "tirunelveli"
-	elif d < 350.0:
-		zone = "kovilpatti"
-	elif d < 450.0:
-		zone = "virudhunagar"
-	elif d < 550.0:
-		zone = "madurai"
-	elif d < 650.0:
-		zone = "melur"
-	elif d < 750.0:
-		zone = "tiruchirappalli"
-	elif d < 850.0:
-		zone = "perambalur"
-	elif d < 950.0:
-		zone = "villupuram"
-	elif d < 1050.0:
-		zone = "tindivanam"
-	elif d < 1150.0:
-		zone = "chengalpattu"
-	else:
-		zone = "chennai"
-
+	var zone_idx := _tn_loc_mgr.get_zone_index(session_distance_m)
+	var cfg := _tn_loc_mgr.get_zone_config(zone_idx)
+	var zone: String = cfg["id"]
 	if zone == _tn_env_zone:
 		return
 	_tn_env_zone = zone
 
-	var bg_path := "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_01_cape_comorin.png"
-	var mid_path := "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_01_coastal_groves.png"
-	var target_shoulder := Color(0.85, 0.72, 0.50, 1.0) # Coastal golden sand
+	if is_instance_valid(hud):
+		if hud.has_method("set_section_badge"):
+			hud.set_section_badge(cfg["badge"])
+		if not _tn_announced_zones.has(zone):
+			_tn_announced_zones[zone] = true
+			if hud.has_method("show_announcement_toast"):
+				hud.show_announcement_toast(cfg["title"], cfg["sub"])
 
-	match zone:
-		"kanyakumari":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_01_cape_comorin.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_01_coastal_groves.png"
-			target_shoulder = Color(0.85, 0.72, 0.50, 1.0)
-		"nagercoil":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_02_nagercoil.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_02_countryside_green.png"
-			target_shoulder = Color(0.48, 0.58, 0.28, 1.0)
-		"tirunelveli":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_03_tirunelveli.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_02_countryside_green.png"
-			target_shoulder = Color(0.72, 0.32, 0.18, 1.0)
-		"kovilpatti":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_04_kovilpatti.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_03_palmyra_scrub.png"
-			target_shoulder = Color(0.75, 0.45, 0.22, 1.0)
-		"virudhunagar":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_05_virudhunagar.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_03_palmyra_scrub.png"
-			target_shoulder = Color(0.68, 0.48, 0.28, 1.0)
-		"madurai":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_06_madurai.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_04_granite_boulders.png"
-			target_shoulder = Color(0.62, 0.44, 0.34, 1.0)
-		"melur":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_07_melur.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_04_granite_boulders.png"
-			target_shoulder = Color(0.55, 0.52, 0.48, 1.0)
-		"tiruchirappalli":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_08_tiruchirappalli.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_04_granite_boulders.png"
-			target_shoulder = Color(0.46, 0.42, 0.35, 1.0)
-		"perambalur":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_09_perambalur.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_05_paddy_terraces.png"
-			target_shoulder = Color(0.58, 0.54, 0.36, 1.0)
-		"villupuram":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_10_villupuram.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_05_paddy_terraces.png"
-			target_shoulder = Color(0.52, 0.46, 0.38, 1.0)
-		"tindivanam":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_11_tindivanam.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_05_paddy_terraces.png"
-			target_shoulder = Color(0.60, 0.48, 0.32, 1.0)
-		"chengalpattu":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_12_chengalpattu.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_05_paddy_terraces.png"
-			target_shoulder = Color(0.42, 0.48, 0.42, 1.0)
-		"chennai":
-			bg_path = "res://assets/indian_locations/tamil_nadu/backgrounds/distant_landscape/tamil_nadu_bg_13_chennai.png"
-			mid_path = "res://assets/indian_locations/tamil_nadu/backgrounds/midground/tamil_nadu_mid_06_urban_corridor.png"
-			target_shoulder = Color(0.38, 0.38, 0.40, 1.0)
-
-	# Update distant horizon (PlainsLayer) with smooth crossfade
-	if is_instance_valid(parallax_plains_sprite) and ResourceLoader.exists(bg_path):
-		var bg_tex: Texture2D = load(bg_path)
-		if bg_tex and parallax_plains_sprite.texture != bg_tex:
-			var old_mod := parallax_plains_sprite.modulate
-			var twp := create_tween()
-			if is_instance_valid(twp):
-				twp.tween_property(parallax_plains_sprite, "modulate:a", 0.35, 0.30)
-				twp.tween_callback(func():
-					if not is_instance_valid(parallax_plains_sprite): return
-					parallax_plains_sprite.texture = bg_tex
-					var w := float(bg_tex.get_width())
-					var h := float(bg_tex.get_height())
-					parallax_plains_sprite.scale = Vector2(1.0, 0.78)
-					parallax_plains_sprite.position = Vector2(w * 0.5, 520.0 - (h * 0.78) * 0.5)
-					var plains_layer: ParallaxLayer = parallax_bg.get_node_or_null("PlainsLayer")
-					if is_instance_valid(plains_layer):
-						plains_layer.motion_mirroring = Vector2(w, 0)
-				)
-				twp.tween_property(parallax_plains_sprite, "modulate:a", old_mod.a, 0.40)
-			else:
-				parallax_plains_sprite.texture = bg_tex
-				var w := float(bg_tex.get_width())
-				var h := float(bg_tex.get_height())
-				parallax_plains_sprite.scale = Vector2(1.0, 0.78)
-				parallax_plains_sprite.position = Vector2(w * 0.5, 520.0 - (h * 0.78) * 0.5)
-
-	# Update midground layer with gentle fade
-	var mid_layer: ParallaxLayer = parallax_bg.get_node_or_null("MidgroundLayer")
-	if is_instance_valid(mid_layer):
-		var twm := create_tween()
-		if is_instance_valid(twm):
-			twm.tween_property(mid_layer, "modulate:a", 0.25, 0.25)
-			twm.tween_callback(func():
-				if not is_instance_valid(self): return
-				_setup_midground_layer(mid_path)
-				var ml: ParallaxLayer = parallax_bg.get_node_or_null("MidgroundLayer") if is_instance_valid(parallax_bg) else null
-				if is_instance_valid(ml):
-					ml.modulate.a = 0.25
-					var tw2 := create_tween()
-					if is_instance_valid(tw2):
-						tw2.tween_property(ml, "modulate:a", 1.0, 0.40)
-			)
-		else:
-			_setup_midground_layer(mid_path)
-	else:
-		_setup_midground_layer(mid_path)
-
-	# Update road shoulder soil color dynamically
-	if is_instance_valid(active_terrain):
-		var tw_col := create_tween()
-		if is_instance_valid(tw_col):
-			tw_col.tween_property(active_terrain, "shoulder_color", target_shoulder, 1.2)
-			tw_col.tween_callback(func():
-				if is_instance_valid(active_terrain):
-					active_terrain.queue_redraw()
-			)
-		else:
-			active_terrain.shoulder_color = target_shoulder
-			active_terrain.queue_redraw()
+	_apply_v3_zone_visuals(
+		_tn_loc_mgr.get_texture(cfg["sky"]),
+		_tn_loc_mgr.get_texture(cfg["dist"]),
+		cfg["mid"],
+		"tamil_nadu"
+	)
 
 func _update_goa_environment_zones() -> void:
-	if active_route == null or active_route.state_id != "goa" or not is_instance_valid(parallax_bg):
+	if current_state != ModeState.PLAYING or active_route == null or active_route.state_id != "goa" or not is_instance_valid(parallax_bg):
 		return
-	# Goa route zones (950m): Heritage 0-200, Coastal 200-430, Green/Forest 430-620, Old Goa Heritage 620-820, South Goa Beach 820-950
+	# Goa 4-Section Route (1200m): North (0-310), Central (310-620), East (620-900), South (900-1200)
 	var d: float = session_distance_m
-	var zone := "heritage"
-	if d < 200.0:
-		zone = "heritage"
-	elif d < 430.0:
-		zone = "coastal"
+	var zone := "north_goa"
+	if d < 310.0:
+		zone = "north_goa"
 	elif d < 620.0:
-		zone = "green"
-	elif d < 820.0:
-		zone = "old_goa"
+		zone = "central_goa"
+	elif d < 900.0:
+		zone = "east_goa"
 	else:
-		zone = "south_beach"
+		zone = "south_goa"
 	if zone == _goa_env_zone:
 		return
 	_goa_env_zone = zone
 
-	var bg_path := "res://assets/indian_locations/goa/backgrounds/distant_landscape/goa_western_ghats_lush.png"
-	var mid_path := "res://assets/indian_locations/goa/backgrounds/village/goa_portuguese_village_row.png"
-	match zone:
-		"heritage":
-			bg_path = "res://assets/indian_locations/goa/backgrounds/distant_landscape/goa_western_ghats_lush.png"
-			mid_path = "res://assets/indian_locations/goa/backgrounds/village/goa_portuguese_village_row.png"
-		"coastal":
-			bg_path = "res://assets/indian_locations/goa/backgrounds/distant_landscape/goa_coastal_midground.png"
-			mid_path = "res://assets/indian_locations/goa/backgrounds/village/goa_portuguese_village_row.png"
-		"green":
-			bg_path = "res://assets/indian_locations/goa/backgrounds/distant_landscape/goa_western_ghats_lush.png"
-			mid_path = "res://assets/indian_locations/goa/inland_goa/mollem_forest_environment.png"
-		"old_goa":
-			bg_path = "res://assets/indian_locations/goa/backgrounds/distant_landscape/goa_western_ghats_lush.png"
-			mid_path = "res://assets/indian_locations/goa/backgrounds/village/goa_portuguese_village_row.png"
-		"south_beach":
-			bg_path = "res://assets/indian_locations/goa/backgrounds/distant_landscape/goa_coastal_midground.png"
-			mid_path = "res://assets/indian_locations/goa/backgrounds/distant_landscape/goa_coastal_midground.png"
+	var bg_path := "res://assets/indian_locations/goa/v3/parallax/dist_north_goa.png"
+	var mid_path := "res://assets/indian_locations/goa/v3/parallax/mid_north_goa.png"
+	var target_shoulder := Color(0.87, 0.76, 0.51, 1.0)
+	var badge_text := "North Goa • Coastal Forts"
 
-	# Update distant horizon (PlainsLayer) - gradual Goa-only transition
+	match zone:
+		"north_goa":
+			bg_path = "res://assets/indian_locations/goa/v3/parallax/dist_north_goa.png"
+			mid_path = "res://assets/indian_locations/goa/v3/parallax/mid_north_goa.png"
+			target_shoulder = Color(0.87, 0.76, 0.51, 1.0)
+			badge_text = "North Goa • Coastal Forts"
+		"central_goa":
+			bg_path = "res://assets/indian_locations/goa/v3/parallax/dist_central_goa.png"
+			mid_path = "res://assets/indian_locations/goa/v3/parallax/mid_central_goa.png"
+			target_shoulder = Color(0.68, 0.36, 0.24, 1.0)
+			badge_text = "Central Goa • Panaji & Old Goa"
+		"east_goa":
+			bg_path = "res://assets/indian_locations/goa/v3/parallax/dist_east_goa.png"
+			mid_path = "res://assets/indian_locations/goa/v3/parallax/mid_east_goa.png"
+			target_shoulder = Color(0.56, 0.31, 0.20, 1.0)
+			badge_text = "East Goa • Western Ghats"
+		"south_goa":
+			bg_path = "res://assets/indian_locations/goa/v3/parallax/dist_south_goa.png"
+			mid_path = "res://assets/indian_locations/goa/v3/parallax/mid_south_goa.png"
+			target_shoulder = Color(0.90, 0.78, 0.54, 1.0)
+			badge_text = "South Goa • Palolem Coast"
+
+	if is_instance_valid(hud) and hud.has_method("set_section_badge"):
+		hud.set_section_badge(badge_text)
+
+	# Update distant horizon (PlainsLayer) with smooth crossfade
+	# PERF: use preloaded cache — zero synchronous load() stall during gameplay
 	if is_instance_valid(parallax_plains_sprite) and ResourceLoader.exists(bg_path):
-		var bg_tex: Texture2D = load(bg_path)
+		var bg_tex: Texture2D = _goa_tex_cache.get(bg_path, null)
+		if bg_tex == null and ResourceLoader.exists(bg_path):
+			bg_tex = load(bg_path)
+			_goa_tex_cache[bg_path] = bg_tex
 		if bg_tex and parallax_plains_sprite.texture != bg_tex:
 			var old_mod := parallax_plains_sprite.modulate
 			var twp := create_tween()
 			if is_instance_valid(twp):
-				twp.tween_property(parallax_plains_sprite, "modulate:a", 0.35, 0.25)
+				twp.tween_property(parallax_plains_sprite, "modulate:a", 0.30, 0.25)
 				twp.tween_callback(func():
 					if not is_instance_valid(parallax_plains_sprite): return
 					parallax_plains_sprite.texture = bg_tex
 					var w := float(bg_tex.get_width())
 					var h := float(bg_tex.get_height())
-					parallax_plains_sprite.scale = Vector2(1.0, 0.78)
-					parallax_plains_sprite.position = Vector2(w * 0.5, 520.0 - (h * 0.78) * 0.5)
+					parallax_plains_sprite.scale = Vector2.ONE
+					parallax_plains_sprite.position = Vector2(w * 0.5, 595.0 - h * 0.5)
 					var plains_layer: ParallaxLayer = parallax_bg.get_node_or_null("PlainsLayer")
 					if is_instance_valid(plains_layer):
 						plains_layer.motion_mirroring = Vector2(w, 0)
@@ -346,8 +342,8 @@ func _update_goa_environment_zones() -> void:
 				parallax_plains_sprite.texture = bg_tex
 				var w := float(bg_tex.get_width())
 				var h := float(bg_tex.get_height())
-				parallax_plains_sprite.scale = Vector2(1.0, 0.78)
-				parallax_plains_sprite.position = Vector2(w * 0.5, 520.0 - (h * 0.78) * 0.5)
+				parallax_plains_sprite.scale = Vector2.ONE
+				parallax_plains_sprite.position = Vector2(w * 0.5, 595.0 - h * 0.5)
 
 	# Update midground layer with a gentle fade
 	var mid_layer: ParallaxLayer = parallax_bg.get_node_or_null("MidgroundLayer")
@@ -356,7 +352,7 @@ func _update_goa_environment_zones() -> void:
 		if is_instance_valid(twm):
 			twm.tween_property(mid_layer, "modulate:a", 0.25, 0.20)
 			twm.tween_callback(func():
-				if not is_instance_valid(self): return
+				if not is_instance_valid(self) or active_route == null or active_route.state_id != "goa": return
 				_setup_midground_layer(mid_path)
 				var ml: ParallaxLayer = parallax_bg.get_node_or_null("MidgroundLayer") if is_instance_valid(parallax_bg) else null
 				if is_instance_valid(ml):
@@ -364,6 +360,227 @@ func _update_goa_environment_zones() -> void:
 					var tw2 := create_tween()
 					if is_instance_valid(tw2):
 						tw2.tween_property(ml, "modulate:a", 1.0, 0.35)
+			)
+		else:
+			_setup_midground_layer(mid_path)
+	else:
+		_setup_midground_layer(mid_path)
+
+	# Smoothly transition Goa road shoulder soil tone across coastal/inland sections
+	if is_instance_valid(active_terrain):
+		var tw_col := create_tween()
+		if is_instance_valid(tw_col):
+			tw_col.tween_property(active_terrain, "shoulder_color", target_shoulder, 1.0)
+			tw_col.tween_callback(func():
+				if is_instance_valid(active_terrain):
+					active_terrain.queue_redraw()
+			)
+		else:
+			active_terrain.shoulder_color = target_shoulder
+			active_terrain.queue_redraw()
+
+func _update_kerala_environment_zones() -> void:
+	if current_state != ModeState.PLAYING or active_route == null or active_route.state_id != "kerala" or not is_instance_valid(parallax_bg):
+		return
+
+	var zone_idx := _kerala_loc_mgr.get_zone_index(session_distance_m)
+	var cfg := _kerala_loc_mgr.get_zone_config(zone_idx)
+	var zone: String = cfg["id"]
+
+	if zone == _kerala_env_zone:
+		return
+	_kerala_env_zone = zone
+
+	var sky_path: String = cfg["sky"]
+	var bg_path: String = cfg["dist"]
+	var mid_path: String = cfg["mid"]
+
+	if is_instance_valid(hud):
+		if hud.has_method("set_section_badge"):
+			hud.set_section_badge(cfg["badge"])
+		if not _kerala_announced_zones.has(zone):
+			_kerala_announced_zones[zone] = true
+			if hud.has_method("show_announcement_toast"):
+				hud.show_announcement_toast(cfg["title"], cfg["sub"])
+
+	# Crossfade Sky from async preloaded cache only when switching coastal <-> highland atmosphere
+	var sky_tex: Texture2D = _kerala_loc_mgr.get_texture(sky_path)
+	if is_instance_valid(parallax_sky_sprite) and sky_tex and parallax_sky_sprite.texture != sky_tex:
+		var tws := create_tween()
+		if is_instance_valid(tws):
+			tws.tween_property(parallax_sky_sprite, "modulate:a", 0.55, 0.30)
+			tws.tween_callback(func():
+				if active_route == null or active_route.state_id != "kerala": return
+				if not is_instance_valid(parallax_sky_sprite): return
+				parallax_sky_sprite.texture = sky_tex
+				var w := float(sky_tex.get_width())
+				var h := float(sky_tex.get_height())
+				parallax_sky_sprite.scale = Vector2.ONE
+				parallax_sky_sprite.position = Vector2(w * 0.5, h * 0.5)
+				var sky_layer: ParallaxLayer = parallax_bg.get_node_or_null("SkyLayer")
+				if is_instance_valid(sky_layer):
+					sky_layer.motion_mirroring = Vector2(w, 0)
+			)
+			tws.tween_property(parallax_sky_sprite, "modulate:a", 1.0, 0.45)
+
+	# Crossfade Distant Mountains / Waterfall / Tea Slopes from preloaded cache
+	var bg_tex: Texture2D = _kerala_loc_mgr.get_texture(bg_path)
+	if is_instance_valid(parallax_plains_sprite) and bg_tex and parallax_plains_sprite.texture != bg_tex:
+		var old_mod := parallax_plains_sprite.modulate
+		var twp := create_tween()
+		if is_instance_valid(twp):
+			twp.tween_property(parallax_plains_sprite, "modulate:a", 0.25, 0.28)
+			twp.tween_callback(func():
+				if active_route == null or active_route.state_id != "kerala": return
+				if not is_instance_valid(parallax_plains_sprite): return
+				parallax_plains_sprite.texture = bg_tex
+				var w := float(bg_tex.get_width())
+				var h := float(bg_tex.get_height())
+				parallax_plains_sprite.scale = Vector2.ONE
+				parallax_plains_sprite.position = Vector2(w * 0.5, 595.0 - h * 0.5)
+				var plains_layer: ParallaxLayer = parallax_bg.get_node_or_null("PlainsLayer")
+				if is_instance_valid(plains_layer):
+					plains_layer.motion_mirroring = Vector2(w, 0)
+			)
+			twp.tween_property(parallax_plains_sprite, "modulate:a", old_mod.a, 0.40)
+		else:
+			parallax_plains_sprite.texture = bg_tex
+			var w := float(bg_tex.get_width())
+			var h := float(bg_tex.get_height())
+			parallax_plains_sprite.scale = Vector2.ONE
+			parallax_plains_sprite.position = Vector2(w * 0.5, 595.0 - h * 0.5)
+
+	# Crossfade Midground Layer smoothly (cached texture -> 0ms stall, zero terrain re-tessellation!)
+	var mid_layer: ParallaxLayer = parallax_bg.get_node_or_null("MidgroundLayer")
+	if is_instance_valid(mid_layer):
+		var twm := create_tween()
+		if is_instance_valid(twm):
+			twm.tween_property(mid_layer, "modulate:a", 0.22, 0.24)
+			twm.tween_callback(func():
+				if not is_instance_valid(self) or active_route == null or active_route.state_id != "kerala": return
+				_setup_midground_layer(mid_path)
+				var ml: ParallaxLayer = parallax_bg.get_node_or_null("MidgroundLayer") if is_instance_valid(parallax_bg) else null
+				if is_instance_valid(ml):
+					ml.modulate.a = 0.22
+					var tw2 := create_tween()
+					if is_instance_valid(tw2):
+						tw2.tween_property(ml, "modulate:a", 1.0, 0.42)
+			)
+		else:
+			_setup_midground_layer(mid_path)
+	else:
+		_setup_midground_layer(mid_path)
+
+func _update_rajasthan_environment_zones() -> void:
+	if current_state != ModeState.PLAYING or active_route == null or active_route.state_id != "rajasthan" or not is_instance_valid(parallax_bg):
+		return
+
+	var zone_idx := _rj_loc_mgr.get_zone_index(session_distance_m)
+	var cfg := _rj_loc_mgr.get_zone_config(zone_idx)
+	var zone: String = cfg["id"]
+	if zone == _rj_env_zone:
+		return
+	_rj_env_zone = zone
+
+	if is_instance_valid(hud):
+		if hud.has_method("set_section_badge"):
+			hud.set_section_badge(cfg["badge"])
+		if not _rj_announced_zones.has(zone):
+			_rj_announced_zones[zone] = true
+			if hud.has_method("show_announcement_toast"):
+				hud.show_announcement_toast(cfg["title"], cfg["sub"])
+
+	_apply_v3_zone_visuals(
+		_rj_loc_mgr.get_texture(cfg["sky"]),
+		_rj_loc_mgr.get_texture(cfg["dist"]),
+		cfg["mid"],
+		"rajasthan"
+	)
+
+func _update_telangana_environment_zones() -> void:
+	if current_state != ModeState.PLAYING or active_route == null or active_route.state_id != "telangana" or not is_instance_valid(parallax_bg):
+		return
+
+	var zone_idx := _tg_loc_mgr.get_zone_index(session_distance_m)
+	var cfg := _tg_loc_mgr.get_zone_config(zone_idx)
+	var zone: String = cfg["id"]
+	if zone == _tg_env_zone:
+		return
+	_tg_env_zone = zone
+
+	if is_instance_valid(hud):
+		if hud.has_method("set_section_badge"):
+			hud.set_section_badge(cfg["badge"])
+		if not _tg_announced_zones.has(zone):
+			_tg_announced_zones[zone] = true
+			if hud.has_method("show_announcement_toast"):
+				hud.show_announcement_toast(cfg["title"], cfg["sub"])
+
+	_apply_v3_zone_visuals(
+		_tg_loc_mgr.get_texture(cfg["sky"]),
+		_tg_loc_mgr.get_texture(cfg["dist"]),
+		cfg["mid"],
+		"telangana"
+	)
+
+func _apply_v3_zone_visuals(sky_tex: Texture2D, bg_tex: Texture2D, mid_path: String, expected_state_id: String = "rajasthan") -> void:
+	if is_instance_valid(parallax_sky_sprite) and sky_tex and parallax_sky_sprite.texture != sky_tex:
+		var tws := create_tween()
+		if is_instance_valid(tws):
+			tws.tween_property(parallax_sky_sprite, "modulate:a", 0.55, 0.30)
+			tws.tween_callback(func():
+				if active_route == null or active_route.state_id != expected_state_id: return
+				if not is_instance_valid(parallax_sky_sprite): return
+				parallax_sky_sprite.texture = sky_tex
+				var w := float(sky_tex.get_width())
+				var h := float(sky_tex.get_height())
+				parallax_sky_sprite.scale = Vector2.ONE
+				parallax_sky_sprite.position = Vector2(w * 0.5, h * 0.5)
+				var sky_layer: ParallaxLayer = parallax_bg.get_node_or_null("SkyLayer")
+				if is_instance_valid(sky_layer):
+					sky_layer.motion_mirroring = Vector2(w, 0)
+			)
+			tws.tween_property(parallax_sky_sprite, "modulate:a", 1.0, 0.45)
+
+	if is_instance_valid(parallax_plains_sprite) and bg_tex and parallax_plains_sprite.texture != bg_tex:
+		var old_mod := parallax_plains_sprite.modulate
+		var twp := create_tween()
+		if is_instance_valid(twp):
+			twp.tween_property(parallax_plains_sprite, "modulate:a", 0.25, 0.28)
+			twp.tween_callback(func():
+				if active_route == null or active_route.state_id != expected_state_id: return
+				if not is_instance_valid(parallax_plains_sprite): return
+				parallax_plains_sprite.texture = bg_tex
+				var w := float(bg_tex.get_width())
+				var h := float(bg_tex.get_height())
+				parallax_plains_sprite.scale = Vector2.ONE
+				parallax_plains_sprite.position = Vector2(w * 0.5, 595.0 - h * 0.5)
+				var plains_layer: ParallaxLayer = parallax_bg.get_node_or_null("PlainsLayer")
+				if is_instance_valid(plains_layer):
+					plains_layer.motion_mirroring = Vector2(w, 0)
+			)
+			twp.tween_property(parallax_plains_sprite, "modulate:a", old_mod.a, 0.40)
+		else:
+			parallax_plains_sprite.texture = bg_tex
+			var w := float(bg_tex.get_width())
+			var h := float(bg_tex.get_height())
+			parallax_plains_sprite.scale = Vector2.ONE
+			parallax_plains_sprite.position = Vector2(w * 0.5, 595.0 - h * 0.5)
+
+	var mid_layer: ParallaxLayer = parallax_bg.get_node_or_null("MidgroundLayer")
+	if is_instance_valid(mid_layer):
+		var twm := create_tween()
+		if is_instance_valid(twm):
+			twm.tween_property(mid_layer, "modulate:a", 0.22, 0.24)
+			twm.tween_callback(func():
+				if not is_instance_valid(self) or active_route == null or active_route.state_id != expected_state_id: return
+				_setup_midground_layer(mid_path)
+				var ml: ParallaxLayer = parallax_bg.get_node_or_null("MidgroundLayer") if is_instance_valid(parallax_bg) else null
+				if is_instance_valid(ml):
+					ml.modulate.a = 0.22
+					var tw2 := create_tween()
+					if is_instance_valid(tw2):
+						tw2.tween_property(ml, "modulate:a", 1.0, 0.42)
 			)
 		else:
 			_setup_midground_layer(mid_path)
@@ -392,12 +609,18 @@ func _setup_clouds_layer(cloud_path: String) -> void:
 			parallax_bg.add_child(cloud_layer)
 			parallax_bg.move_child(cloud_layer, 1)
 
+		var is_scenic_v3 := (active_route != null and active_route.state_id in ["goa", "kerala", "rajasthan", "telangana", "tamil_nadu"])
+		cloud_layer.motion_scale = Vector2(0.05, 0) if is_scenic_v3 else Vector2(0.06, 0)
 		cloud_layer.motion_mirroring = Vector2(w, 0)
 		var spr: Sprite2D = cloud_layer.get_node_or_null("CloudsSprite")
 		if is_instance_valid(spr):
 			spr.texture = tex
-			spr.position = Vector2(w * 0.5, h * 0.5)
-			spr.modulate = Color(1.0, 1.0, 1.0, 0.85)
+			if is_scenic_v3:
+				spr.position = Vector2(w * 0.5, 88.0 + h * 0.5)
+				spr.modulate = Color(1.0, 1.0, 1.0, 0.96)
+			else:
+				spr.position = Vector2(w * 0.5, h * 0.5)
+				spr.modulate = Color(1.0, 1.0, 1.0, 0.85)
 		cloud_layer.visible = true
 	else:
 		if is_instance_valid(cloud_layer):
@@ -407,10 +630,18 @@ func _setup_midground_layer(mid_path: String) -> void:
 	if not is_instance_valid(parallax_bg):
 		return
 
-	var is_goa := active_route != null and active_route.state_id == "goa"
+	var is_scenic_v3 := (active_route != null and active_route.state_id in ["goa", "kerala", "rajasthan", "telangana", "tamil_nadu"])
+	var is_kerala := (active_route != null and active_route.state_id == "kerala")
+	var is_rajasthan := (active_route != null and active_route.state_id == "rajasthan")
+	var is_telangana := (active_route != null and active_route.state_id == "telangana")
+	var is_tamil_nadu := (active_route != null and active_route.state_id == "tamil_nadu")
 	var mid_layer: ParallaxLayer = parallax_bg.get_node_or_null("MidgroundLayer")
 	if mid_path != "" and ResourceLoader.exists(mid_path):
-		var tex: Texture2D = load(mid_path)
+		# PERF: use state-specific preloaded cache; Goa uses _goa_tex_cache to avoid sync load()
+		var is_goa := (active_route != null and active_route.state_id == "goa")
+		var tex: Texture2D = _kerala_loc_mgr.get_texture(mid_path) if is_kerala else (_rj_loc_mgr.get_texture(mid_path) if is_rajasthan else (_tg_loc_mgr.get_texture(mid_path) if is_telangana else (_tn_loc_mgr.get_texture(mid_path) if is_tamil_nadu else (_goa_tex_cache.get(mid_path, null) if is_goa else null))))
+		if tex == null:
+			tex = load(mid_path) as Texture2D
 		var w: float = float(tex.get_width())
 		var h: float = float(tex.get_height())
 		if mid_layer == null:
@@ -430,7 +661,7 @@ func _setup_midground_layer(mid_path: String) -> void:
 				c.queue_free()
 
 		var spr: Sprite2D = mid_layer.get_node_or_null("MidgroundSprite")
-		if is_goa:
+		if is_scenic_v3:
 			_apply_goa_midground_layout(mid_layer, spr, tex, mid_path)
 		else:
 			mid_layer.motion_scale = Vector2(0.25, 0)
@@ -446,73 +677,16 @@ func _setup_midground_layer(mid_path: String) -> void:
 		if is_instance_valid(mid_layer):
 			mid_layer.visible = false
 
-func _apply_goa_midground_layout(mid_layer: ParallaxLayer, spr: Sprite2D, tex: Texture2D, mid_path: String) -> void:
-	# Goa-only: fix oversized/repeating background composition. Keep vehicle/road/camera/shared systems unchanged.
+func _apply_goa_midground_layout(mid_layer: ParallaxLayer, spr: Sprite2D, tex: Texture2D, _mid_path: String) -> void:
+	# Goa-only: crisp 1:1 natural midground aligned to road horizon, no repeated house boxes.
 	var w: float = float(tex.get_width())
 	var h: float = float(tex.get_height())
-	var is_village := "portuguese_village_row" in mid_path
-	var is_forest := "mollem_forest_environment" in mid_path
-	var is_coastal := "goa_coastal_midground" in mid_path
-
-	if is_village:
-		# Small distant village clusters: scaled down, spaced out, varied depth - no continuous wallpaper row.
-		mid_layer.motion_scale = Vector2(0.16, 0)
-		mid_layer.motion_mirroring = Vector2(w * 4.0, 0)
-		if is_instance_valid(spr):
-			spr.visible = true
-			spr.texture = tex
-			spr.scale = Vector2(0.34, 0.34)
-			spr.modulate = Color(0.93, 0.95, 0.91, 0.88)
-			var scaled_h := h * 0.34
-			spr.position = Vector2(w * 0.55, 432.0 - scaled_h * 0.5)
-			spr.flip_h = false
-		var configs := [
-			{"name":"MidgroundSprite2","x":w * 1.55,"s":0.26,"a":0.72,"y":424.0,"flip":true},
-			{"name":"MidgroundSprite3","x":w * 2.45,"s":0.38,"a":0.84,"y":436.0,"flip":false},
-			{"name":"MidgroundSprite4","x":w * 3.35,"s":0.24,"a":0.66,"y":420.0,"flip":true},
-		]
-		for cfg in configs:
-			var cs := mid_layer.get_node_or_null(cfg["name"]) as Sprite2D
-			if cs == null:
-				cs = Sprite2D.new()
-				cs.name = cfg["name"]
-				mid_layer.add_child(cs)
-			cs.texture = tex
-			var sc: float = float(cfg["s"])
-			cs.scale = Vector2(sc, sc)
-			cs.modulate = Color(0.92, 0.94, 0.90, float(cfg["a"]))
-			cs.position = Vector2(float(cfg["x"]), float(cfg["y"]) - h * sc * 0.5)
-			cs.flip_h = bool(cfg["flip"])
-			cs.visible = true
-	elif is_forest:
-		# Western Ghats/forest: lower, layered, not a flat wall.
-		mid_layer.motion_scale = Vector2(0.20, 0)
-		mid_layer.motion_mirroring = Vector2(w, 0)
-		if is_instance_valid(spr):
-			spr.visible = true
-			spr.texture = tex
-			spr.scale = Vector2(1.0, 0.72)
-			spr.modulate = Color(0.92, 0.98, 0.90, 0.95)
-			var scaled_h := h * 0.72
-			spr.position = Vector2(w * 0.5, 470.0 - scaled_h * 0.5)
-	elif is_coastal:
-		# Coastal midground: keep low and airy so sky/sea feel open.
-		mid_layer.motion_scale = Vector2(0.16, 0)
-		mid_layer.motion_mirroring = Vector2(w, 0)
-		if is_instance_valid(spr):
-			spr.visible = true
-			spr.texture = tex
-			spr.scale = Vector2(1.0, 0.82)
-			spr.modulate = Color(1.0, 1.0, 1.0, 0.95)
-			var scaled_h := h * 0.82
-			spr.position = Vector2(w * 0.5, 455.0 - scaled_h * 0.5)
-	else:
-		mid_layer.motion_scale = Vector2(0.22, 0)
-		mid_layer.motion_mirroring = Vector2(w, 0)
-		if is_instance_valid(spr):
-			spr.visible = true
-			spr.texture = tex
-			spr.scale = Vector2(1.0, 0.75)
-			spr.modulate = Color(1, 1, 1, 0.95)
-			var scaled_h := h * 0.75
-			spr.position = Vector2(w * 0.5, 450.0 - scaled_h * 0.5)
+	mid_layer.motion_scale = Vector2(0.24, 0)
+	mid_layer.motion_mirroring = Vector2(w, 0)
+	if is_instance_valid(spr):
+		spr.visible = true
+		spr.texture = tex
+		spr.scale = Vector2.ONE
+		spr.flip_h = false
+		spr.modulate = Color(1.0, 1.0, 1.0, 0.98)
+		spr.position = Vector2(w * 0.5, 610.0 - h * 0.5)

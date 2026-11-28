@@ -11,10 +11,25 @@ const FinishArchV2Scene = preload("res://scenes/modes/indian_roads/visual_upgrad
 const RoadsideLandmarkScene = preload("res://scenes/modes/indian_roads/visual_upgrade_v2/RoadsideLandmark.tscn")
 const RoadsideLandmarkRegistry = preload("res://scripts/modes/indian_roads/RoadsideLandmarkRegistry.gd")
 const RoadsideLandmarkScript = preload("res://scripts/modes/indian_roads/RoadsideLandmark.gd")
+const GoaTerrainHelper = preload("res://scripts/modes/indian_roads/GoaTerrainHelper.gd")
+const KeralaTerrainHelper = preload("res://scripts/modes/indian_roads/KeralaTerrainHelper.gd")
+const RajasthanTerrainHelper = preload("res://scripts/modes/indian_roads/RajasthanTerrainHelper.gd")
+const TelanganaTerrainHelper = preload("res://scripts/modes/indian_roads/TelanganaTerrainHelper.gd")
+const TamilNaduTerrainHelper = preload("res://scripts/modes/indian_roads/TamilNaduTerrainHelper.gd")
 const KanyakumariGlassBridgeScene = preload("res://scenes/modes/indian_roads/visual_upgrade_v2/KanyakumariGlassBridge.tscn")
 const KanyakumariGlassBridgeScript = preload("res://scripts/modes/indian_roads/KanyakumariGlassBridge.gd")
 const CoinScene = preload("res://scenes/pickups/Coin.tscn")
 const FuelPickupScene = preload("res://scenes/pickups/FuelPickup.tscn")
+
+const GOA_BRIDGE_START_X := 74800.0
+const GOA_BRIDGE_END_X := 78200.0
+const GOA_BRIDGE_DECK_START_X := 75400.0
+const GOA_BRIDGE_DECK_END_X := 77600.0
+
+const KER_BRIDGE_START_X := 66500.0
+const KER_BRIDGE_END_X := 74500.0
+const KER_BRIDGE_DECK_START_X := 67300.0
+const KER_BRIDGE_DECK_END_X := 73700.0
 
 @export var gravel_color: Color = Color(0.45, 0.42, 0.38, 1.0) # Graded aggregate shoulder
 @export var edge_line_color: Color = Color(0.95, 0.95, 0.98, 0.85) # Reflective white edge line
@@ -30,11 +45,11 @@ func _ready() -> void:
 func _apply_state_theme(state_id: String) -> void:
 	match state_id:
 		"goa":
-			road_surface_color = Color(0.22, 0.23, 0.26, 1.0)
-			shoulder_color = Color(0.85, 0.75, 0.50, 1.0) # Golden coastal beach sand
-			gravel_color = Color(0.70, 0.65, 0.52, 1.0)
-			stripe_color = Color(1.0, 1.0, 1.0, 0.95)
-			terrain_wave_amp = 0.8
+			road_surface_color = Color(0.17, 0.19, 0.22, 1.0)
+			shoulder_color = Color(0.87, 0.76, 0.51, 1.0) # Golden coastal beach sand (transitions inland)
+			gravel_color = Color(0.68, 0.62, 0.52, 1.0)
+			stripe_color = Color(0.98, 0.98, 0.96, 0.95)
+			terrain_wave_amp = 0.75
 			terrain_freq_mult = 0.85
 		"kerala":
 			road_surface_color = Color(0.16, 0.18, 0.20, 1.0) # Monsoon washed asphalt
@@ -79,6 +94,15 @@ func _plan_road_features() -> void:
 
 	var state_id := active_route.state_id if active_route != null else ""
 	var is_tamil_nadu := (state_id == "tamil_nadu")
+	var is_goa := (state_id == "goa")
+	var is_kerala := (state_id == "kerala")
+	var is_rajasthan := (state_id == "rajasthan")
+	var is_telangana := (state_id == "telangana")
+
+	if is_goa or is_kerala or is_rajasthan or is_telangana or is_tamil_nadu:
+		landmark_x_positions.clear()
+		for lm_d in RoadsideLandmarkRegistry.get_landmarks_for_state(state_id):
+			landmark_x_positions.append(float(lm_d.get("distance_m", 0.0)) * 100.0)
 
 	# Safe speed breaker placement: roughly every 320m, avoiding waypoints and landmarks by at least 35m (3500px)
 	var sb_cursor := 24000.0
@@ -93,6 +117,25 @@ func _plan_road_features() -> void:
 		# In Tamil Nadu, strictly avoid the Kanyakumari Glass Bridge span (20m to 90m)
 		if is_tamil_nadu and sb_cursor >= 2000.0 and sb_cursor <= 9000.0:
 			safe = false
+		if is_goa:
+			if sb_cursor >= GOA_BRIDGE_START_X - 1800.0 and sb_cursor <= GOA_BRIDGE_END_X + 1800.0:
+				safe = false
+			for lm_d in RoadsideLandmarkRegistry.get_landmarks_for_state("goa"):
+				if absf(sb_cursor - float(lm_d.get("distance_m", 0.0)) * 100.0) < 2800.0:
+					safe = false
+					break
+		if is_kerala:
+			if sb_cursor >= KER_BRIDGE_START_X - 2000.0 and sb_cursor <= KER_BRIDGE_END_X + 2000.0:
+				safe = false
+			for lx in landmark_x_positions:
+				if absf(sb_cursor - lx) < 2800.0:
+					safe = false
+					break
+		if is_rajasthan or is_telangana or is_tamil_nadu:
+			for lx in landmark_x_positions:
+				if absf(sb_cursor - lx) < 2800.0:
+					safe = false
+					break
 		if safe:
 			speed_breaker_x_positions.append(sb_cursor)
 		sb_cursor += 32000.0
@@ -102,6 +145,19 @@ func _plan_road_features() -> void:
 		# Tamil Nadu safe open stretches: 360m (between Kovilpatti & Virudhunagar) and 820m (between Trichy & Perambalur)
 		hazard_zone_x_positions.append(36000.0)
 		hazard_zone_x_positions.append(82000.0)
+	elif is_goa:
+		hazard_zone_x_positions.append(21500.0)
+		hazard_zone_x_positions.append(71800.0)
+	elif is_kerala:
+		hazard_zone_x_positions.append(39500.0)
+		hazard_zone_x_positions.append(98500.0)
+		hazard_zone_x_positions.append(156000.0)
+	elif is_rajasthan:
+		hazard_zone_x_positions.append(45800.0)
+		hazard_zone_x_positions.append(68000.0)
+	elif is_telangana:
+		hazard_zone_x_positions.append(36000.0)
+		hazard_zone_x_positions.append(69500.0)
 	else:
 		if total_length_px > 60000.0:
 			hazard_zone_x_positions.append(50000.0)
@@ -113,10 +169,360 @@ func _plan_road_features() -> void:
 		if is_tamil_nadu:
 			pothole_x_positions.append(26000.0)
 			pothole_x_positions.append(68000.0)
+		elif is_goa:
+			pothole_x_positions.append(12500.0)
+			pothole_x_positions.append(64500.0)
+		elif is_kerala:
+			pothole_x_positions.append(14500.0)
+			pothole_x_positions.append(50500.0)
+			pothole_x_positions.append(138000.0)
+		elif is_rajasthan:
+			pothole_x_positions.append(27200.0)
+			pothole_x_positions.append(69500.0)
+		elif is_telangana:
+			pothole_x_positions.append(29500.0)
+			pothole_x_positions.append(83400.0)
 		else:
 			pothole_x_positions.append(34000.0)
-	if total_length_px > 90000.0 and not is_tamil_nadu:
+	if total_length_px > 90000.0 and not is_tamil_nadu and not is_goa and not is_kerala and not is_rajasthan and not is_telangana:
 		pothole_x_positions.append(88000.0)
+
+func _generate_highway_profile() -> void:
+	var state_id := active_route.state_id if active_route != null else ""
+	if state_id != "goa" and state_id != "kerala" and state_id != "rajasthan" and state_id != "telangana" and state_id != "tamil_nadu":
+		super._generate_highway_profile()
+		return
+	# Finer 40px sampling gives ultra-smooth wheel suspension response and bridge transitions
+	var step := 40.0
+	var min_x := -1200.0
+	var max_x := total_length_px + 1200.0
+	var count := int((max_x - min_x) / step) + 4
+	road_points.resize(count)
+	for i in range(count):
+		var x := min_x + float(i) * step
+		road_points[i] = Vector2(x, _calculate_road_height(x))
+	road_normals.resize(count)
+	for i in range(count):
+		var p_prev := road_points[maxi(0, i - 1)]
+		var p_next := road_points[mini(count - 1, i + 1)]
+		var tangent := (p_next - p_prev).normalized()
+		road_normals[i] = Vector2(-tangent.y, tangent.x)
+
+func _calculate_road_height(x: float) -> float:
+	if active_route == null:
+		return super._calculate_road_height(x)
+	if active_route.state_id == "kerala":
+		return _calculate_kerala_road_height(x)
+	if active_route.state_id == "rajasthan":
+		return _calculate_rajasthan_road_height(x)
+	if active_route.state_id == "telangana":
+		return _calculate_telangana_road_height(x)
+	if active_route.state_id == "tamil_nadu":
+		return _calculate_tamil_nadu_road_height(x)
+	if active_route.state_id != "goa":
+		return super._calculate_road_height(x)
+
+	if x <= 0.0:
+		return base_y
+
+	# Smoothly blended section wave amplitude (zero sudden cliff steps across section boundaries)
+	var dist_m := x * 0.01
+	var t_cent := smoothstep(280.0, 340.0, dist_m)
+	var t_east := smoothstep(590.0, 650.0, dist_m)
+	var t_south := smoothstep(870.0, 930.0, dist_m)
+	var sec_amp := lerpf(0.72, 0.52, t_cent)
+	sec_amp = lerpf(sec_amp, 1.08, t_east)
+	sec_amp = lerpf(sec_amp, 0.62, t_south)
+
+	var wave1 := sin(x * 0.0011) * (32.0 * sec_amp)
+	var wave2 := sin(x * 0.00048) * (22.0 * sec_amp)
+	var wave3 := cos(x * 0.0019) * (10.0 * sec_amp)
+
+	var start_blend := clampf(x / 2500.0, 0.0, 1.0)
+	start_blend = start_blend * start_blend * (3.0 - 2.0 * start_blend)
+
+	var flatten := 1.0
+	for wp in active_route.waypoints:
+		var dist_to_wp := absf(x - wp.distance_m * 100.0)
+		if dist_to_wp < 650.0:
+			var lf := clampf(dist_to_wp / 650.0, 0.0, 1.0)
+			lf = lf * lf * (3.0 - 2.0 * lf)
+			flatten = minf(flatten, lf)
+
+	# Also flatten smoothly around all Goa landmarks so vehicles drive steadily past them
+	for lx in landmark_x_positions:
+		var dist_to_lm := absf(x - lx)
+		if dist_to_lm < 600.0:
+			var lf := clampf(dist_to_lm / 600.0, 0.0, 1.0)
+			lf = lf * lf * (3.0 - 2.0 * lf)
+			flatten = minf(flatten, lf)
+
+	# East Goa Mollem Forest Stone Bridge (748m - 782m)
+	var bridge_elev := 0.0
+	var bridge_flatten := 1.0
+	if x >= GOA_BRIDGE_START_X and x <= GOA_BRIDGE_END_X:
+		if x < GOA_BRIDGE_DECK_START_X:
+			var t := (x - GOA_BRIDGE_START_X) / (GOA_BRIDGE_DECK_START_X - GOA_BRIDGE_START_X)
+			var s := t * t * (3.0 - 2.0 * t)
+			bridge_elev = -28.0 * s
+		elif x <= GOA_BRIDGE_DECK_END_X:
+			var u := (x - GOA_BRIDGE_DECK_START_X) / (GOA_BRIDGE_DECK_END_X - GOA_BRIDGE_DECK_START_X)
+			bridge_elev = -28.0 - sin(u * PI) * 14.0
+		else:
+			var v := (x - GOA_BRIDGE_DECK_END_X) / (GOA_BRIDGE_END_X - GOA_BRIDGE_DECK_END_X)
+			var sv := v * v * (3.0 - 2.0 * v)
+			bridge_elev = -28.0 * (1.0 - sv)
+		bridge_flatten = 0.0
+	elif x >= GOA_BRIDGE_START_X - 500.0 and x < GOA_BRIDGE_START_X:
+		bridge_flatten = clampf((GOA_BRIDGE_START_X - x) / 500.0, 0.0, 1.0)
+	elif x > GOA_BRIDGE_END_X and x <= GOA_BRIDGE_END_X + 500.0:
+		bridge_flatten = clampf((x - GOA_BRIDGE_END_X) / 500.0, 0.0, 1.0)
+
+	var h := base_y + (wave1 + wave2 + wave3) * flatten * start_blend * bridge_flatten + bridge_elev
+
+	for sb_x in speed_breaker_x_positions:
+		var d := x - sb_x
+		if absf(d) < 90.0:
+			h -= 6.0 * exp(-pow(d / 42.0, 2.0))
+
+	for pt_x in pothole_x_positions:
+		var d := x - pt_x
+		if absf(d) < 70.0:
+			h += 3.0 * exp(-pow(d / 32.0, 2.0))
+
+	return h
+
+func _calculate_kerala_road_height(x: float) -> float:
+	if x <= 0.0:
+		return base_y
+
+	# Smoothly blended Kerala section wave amplitudes across all 9 zones (zero abrupt jumps)
+	var dist_m := x * 0.01
+	var sec_amp := lerpf(0.55, 0.85, smoothstep(180.0, 225.0, dist_m))
+	sec_amp = lerpf(sec_amp, 1.02, smoothstep(380.0, 430.0, dist_m))
+	sec_amp = lerpf(sec_amp, 1.16, smoothstep(790.0, 845.0, dist_m))
+	sec_amp = lerpf(sec_amp, 1.05, smoothstep(1185.0, 1235.0, dist_m))
+	sec_amp = lerpf(sec_amp, 1.18, smoothstep(1385.0, 1435.0, dist_m))
+
+	var wave1 := sin(x * 0.00105) * (34.0 * sec_amp)
+	var wave2 := sin(x * 0.00046) * (24.0 * sec_amp)
+	var wave3 := cos(x * 0.00180) * (10.0 * sec_amp)
+
+	var start_blend := clampf(x / 2500.0, 0.0, 1.0)
+	start_blend = start_blend * start_blend * (3.0 - 2.0 * start_blend)
+
+	var flatten := 1.0
+	for wp in active_route.waypoints:
+		var dist_to_wp := absf(x - wp.distance_m * 100.0)
+		if dist_to_wp < 650.0:
+			var lf := clampf(dist_to_wp / 650.0, 0.0, 1.0)
+			lf = lf * lf * (3.0 - 2.0 * lf)
+			flatten = minf(flatten, lf)
+
+	for lx in landmark_x_positions:
+		var dist_to_lm := absf(x - lx)
+		if dist_to_lm < 600.0:
+			var lf := clampf(dist_to_lm / 600.0, 0.0, 1.0)
+			lf = lf * lf * (3.0 - 2.0 * lf)
+			flatten = minf(flatten, lf)
+
+	# Playable Neriamangalam 5-Arch Bridge over Periyar River (665m - 745m)
+	var bridge_elev := 0.0
+	var bridge_flatten := 1.0
+	if x >= KER_BRIDGE_START_X and x <= KER_BRIDGE_END_X:
+		if x < KER_BRIDGE_DECK_START_X:
+			var t := (x - KER_BRIDGE_START_X) / (KER_BRIDGE_DECK_START_X - KER_BRIDGE_START_X)
+			var s := t * t * (3.0 - 2.0 * t)
+			bridge_elev = -34.0 * s
+		elif x <= KER_BRIDGE_DECK_END_X:
+			var u := (x - KER_BRIDGE_DECK_START_X) / (KER_BRIDGE_DECK_END_X - KER_BRIDGE_DECK_START_X)
+			bridge_elev = -34.0 - sin(u * PI) * 16.0
+		else:
+			var v := (x - KER_BRIDGE_DECK_END_X) / (KER_BRIDGE_END_X - KER_BRIDGE_DECK_END_X)
+			var sv := v * v * (3.0 - 2.0 * v)
+			bridge_elev = -34.0 * (1.0 - sv)
+		bridge_flatten = 0.0
+	elif x >= KER_BRIDGE_START_X - 500.0 and x < KER_BRIDGE_START_X:
+		var bt := clampf((KER_BRIDGE_START_X - x) / 500.0, 0.0, 1.0)
+		bridge_flatten = bt * bt * (3.0 - 2.0 * bt)
+	elif x > KER_BRIDGE_END_X and x <= KER_BRIDGE_END_X + 500.0:
+		var bt2 := clampf((x - KER_BRIDGE_END_X) / 500.0, 0.0, 1.0)
+		bridge_flatten = bt2 * bt2 * (3.0 - 2.0 * bt2)
+
+	var h := base_y + (wave1 + wave2 + wave3) * flatten * start_blend * bridge_flatten + bridge_elev
+
+	for sb_x in speed_breaker_x_positions:
+		var d := x - sb_x
+		if absf(d) < 90.0:
+			h -= 6.0 * exp(-pow(d / 42.0, 2.0))
+
+	for pt_x in pothole_x_positions:
+		var d := x - pt_x
+		if absf(d) < 70.0:
+			h += 3.0 * exp(-pow(d / 32.0, 2.0))
+
+	return h
+
+func _calculate_rajasthan_road_height(x: float) -> float:
+	if x <= 0.0:
+		return base_y
+
+	# Smoothly blended desert road wave amplitudes (Jaipur -> Aravalli -> Dunes -> Jodhpur -> Jaisalmer)
+	var dist_m := x * 0.01
+	var sec_amp := lerpf(0.45, 0.85, smoothstep(215.0, 265.0, dist_m))
+	sec_amp = lerpf(sec_amp, 0.72, smoothstep(455.0, 505.0, dist_m))
+	sec_amp = lerpf(sec_amp, 0.80, smoothstep(695.0, 745.0, dist_m))
+	sec_amp = lerpf(sec_amp, 0.62, smoothstep(935.0, 985.0, dist_m))
+
+	var wave1 := sin(x * 0.00095) * (28.0 * sec_amp)
+	var wave2 := sin(x * 0.00042) * (18.0 * sec_amp)
+	var wave3 := cos(x * 0.00155) * (8.0 * sec_amp)
+
+	var start_blend := clampf(x / 2500.0, 0.0, 1.0)
+	start_blend = start_blend * start_blend * (3.0 - 2.0 * start_blend)
+
+	var flatten := 1.0
+	for wp in active_route.waypoints:
+		var dist_to_wp := absf(x - wp.distance_m * 100.0)
+		if dist_to_wp < 650.0:
+			var lf := clampf(dist_to_wp / 650.0, 0.0, 1.0)
+			lf = lf * lf * (3.0 - 2.0 * lf)
+			flatten = minf(flatten, lf)
+
+	for lx in landmark_x_positions:
+		var dist_to_lm := absf(x - lx)
+		if dist_to_lm < 600.0:
+			var lf := clampf(dist_to_lm / 600.0, 0.0, 1.0)
+			lf = lf * lf * (3.0 - 2.0 * lf)
+			flatten = minf(flatten, lf)
+
+	var h := base_y + (wave1 + wave2 + wave3) * flatten * start_blend
+
+	for sb_x in speed_breaker_x_positions:
+		var d := x - sb_x
+		if absf(d) < 90.0:
+			h -= 6.0 * exp(-pow(d / 42.0, 2.0))
+
+	for pt_x in pothole_x_positions:
+		var d := x - pt_x
+		if absf(d) < 70.0:
+			h += 3.0 * exp(-pow(d / 32.0, 2.0))
+
+	return h
+
+func _calculate_telangana_road_height(x: float) -> float:
+	if x <= 0.0:
+		return base_y
+
+	# Smoothly blended Hyderabad city elevation: Old City boulevard -> City Heritage -> Hussain Sagar waterfront -> Golconda hill citadel approach
+	var dist_m := x * 0.01
+	var sec_amp := lerpf(0.38, 0.65, smoothstep(205.0, 245.0, dist_m))
+	sec_amp = lerpf(sec_amp, 0.42, smoothstep(415.0, 455.0, dist_m))
+	sec_amp = lerpf(sec_amp, 0.78, smoothstep(665.0, 715.0, dist_m))
+	sec_amp = lerpf(sec_amp, 0.56, smoothstep(885.0, 930.0, dist_m))
+
+	var wave1 := sin(x * 0.00090) * (24.0 * sec_amp)
+	var wave2 := sin(x * 0.00040) * (15.0 * sec_amp)
+	var wave3 := cos(x * 0.00145) * (7.0 * sec_amp)
+	# Subtle gentle climb approaching Golconda citadel (~ -36px over final 315m)
+	var fort_rise := -36.0 * smoothstep(685.0, 970.0, dist_m)
+
+	var start_blend := clampf(x / 2000.0, 0.0, 1.0)
+	start_blend = start_blend * start_blend * (3.0 - 2.0 * start_blend)
+
+	var flatten := 1.0
+	for wp in active_route.waypoints:
+		var dist_to_wp := absf(x - wp.distance_m * 100.0)
+		if dist_to_wp < 550.0:
+			var lf := clampf(dist_to_wp / 550.0, 0.0, 1.0)
+			lf = lf * lf * (3.0 - 2.0 * lf)
+			flatten = minf(flatten, lf)
+
+	for lx in landmark_x_positions:
+		var dist_to_lm := absf(x - lx)
+		if dist_to_lm < 480.0:
+			var lf := clampf(dist_to_lm / 480.0, 0.0, 1.0)
+			lf = lf * lf * (3.0 - 2.0 * lf)
+			flatten = minf(flatten, lf)
+
+	var h := base_y + fort_rise + (wave1 + wave2 + wave3) * flatten * start_blend
+
+	for sb_x in speed_breaker_x_positions:
+		var d := x - sb_x
+		if absf(d) < 90.0:
+			h -= 5.0 * exp(-pow(d / 42.0, 2.0))
+
+	for pt_x in pothole_x_positions:
+		var d := x - pt_x
+		if absf(d) < 70.0:
+			h += 2.5 * exp(-pow(d / 32.0, 2.0))
+
+	return h
+
+func _calculate_tamil_nadu_road_height(x: float) -> float:
+	if x <= 0.0:
+		return base_y
+
+	# Smoothly blended regional elevation across Kanyakumari -> Tirunelveli -> Madurai -> Trichy -> Thanjavur -> Chennai
+	var dist_m := x * 0.01
+	var sec_amp := lerpf(0.50, 0.85, smoothstep(140.0, 185.0, dist_m))
+	sec_amp = lerpf(sec_amp, 0.72, smoothstep(405.0, 445.0, dist_m))
+	sec_amp = lerpf(sec_amp, 0.65, smoothstep(610.0, 650.0, dist_m))
+	sec_amp = lerpf(sec_amp, 0.48, smoothstep(770.0, 815.0, dist_m))
+	sec_amp = lerpf(sec_amp, 0.40, smoothstep(1000.0, 1045.0, dist_m))
+
+	var wave1 := sin(x * 0.0011) * (30.0 * sec_amp)
+	var wave2 := sin(x * 0.00048) * (20.0 * sec_amp)
+	var wave3 := cos(x * 0.0019) * (9.0 * sec_amp)
+
+	var start_blend := clampf(x / 2000.0, 0.0, 1.0)
+	start_blend = start_blend * start_blend * (3.0 - 2.0 * start_blend)
+
+	var flatten := 1.0
+	for wp in active_route.waypoints:
+		var dist_to_wp := absf(x - wp.distance_m * 100.0)
+		if dist_to_wp < 600.0:
+			var lf := clampf(dist_to_wp / 600.0, 0.0, 1.0)
+			lf = lf * lf * (3.0 - 2.0 * lf)
+			flatten = minf(flatten, lf)
+
+	for lx in landmark_x_positions:
+		var dist_to_lm := absf(x - lx)
+		if dist_to_lm < 520.0:
+			var lf := clampf(dist_to_lm / 520.0, 0.0, 1.0)
+			lf = lf * lf * (3.0 - 2.0 * lf)
+			flatten = minf(flatten, lf)
+
+	# Kanyakumari Glass Bridge (25m to 85m) with continuous ramp-in/ramp-out (zero vertical jumps)
+	var bridge_elev := 0.0
+	var bridge_flatten := 1.0
+	if x >= 2500.0 and x <= 8500.0:
+		if x < 3500.0:
+			bridge_elev = -75.0 * smoothstep(2500.0, 3500.0, x)
+		elif x <= 7500.0:
+			var u := (x - 3500.0) / 4000.0
+			bridge_elev = -75.0 - sin(u * PI) * 18.0
+		else:
+			bridge_elev = -75.0 * (1.0 - smoothstep(7500.0, 8500.0, x))
+		bridge_flatten = 0.0
+	elif x >= 1900.0 and x < 2500.0:
+		bridge_flatten = clampf((2500.0 - x) / 600.0, 0.0, 1.0)
+	elif x > 8500.0 and x <= 9100.0:
+		bridge_flatten = clampf((x - 8500.0) / 600.0, 0.0, 1.0)
+
+	var h := base_y + (wave1 + wave2 + wave3) * flatten * start_blend * bridge_flatten + bridge_elev
+
+	for sb_x in speed_breaker_x_positions:
+		var d := x - sb_x
+		if absf(d) < 90.0:
+			h -= 5.0 * exp(-pow(d / 42.0, 2.0))
+
+	for pt_x in pothole_x_positions:
+		var d := x - pt_x
+		if absf(d) < 70.0:
+			h += 2.5 * exp(-pow(d / 32.0, 2.0))
+
+	return h
 
 func _build_collision() -> void:
 	if not is_instance_valid(collision_poly) or road_points.is_empty():
@@ -179,6 +585,100 @@ func _spawn_waypoints() -> void:
 				fin.global_position = spawn_pos
 				fin.destination_reached.connect(func(id, w): destination_reached.emit(id, w))
 				waypoints_container.add_child(fin)
+				if active_route != null and active_route.state_id == "goa":
+					var arch_spr := fin.get_node_or_null("ArchSprite") as Sprite2D
+					var goa_arch_tex := _load_tex("res://assets/indian_locations/goa/v3/props/prop_goa_arch_welcome.png")
+					if is_instance_valid(arch_spr) and goa_arch_tex:
+						arch_spr.texture = goa_arch_tex
+						var ah := float(goa_arch_tex.get_height())
+						if ah > 0.0:
+							var sc := 240.0 / ah
+							arch_spr.scale = Vector2(sc, sc)
+							arch_spr.position = Vector2(0.0, -120.0)
+					var city_lbl := fin.get_node_or_null("CityLabel") as Label
+					if is_instance_valid(city_lbl):
+						city_lbl.position.y = -255.0
+					var sub_lbl := fin.get_node_or_null("SubtitleLabel") as Label
+					if is_instance_valid(sub_lbl):
+						sub_lbl.offset_top = -178.0
+						sub_lbl.offset_bottom = -154.0
+						sub_lbl.text = "GOA ROUTE COMPLETE"
+				elif active_route != null and active_route.state_id == "kerala":
+					var arch_spr := fin.get_node_or_null("ArchSprite") as Sprite2D
+					var ker_arch_tex := _load_tex("res://assets/indian_locations/kerala/v3/props/prop_kerala_arch_munnar.png")
+					if is_instance_valid(arch_spr) and ker_arch_tex:
+						arch_spr.texture = ker_arch_tex
+						var ah := float(ker_arch_tex.get_height())
+						if ah > 0.0:
+							var sc := 240.0 / ah
+							arch_spr.scale = Vector2(sc, sc)
+							arch_spr.position = Vector2(0.0, -120.0)
+					var city_lbl := fin.get_node_or_null("CityLabel") as Label
+					if is_instance_valid(city_lbl):
+						city_lbl.text = "WELCOME TO MUNNAR"
+						city_lbl.position.y = -265.0
+					var sub_lbl := fin.get_node_or_null("SubtitleLabel") as Label
+					if is_instance_valid(sub_lbl):
+						sub_lbl.offset_top = -178.0
+						sub_lbl.offset_bottom = -154.0
+						sub_lbl.text = "KOCHI → MUNNAR"
+				elif active_route != null and active_route.state_id == "rajasthan":
+					var arch_spr := fin.get_node_or_null("ArchSprite") as Sprite2D
+					var rj_arch_tex := _load_tex("res://assets/indian_locations/rajasthan/v3/props/prop_rajasthan_arch_jaisalmer.png")
+					if is_instance_valid(arch_spr) and rj_arch_tex:
+						arch_spr.texture = rj_arch_tex
+						var ah := float(rj_arch_tex.get_height())
+						if ah > 0.0:
+							var sc := 240.0 / ah
+							arch_spr.scale = Vector2(sc, sc)
+							arch_spr.position = Vector2(0.0, -120.0)
+					var city_lbl := fin.get_node_or_null("CityLabel") as Label
+					if is_instance_valid(city_lbl):
+						city_lbl.text = "WELCOME TO JAISALMER"
+						city_lbl.position.y = -265.0
+					var sub_lbl := fin.get_node_or_null("SubtitleLabel") as Label
+					if is_instance_valid(sub_lbl):
+						sub_lbl.offset_top = -178.0
+						sub_lbl.offset_bottom = -154.0
+						sub_lbl.text = "JAIPUR → JAISALMER"
+				elif active_route != null and active_route.state_id == "telangana":
+					var arch_spr := fin.get_node_or_null("ArchSprite") as Sprite2D
+					var tg_arch_tex := _load_tex("res://assets/indian_locations/telangana/v3/props/prop_hyd_arch_golconda.png")
+					if is_instance_valid(arch_spr) and tg_arch_tex:
+						arch_spr.texture = tg_arch_tex
+						var ah := float(tg_arch_tex.get_height())
+						if ah > 0.0:
+							var sc := 240.0 / ah
+							arch_spr.scale = Vector2(sc, sc)
+							arch_spr.position = Vector2(0.0, -120.0)
+					var city_lbl := fin.get_node_or_null("CityLabel") as Label
+					if is_instance_valid(city_lbl):
+						city_lbl.text = "WELCOME TO GOLCONDA FORT, HYDERABAD!"
+						city_lbl.position.y = -268.0
+					var sub_lbl := fin.get_node_or_null("SubtitleLabel") as Label
+					if is_instance_valid(sub_lbl):
+						sub_lbl.offset_top = -170.0
+						sub_lbl.offset_bottom = -146.0
+						sub_lbl.text = "HYDERABAD CITY EXPLORER"
+				elif active_route != null and active_route.state_id == "tamil_nadu":
+					var arch_spr := fin.get_node_or_null("ArchSprite") as Sprite2D
+					var tn_arch_tex := _load_tex("res://assets/indian_locations/tamil_nadu/v3/props/prop_tn_arch_chennai.png")
+					if is_instance_valid(arch_spr) and tn_arch_tex:
+						arch_spr.texture = tn_arch_tex
+						var ah := float(tn_arch_tex.get_height())
+						if ah > 0.0:
+							var sc := 240.0 / ah
+							arch_spr.scale = Vector2(sc, sc)
+							arch_spr.position = Vector2(0.0, -120.0)
+					var city_lbl := fin.get_node_or_null("CityLabel") as Label
+					if is_instance_valid(city_lbl):
+						city_lbl.text = "WELCOME TO CHENNAI!"
+						city_lbl.position.y = -265.0
+					var sub_lbl := fin.get_node_or_null("SubtitleLabel") as Label
+					if is_instance_valid(sub_lbl):
+						sub_lbl.offset_top = -157.0
+						sub_lbl.offset_bottom = -133.0
+						sub_lbl.text = "KANYAKUMARI → CHENNAI"
 
 func _spawn_roadside_props() -> void:
 	if not is_instance_valid(props_container):
@@ -238,6 +738,41 @@ func _spawn_roadside_props() -> void:
 			props_container.add_child(bridge)
 
 	# Helper check to ensure props/signs never clash with landmarks or bridge spans
+	if state_id == "goa":
+		GoaTerrainHelper.spawn_goa_scenery(self, landmark_x_positions)
+		var goa_rng := RandomNumberGenerator.new()
+		goa_rng.seed = 20261128
+		_populate_pickups_and_coins(total_length_px, state_id, goa_rng)
+		return
+	elif state_id == "kerala":
+		KeralaTerrainHelper.spawn_kerala_scenery(self, landmark_x_positions)
+		var ker_rng := RandomNumberGenerator.new()
+		ker_rng.seed = 20261130
+		_populate_pickups_and_coins(total_length_px, state_id, ker_rng)
+		KeralaTerrainHelper.finalize_pickup_chunks(self)
+		return
+	elif state_id == "rajasthan":
+		RajasthanTerrainHelper.spawn_rajasthan_scenery(self, landmark_x_positions)
+		var rj_rng := RandomNumberGenerator.new()
+		rj_rng.seed = 20261128
+		_populate_pickups_and_coins(total_length_px, state_id, rj_rng)
+		RajasthanTerrainHelper.finalize_pickup_chunks(self)
+		return
+	elif state_id == "telangana":
+		TelanganaTerrainHelper.spawn_telangana_scenery(self, landmark_x_positions)
+		var tg_rng := RandomNumberGenerator.new()
+		tg_rng.seed = 20261128
+		_populate_pickups_and_coins(total_length_px, state_id, tg_rng)
+		TelanganaTerrainHelper.finalize_pickup_chunks(self)
+		return
+	elif state_id == "tamil_nadu":
+		TamilNaduTerrainHelper.spawn_tamil_nadu_scenery(self, landmark_x_positions)
+		var tn_rng := RandomNumberGenerator.new()
+		tn_rng.seed = 20261129
+		_populate_pickups_and_coins(total_length_px, state_id, tn_rng)
+		TamilNaduTerrainHelper.finalize_pickup_chunks(self)
+		return
+
 	var is_clear := func(check_x: float, min_gap: float = 1200.0) -> bool:
 		for lx in landmark_x_positions:
 			if absf(check_x - lx) < min_gap:
@@ -588,6 +1123,22 @@ func _offset_polyline(pts: PackedVector2Array, offset_y: float) -> PackedVector2
 
 func _draw() -> void:
 	if road_points.size() < 2:
+		return
+
+	if active_route != null and active_route.state_id == "goa":
+		GoaTerrainHelper.draw_goa_world(self)
+		return
+	elif active_route != null and active_route.state_id == "kerala":
+		KeralaTerrainHelper.draw_kerala_world(self)
+		return
+	elif active_route != null and active_route.state_id == "rajasthan":
+		RajasthanTerrainHelper.draw_rajasthan_world(self)
+		return
+	elif active_route != null and active_route.state_id == "telangana":
+		TelanganaTerrainHelper.draw_telangana_world(self)
+		return
+	elif active_route != null and active_route.state_id == "tamil_nadu":
+		TamilNaduTerrainHelper.draw_tamil_nadu_world(self)
 		return
 
 	var is_tamil_nadu := (active_route != null and active_route.state_id == "tamil_nadu")

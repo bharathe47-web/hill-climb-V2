@@ -133,6 +133,21 @@ var air_rotation_accum: float = 0.0
 var _last_air_rotation: float = 0.0
 var wheelie_time: float = 0.0
 
+# --- PERF: cached shock sprite references (avoid get_node_or_null every frame) ---
+var _rear_shock: Sprite2D = null
+var _front_shock: Sprite2D = null
+
+# --- PERF: pre-allocated strut point arrays (avoid PackedVector2Array alloc every frame) ---
+var _rear_strut_pts: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
+var _front_strut_pts: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
+
+# --- PERF: cached physics materials for wheels (avoid duplicate() every nitro toggle/upgrade) ---
+var _rear_phys_mat: PhysicsMaterial = null
+var _front_phys_mat: PhysicsMaterial = null
+
+# --- PERF: last-emitted nitro integer percent to suppress redundant HUD updates ---
+var _last_nitro_pct_emitted: int = -1
+
 func _ready() -> void:
 	if rear_wheel_mount:
 		_initial_rear_wheel_offset = rear_wheel_mount.position
@@ -173,6 +188,29 @@ func _ready() -> void:
 	
 	_ensure_nitro_visuals()
 
+	# PERF: cache shock sprite refs once so _update_struts never calls get_node_or_null
+	_rear_shock = get_node_or_null("RearShock") as Sprite2D
+	_front_shock = get_node_or_null("FrontShock") as Sprite2D
+
+	# PERF: cache (or create) physics materials once per wheel so _apply_wheel_friction
+	# never duplicates — it just mutates the already-unique material in place.
+	if rear_wheel:
+		if rear_wheel.physics_material_override:
+			_rear_phys_mat = rear_wheel.physics_material_override.duplicate() as PhysicsMaterial
+			rear_wheel.physics_material_override = _rear_phys_mat
+		else:
+			_rear_phys_mat = PhysicsMaterial.new()
+			_rear_phys_mat.friction = base_wheel_friction
+			rear_wheel.physics_material_override = _rear_phys_mat
+	if front_wheel:
+		if front_wheel.physics_material_override:
+			_front_phys_mat = front_wheel.physics_material_override.duplicate() as PhysicsMaterial
+			front_wheel.physics_material_override = _front_phys_mat
+		else:
+			_front_phys_mat = PhysicsMaterial.new()
+			_front_phys_mat.friction = base_wheel_friction
+			front_wheel.physics_material_override = _front_phys_mat
+
 func _process(_delta: float) -> void:
 	_update_struts()
 
@@ -207,7 +245,11 @@ func _update_nitro(delta: float) -> void:
 		if not is_nitro_active:
 			_activate_nitro()
 		current_nitro = maxf(0.0, current_nitro - nitro_consumption_rate * delta)
-		nitro_changed.emit(current_nitro, max_nitro)
+		# PERF: only signal when integer percent changed (suppress 60Hz churn)
+		var pct: int = int((current_nitro / max_nitro) * 100.0)
+		if pct != _last_nitro_pct_emitted:
+			_last_nitro_pct_emitted = pct
+			nitro_changed.emit(current_nitro, max_nitro)
 		if current_nitro <= 0.0:
 			_deactivate_nitro()
 	else:
@@ -215,7 +257,10 @@ func _update_nitro(delta: float) -> void:
 			_deactivate_nitro()
 		if current_nitro < max_nitro:
 			current_nitro = minf(max_nitro, current_nitro + nitro_recharge_rate * delta)
-			nitro_changed.emit(current_nitro, max_nitro)
+			var pct: int = int((current_nitro / max_nitro) * 100.0)
+			if pct != _last_nitro_pct_emitted:
+				_last_nitro_pct_emitted = pct
+				nitro_changed.emit(current_nitro, max_nitro)
 
 func _ensure_nitro_visuals() -> void:
 	if is_instance_valid(nitro_flame):
@@ -365,8 +410,8 @@ func set_active(active: bool) -> void:
 			front_wheel.angular_velocity = 0.0
 
 func _check_ground_contact() -> void:
-	var rear_contact: bool = (rear_wheel.contact_monitor and rear_wheel.get_colliding_bodies().size() > 0) if rear_wheel else false
-	var front_contact: bool = (front_wheel.contact_monitor and front_wheel.get_colliding_bodies().size() > 0) if front_wheel else false
+	var rear_contact: bool = (rear_wheel.contact_monitor and rear_wheel.get_contact_count() > 0) if rear_wheel else false
+	var front_contact: bool = (front_wheel.contact_monitor and front_wheel.get_contact_count() > 0) if front_wheel else false
 	is_grounded = rear_contact or front_contact
 	
 	# Detect hard landing thud
@@ -377,8 +422,8 @@ func _check_ground_contact() -> void:
 			hard_landed.emit(clampf((impact_y - 140.0) / 300.0, 0.2, 1.0))
 
 func _track_stunts(delta: float) -> void:
-	var rear_contact: bool = (rear_wheel.contact_monitor and rear_wheel.get_colliding_bodies().size() > 0) if rear_wheel else false
-	var front_contact: bool = (front_wheel.contact_monitor and front_wheel.get_colliding_bodies().size() > 0) if front_wheel else false
+	var rear_contact: bool = (rear_wheel.contact_monitor and rear_wheel.get_contact_count() > 0) if rear_wheel else false
+	var front_contact: bool = (front_wheel.contact_monitor and front_wheel.get_contact_count() > 0) if front_wheel else false
 
 	if not is_grounded:
 		air_time += delta
@@ -510,23 +555,25 @@ func _update_struts() -> void:
 
 	if rear_strut and rear_wheel:
 		var local_rear: Vector2 = to_local(rear_wheel.global_position)
-		rear_strut.points = PackedVector2Array([rear_mount, local_rear])
-		var rear_shock: Sprite2D = get_node_or_null("RearShock")
-		if is_instance_valid(rear_shock):
-			rear_shock.position = (rear_mount + local_rear) * 0.5
-			rear_shock.rotation = (local_rear - rear_mount).angle() - PI * 0.5
+		_rear_strut_pts[0] = rear_mount
+		_rear_strut_pts[1] = local_rear
+		rear_strut.points = _rear_strut_pts
+		if is_instance_valid(_rear_shock):
+			_rear_shock.position = (rear_mount + local_rear) * 0.5
+			_rear_shock.rotation = (local_rear - rear_mount).angle() - PI * 0.5
 			var dist: float = rear_mount.distance_to(local_rear)
-			rear_shock.scale = Vector2(0.12, clampf(dist / 140.0, 0.08, 0.22))
+			_rear_shock.scale = Vector2(0.12, clampf(dist / 140.0, 0.08, 0.22))
 
 	if front_strut and front_wheel:
 		var local_front: Vector2 = to_local(front_wheel.global_position)
-		front_strut.points = PackedVector2Array([front_mount, local_front])
-		var front_shock: Sprite2D = get_node_or_null("FrontShock")
-		if is_instance_valid(front_shock):
-			front_shock.position = (front_mount + local_front) * 0.5
-			front_shock.rotation = (local_front - front_mount).angle() - PI * 0.5
+		_front_strut_pts[0] = front_mount
+		_front_strut_pts[1] = local_front
+		front_strut.points = _front_strut_pts
+		if is_instance_valid(_front_shock):
+			_front_shock.position = (front_mount + local_front) * 0.5
+			_front_shock.rotation = (local_front - front_mount).angle() - PI * 0.5
 			var dist: float = front_mount.distance_to(local_front)
-			front_shock.scale = Vector2(0.12, clampf(dist / 140.0, 0.08, 0.22))
+			_front_shock.scale = Vector2(0.12, clampf(dist / 140.0, 0.08, 0.22))
 
 func _enforce_wheel_attachment_safety() -> void:
 	# Unbreakable safety constraint: prevent physics solver stretching beyond 3.0 px under any extreme shock
@@ -649,14 +696,17 @@ func _recalculate_upgrades() -> void:
 		current_fuel = max_fuel
 
 func _apply_wheel_friction(friction_val: float) -> void:
-	if rear_wheel:
-		if rear_wheel.physics_material_override:
-			rear_wheel.physics_material_override = rear_wheel.physics_material_override.duplicate()
-			rear_wheel.physics_material_override.friction = friction_val
-	if front_wheel:
-		if front_wheel.physics_material_override:
-			front_wheel.physics_material_override = front_wheel.physics_material_override.duplicate()
-			front_wheel.physics_material_override.friction = friction_val
+	# PERF: mutate the pre-cached unique physics materials instead of duplicating every call
+	if _rear_phys_mat:
+		_rear_phys_mat.friction = friction_val
+	elif rear_wheel and rear_wheel.physics_material_override:
+		rear_wheel.physics_material_override = rear_wheel.physics_material_override.duplicate()
+		rear_wheel.physics_material_override.friction = friction_val
+	if _front_phys_mat:
+		_front_phys_mat.friction = friction_val
+	elif front_wheel and front_wheel.physics_material_override:
+		front_wheel.physics_material_override = front_wheel.physics_material_override.duplicate()
+		front_wheel.physics_material_override.friction = friction_val
 
 ## Returns dictionary containing current upgrade levels and calculated effective stats
 func get_stats() -> Dictionary:

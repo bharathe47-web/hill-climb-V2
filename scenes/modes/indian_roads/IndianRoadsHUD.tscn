@@ -16,11 +16,13 @@
 [ext_resource type="Texture2D" path="res://assets/ui/buttons/button_map_pressed.png" id="14_map_btn_p"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_top"]
-bg_color = Color(0.08, 0.12, 0.18, 0.85)
+bg_color = Color(0.06, 0.11, 0.17, 0.90)
 border_width_bottom = 2
-border_color = Color(0.3, 0.7, 0.9, 0.6)
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+border_color = Color(0.28, 0.72, 0.88, 0.75)
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
 bg_color = Color(0.12, 0.16, 0.22, 1)
@@ -122,23 +124,32 @@ show_percentage = false
 
 [node name="MetricsHBox" type="HBoxContainer" parent="TopBar/Margin/HBox/RouteInfoVBox"]
 layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 20
 
 [node name="DistanceLabel" type="Label" parent="TopBar/Margin/HBox/RouteInfoVBox/MetricsHBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_font_narrow")
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 0.9)
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.92, 0.96, 1, 0.95)
 text = "DIST: 0m / 1800m"
 
 [node name="NextWaypointLabel" type="Label" parent="TopBar/Margin/HBox/RouteInfoVBox/MetricsHBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_font_narrow")
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.4, 0.9, 1, 0.9)
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.45, 0.92, 1, 0.98)
 text = "NEXT: THIRUVALLUVAR STATUE (350m)"
+
+[node name="SectionBadgeLabel" type="Label" parent="TopBar/Margin/HBox/RouteInfoVBox/MetricsHBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.45, 0.98, 0.65, 0.98)
+text = "NORTH GOA"
 
 [node name="CoinsHBox" type="HBoxContainer" parent="TopBar/Margin/HBox"]
 layout_mode = 2
@@ -227,14 +238,14 @@ expand_icon = true
 [node name="CenterContainer" type="CenterContainer" parent="."]
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 95.0
-offset_bottom = 175.0
+offset_top = 88.0
+offset_bottom = 148.0
 grow_horizontal = 2
 mouse_filter = 2
 
 [node name="ToastPanel" type="PanelContainer" parent="CenterContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(420, 60)
+custom_minimum_size = Vector2(360, 48)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_toast")
 
@@ -363,7 +374,7 @@ mouse_filter = 2
 
 [node name="NitroButton" type="TouchScreenButton" parent="TouchControls"]
 unique_name_in_owner = true
-position = Vector2(50, 460)
+position = Vector2(52, 456)
 texture_normal = ExtResource("11_nitro")
 texture_pressed = ExtResource("12_nitro_p")
 action = "nitro"
@@ -371,19 +382,21 @@ visibility_mode = 0
 
 [node name="NitroHint" type="Label" parent="TouchControls"]
 layout_mode = 0
-offset_left = 30.0
-offset_top = 436.0
-offset_right = 150.0
-offset_bottom = 456.0
+offset_left = 28.0
+offset_top = 528.0
+offset_right = 152.0
+offset_bottom = 548.0
 theme_override_fonts/font = ExtResource("3_font_narrow")
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(1, 0.85, 0.2, 0.75)
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 0.9, 0.35, 0.95)
+theme_override_colors/font_outline_color = Color(0.06, 0.08, 0.12, 0.92)
+theme_override_constants/outline_size = 3
 text = "[SPACE] BOOST"
 horizontal_alignment = 1
 
 [node name="BrakeButton" type="TouchScreenButton" parent="TouchControls"]
 unique_name_in_owner = true
-position = Vector2(40, 560)
+position = Vector2(40, 562)
 scale = Vector2(0.9, 0.9)
 texture_normal = ExtResource("9_brake")
 texture_pressed = ExtResource("10_brake_p")
@@ -392,19 +405,21 @@ visibility_mode = 0
 
 [node name="BrakeHint" type="Label" parent="TouchControls"]
 layout_mode = 0
-offset_left = 30.0
-offset_top = 675.0
-offset_right = 150.0
-offset_bottom = 695.0
+offset_left = 28.0
+offset_top = 676.0
+offset_right = 152.0
+offset_bottom = 696.0
 theme_override_fonts/font = ExtResource("3_font_narrow")
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 1, 1, 0.92)
+theme_override_colors/font_outline_color = Color(0.06, 0.08, 0.12, 0.92)
+theme_override_constants/outline_size = 3
 text = "[A / ←] BRAKE"
 horizontal_alignment = 1
 
 [node name="GasButton" type="TouchScreenButton" parent="TouchControls"]
 unique_name_in_owner = true
-position = Vector2(1110, 560)
+position = Vector2(1110, 562)
 scale = Vector2(0.9, 0.9)
 texture_normal = ExtResource("7_gas")
 texture_pressed = ExtResource("8_gas_p")
@@ -413,12 +428,14 @@ visibility_mode = 0
 
 [node name="GasHint" type="Label" parent="TouchControls"]
 layout_mode = 0
-offset_left = 1100.0
-offset_top = 675.0
-offset_right = 1220.0
-offset_bottom = 695.0
+offset_left = 1098.0
+offset_top = 676.0
+offset_right = 1222.0
+offset_bottom = 696.0
 theme_override_fonts/font = ExtResource("3_font_narrow")
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 1, 1, 0.92)
+theme_override_colors/font_outline_color = Color(0.06, 0.08, 0.12, 0.92)
+theme_override_constants/outline_size = 3
 text = "[D / →] GAS"
 horizontal_alignment = 1

@@ -378,8 +378,9 @@ func _show_victory_screen(next_unlocked: String = "") -> void:
 		victory_screen.return_to_main_menu_requested.connect(func(): return_to_main_menu_requested.emit())
 
 	var total_cp := active_route.get_checkpoint_count() if active_route != null else 2
+	var region_display := active_route.city_display_name if (active_route != null and active_route.city_display_name != "") else (active_route.state_name if active_route != null else "")
 	victory_screen.display_results(
-		active_route.state_name,
+		region_display,
 		active_route.destination_city,
 		session_distance_m,
 		checkpoints_cleared_count,
