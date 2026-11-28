@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/StageData.gd" id="1_stage"]
+
+[resource]
+script = ExtResource("1_stage")
+id = "stage_05_trichy"
+stage_name_en = "Trichy Rockfort"
+stage_name_ta = "திருச்சி மலைக்கோட்டை"
+subtitle_en = "Cauvery Riverbed & Historic Fort"
+length_meters = 2400.0
+biome = "river_valley"
+difficulty = 2.2
+terrain_seed = 5005
+hill_amplitude = 200.0
+hill_frequency = 0.0022
+bump_amplitude = 28.0
+coin_density = 120.0
+fuel_interval_meters = 320.0
+checkpoints = [
+	{"distance": 600.0, "name_en": "Manapparai Murukku Way", "name_ta": "மணப்பாறை வழி"},
+	{"distance": 1200.0, "name_en": "Grand Anicut Canal", "name_ta": "கல்லணை வாய்க்கால்"},
+	{"distance": 1800.0, "name_en": "Rockfort Vista", "name_ta": "மலைக்கோட்டை காட்சி"},
+	{"distance": 2400.0, "name_en": "Samayapuram Gate", "name_ta": "சமயபுரம் நுழைவு"}
+]
+landmark_props = [
+	{"distance": 300.0, "prop_type": "tea_shop"},
+	{"distance": 700.0, "prop_type": "stone_wall"},
+	{"distance": 1250.0, "prop_type": "sign_kanyakumari"},
+	{"distance": 1850.0, "prop_type": "lamp_post"}
+]

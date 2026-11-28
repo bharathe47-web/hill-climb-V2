@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 128" width="256" height="128">
+  <defs>
+    <radialGradient id="projG" cx="45%" cy="55%" r="55%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.75" />
+      <stop offset="40%" stop-color="#050510" stop-opacity="0.45" />
+      <stop offset="85%" stop-color="#101020" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.0" />
+    </radialGradient>
+  </defs>
+  <!-- Skewed / elongated perspective shadow -->
+  <g transform="skewX(-25) translate(30, 0)">
+    <ellipse cx="128" cy="64" rx="90" ry="40" fill="url(#projG)" />
+  </g>
+</svg>

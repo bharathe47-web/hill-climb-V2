@@ -4,6 +4,9 @@ extends Control
 ## PauseMenuController: Handles the pause overlay, resume, and restart actions.
 
 signal menu_requested
+signal resume_pressed
+signal restart_pressed
+signal main_menu_pressed
 
 @onready var resume_button: Button = %ResumeButton
 @onready var retry_button: Button = %RetryButton
@@ -61,24 +64,26 @@ func _on_run_started() -> void:
 	visible = false
 
 func _on_resume_pressed() -> void:
+	visible = false
+	get_tree().paused = false
 	if is_instance_valid(game_manager_ref) and game_manager_ref.has_method("pause_run"):
 		game_manager_ref.pause_run(false)
-	else:
-		visible = false
-		get_tree().paused = false
+	resume_pressed.emit()
 
 func _on_retry_pressed() -> void:
 	visible = false
+	get_tree().paused = false
 	if is_instance_valid(game_manager_ref) and game_manager_ref.has_method("restart_run"):
 		game_manager_ref.restart_run()
+	restart_pressed.emit()
 
 func _on_main_menu_pressed() -> void:
 	visible = false
+	get_tree().paused = false
 	if is_instance_valid(game_manager_ref) and game_manager_ref.has_method("pause_run"):
 		game_manager_ref.pause_run(false)
-	else:
-		get_tree().paused = false
 	menu_requested.emit()
+	main_menu_pressed.emit()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:

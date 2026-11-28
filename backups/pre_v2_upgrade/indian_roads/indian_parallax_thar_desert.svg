@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="dSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fdba74"/>
+      <stop offset="45%" stop-color="#fed7aa"/>
+      <stop offset="100%" stop-color="#ffedd5"/>
+    </linearGradient>
+    <linearGradient id="farDune" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+    <linearGradient id="midDune" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="nearDune" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#dSky)"/>
+  <!-- Distant Desert Sun -->
+  <circle cx="1400" cy="220" r="85" fill="#fef08a" opacity="0.85"/>
+  <circle cx="1400" cy="220" r="110" fill="#fde047" opacity="0.3"/>
+  <!-- Far Sand Dunes -->
+  <path d="M 0,380 Q 320,290 640,360 T 1280,330 T 1920,370 L 1920,720 L 0,720 Z" fill="url(#farDune)" opacity="0.7"/>
+  <!-- Mid Sand Dunes -->
+  <path d="M 0,440 Q 400,360 800,430 T 1600,410 T 1920,450 L 1920,720 L 0,720 Z" fill="url(#midDune)" opacity="0.85"/>
+  <!-- Near Rolling Dunes & Arid Shrubs -->
+  <path d="M 0,510 Q 350,440 700,500 T 1400,480 T 1920,520 L 1920,720 L 0,720 Z" fill="url(#nearDune)"/>
+</svg>

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://testsave001"]
+
+[ext_resource type="Script" path="res://tests/test_save_node.gd" id="1_save"]
+
+[node name="TestSavePersistence" type="Node2D"]
+script = ExtResource("1_save")

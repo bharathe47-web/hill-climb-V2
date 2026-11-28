@@ -1,6 +1,9 @@
 class_name RouteMapOverlay
 extends Control
 
+const RoadsideLandmarkRegistry = preload("res://scripts/modes/indian_roads/RoadsideLandmarkRegistry.gd")
+const WaypointData = preload("res://resources/routes/WaypointData.gd")
+
 ## RouteMapOverlay: In-game interactive tourism route map modal dialog for Indian Roads mode.
 ## Displays state geographical map, journey progress, upcoming landmarks,
 ## cleared checkpoints, and remaining distance to destination without resetting gameplay.
@@ -40,24 +43,24 @@ const STATE_ROUTE_GEOMETRY := {
 		{"pos": Vector2(0.78, 0.16), "dist_m": 1200.0, "label": "13. Chennai"}
 	],
 	"goa": [
-		{"pos": Vector2(0.38, 0.32), "dist_m": 0.0, "label": "Panaji"},
-		{"pos": Vector2(0.28, 0.26), "dist_m": 250.0, "label": "Calangute"},
-		{"pos": Vector2(0.44, 0.42), "dist_m": 500.0, "label": "Mandovi CP"},
-		{"pos": Vector2(0.52, 0.58), "dist_m": 750.0, "label": "Old Goa"},
-		{"pos": Vector2(0.55, 0.74), "dist_m": 950.0, "label": "Margao"}
+		{"pos": Vector2(0.28, 0.20), "dist_m": 0.0, "label": "North Goa"},
+		{"pos": Vector2(0.38, 0.36), "dist_m": 330.0, "label": "Panaji CP"},
+		{"pos": Vector2(0.58, 0.44), "dist_m": 620.0, "label": "East Ghats CP"},
+		{"pos": Vector2(0.46, 0.64), "dist_m": 915.0, "label": "South Coast CP"},
+		{"pos": Vector2(0.56, 0.80), "dist_m": 1200.0, "label": "Palolem / Margao"}
 	],
 	"kerala": [
-		{"pos": Vector2(0.38, 0.52), "dist_m": 0.0, "label": "Kochi"},
-		{"pos": Vector2(0.36, 0.65), "dist_m": 280.0, "label": "Alleppey"},
-		{"pos": Vector2(0.58, 0.50), "dist_m": 550.0, "label": "Ghats CP"},
-		{"pos": Vector2(0.66, 0.42), "dist_m": 820.0, "label": "Tea Gardens"},
-		{"pos": Vector2(0.70, 0.35), "dist_m": 1050.0, "label": "Munnar"}
+		{"pos": Vector2(0.36, 0.56), "dist_m": 0.0, "label": "Kochi"},
+		{"pos": Vector2(0.45, 0.54), "dist_m": 210.0, "label": "Muvattupuzha"},
+		{"pos": Vector2(0.55, 0.49), "dist_m": 615.0, "label": "Neriamangalam"},
+		{"pos": Vector2(0.64, 0.43), "dist_m": 1215.0, "label": "Adimali"},
+		{"pos": Vector2(0.73, 0.35), "dist_m": 1800.0, "label": "Munnar"}
 	],
 	"rajasthan": [
 		{"pos": Vector2(0.68, 0.42), "dist_m": 0.0, "label": "Jaipur"},
-		{"pos": Vector2(0.72, 0.36), "dist_m": 300.0, "label": "Amber Fort"},
-		{"pos": Vector2(0.55, 0.46), "dist_m": 600.0, "label": "Thar CP"},
-		{"pos": Vector2(0.38, 0.48), "dist_m": 900.0, "label": "Mehrangarh"},
+		{"pos": Vector2(0.60, 0.45), "dist_m": 295.0, "label": "Aravalli Pass"},
+		{"pos": Vector2(0.50, 0.46), "dist_m": 635.0, "label": "Thar CP"},
+		{"pos": Vector2(0.38, 0.48), "dist_m": 915.0, "label": "Jodhpur"},
 		{"pos": Vector2(0.18, 0.45), "dist_m": 1200.0, "label": "Jaisalmer"}
 	],
 	"gujarat": [
@@ -68,11 +71,16 @@ const STATE_ROUTE_GEOMETRY := {
 		{"pos": Vector2(0.24, 0.28), "dist_m": 1150.0, "label": "White Desert"}
 	],
 	"telangana": [
-		{"pos": Vector2(0.44, 0.62), "dist_m": 0.0, "label": "Hyderabad"},
-		{"pos": Vector2(0.38, 0.60), "dist_m": 260.0, "label": "Golconda"},
-		{"pos": Vector2(0.56, 0.48), "dist_m": 520.0, "label": "ORR Toll CP"},
-		{"pos": Vector2(0.68, 0.38), "dist_m": 780.0, "label": "Torana Arch"},
-		{"pos": Vector2(0.72, 0.30), "dist_m": 1000.0, "label": "Thousand Pillar"}
+		{"pos": Vector2(0.70, 0.78), "dist_m": 0.0, "label": "Charminar", "label_offset": Vector2(8, 4)},
+		{"pos": Vector2(0.57, 0.81), "dist_m": 194.0, "label": "Chowmahalla", "label_offset": Vector2(-84, 6)},
+		{"pos": Vector2(0.68, 0.64), "dist_m": 262.0, "label": "Salar Jung", "label_offset": Vector2(-74, -8)},
+		{"pos": Vector2(0.64, 0.50), "dist_m": 392.0, "label": ""},
+		{"pos": Vector2(0.59, 0.34), "dist_m": 498.0, "label": "Tank Bund CP", "label_offset": Vector2(9, 5)},
+		{"pos": Vector2(0.45, 0.30), "dist_m": 548.0, "label": "Buddha Statue", "label_offset": Vector2(-92, -6)},
+		{"pos": Vector2(0.45, 0.48), "dist_m": 655.0, "label": "Birla Mandir", "label_offset": Vector2(9, 5)},
+		{"pos": Vector2(0.31, 0.50), "dist_m": 735.0, "label": "Qutb Shahi", "label_offset": Vector2(-72, -10)},
+		{"pos": Vector2(0.23, 0.56), "dist_m": 868.0, "label": ""},
+		{"pos": Vector2(0.18, 0.43), "dist_m": 1000.0, "label": "Golconda Fort", "label_offset": Vector2(9, -10)}
 	]
 }
 
@@ -119,18 +127,27 @@ func open_map(route: RouteData, current_dist_m: float) -> void:
 
 	# Header info
 	if is_instance_valid(state_title_label):
-		state_title_label.text = ("%s HIGHWAY ROUTE MAP" % route.state_name).to_upper()
+		if route.city_display_name != "":
+			state_title_label.text = ("%s CITY MAP" % route.city_display_name).to_upper()
+		else:
+			state_title_label.text = ("%s HIGHWAY ROUTE MAP" % route.state_name).to_upper()
 	if is_instance_valid(route_subtitle_label):
-		route_subtitle_label.text = "%s → %s  •  TOTAL: %dm (%.1f KM)" % [
-			route.start_city.to_upper(),
-			route.destination_city.to_upper(),
-			int(route.total_distance_m),
-			route.total_distance_m / 1000.0
-		]
+		if route.city_display_name != "":
+			route_subtitle_label.text = "CHARMINAR → HUSSAIN SAGAR → GOLCONDA FORT  •  TOTAL: %dm (%.1f KM)" % [
+				int(route.total_distance_m),
+				route.total_distance_m / 1000.0
+			]
+		else:
+			route_subtitle_label.text = "%s → %s  •  TOTAL: %dm (%.1f KM)" % [
+				route.start_city.to_upper(),
+				route.destination_city.to_upper(),
+				int(route.total_distance_m),
+				route.total_distance_m / 1000.0
+			]
 
-	# State Map Texture
+	# State Map or City Route Map Texture
 	if is_instance_valid(state_map_rect):
-		var map_path := route.state_map_path
+		var map_path := route.route_map_path if route.route_map_path != "" else route.state_map_path
 		if map_path != "" and ResourceLoader.exists(map_path):
 			state_map_rect.texture = load(map_path)
 		elif route.state_card_icon_path != "" and ResourceLoader.exists(route.state_card_icon_path):
@@ -234,9 +251,13 @@ func _draw_route_overlay() -> void:
 		_route_canvas.draw_circle(pt, pin_rad, pin_col)
 
 		if font_narrow and label_str != "":
-			var txt_offset := Vector2(8, 4)
-			if pt.x > map_rect.position.x + map_rect.size.x * 0.65:
-				txt_offset = Vector2(-75, 4)
+			var txt_offset: Vector2
+			if geom_list[i].has("label_offset"):
+				txt_offset = geom_list[i]["label_offset"]
+			else:
+				txt_offset = Vector2(8, 4)
+				if pt.x > map_rect.position.x + map_rect.size.x * 0.65:
+					txt_offset = Vector2(-75, 4)
 			_route_canvas.draw_string(font_narrow, pt + txt_offset, label_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1, 1, 1, 0.85))
 
 	# 6. Draw Player Marker (Pulsing glowing target pin)
@@ -257,14 +278,54 @@ func _populate_waypoints(route: RouteData, cur_dist_m: float) -> void:
 	var font_future: Font = load("res://assets/fonts/Kenney_Future.ttf") as Font
 	var font_narrow: Font = load("res://assets/fonts/Kenney_Future_Narrow.ttf") as Font
 
+	var entries: Array[Dictionary] = []
+	for wp in route.waypoints:
+		var kind_label := "FAMOUS ROADSIDE LANDMARK"
+		match wp.waypoint_type:
+			WaypointData.WaypointType.START:
+				kind_label = "DEPARTURE POINT"
+			WaypointData.WaypointType.CHECKPOINT:
+				kind_label = "TOLL CHECKPOINT (+%d COINS)" % wp.coins_reward if wp.coins_reward > 0 else "TOLL CHECKPOINT (+120 COINS)"
+			WaypointData.WaypointType.DESTINATION:
+				kind_label = "FINAL DESTINATION FINISH ARCH"
+			_:
+				kind_label = "%s CITY LANDMARK" % route.city_display_name.to_upper() if route.city_display_name != "" else "FAMOUS ROADSIDE LANDMARK"
+		entries.append({
+			"distance_m": wp.distance_m,
+			"title": wp.title,
+			"kind": kind_label,
+		})
+
+	# For city routes (e.g. Hyderabad City Explorer), include all city landmarks along the route
+	if route.city_display_name != "":
+		for lm in RoadsideLandmarkRegistry.get_landmarks_for_state(route.state_id):
+			var lm_d := float(lm.get("distance_m", 0.0))
+			var dup := false
+			for e in entries:
+				if absf(float(e["distance_m"]) - lm_d) < 4.0:
+					dup = true
+					break
+			if not dup:
+				var lm_name := str(lm.get("name", ""))
+				var district := str(lm.get("district", ""))
+				entries.append({
+					"distance_m": lm_d,
+					"title": lm_name,
+					"kind": district.to_upper() if district != "" else "%s CITY LANDMARK" % route.city_display_name.to_upper(),
+				})
+		entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+			return float(a["distance_m"]) < float(b["distance_m"])
+		)
+
 	var found_next := false
 
-	for wp in route.waypoints:
+	for entry in entries:
 		var row := HBoxContainer.new()
 		row.custom_minimum_size = Vector2(0, 32)
 		row.add_theme_constant_override("separation", 10)
 
-		var is_passed := (cur_dist_m >= wp.distance_m)
+		var entry_dist: float = float(entry["distance_m"])
+		var is_passed := (cur_dist_m >= entry_dist)
 		var is_current := (!is_passed and !found_next)
 		if is_current:
 			found_next = true
@@ -284,7 +345,7 @@ func _populate_waypoints(route: RouteData, cur_dist_m: float) -> void:
 		if font_narrow:
 			dist_badge.add_theme_font_override("font", font_narrow)
 		dist_badge.add_theme_font_size_override("font_size", 11)
-		dist_badge.text = "%dm" % int(wp.distance_m)
+		dist_badge.text = "%dm" % int(entry_dist)
 		dist_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		dist_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 
@@ -297,22 +358,13 @@ func _populate_waypoints(route: RouteData, cur_dist_m: float) -> void:
 		if font_future:
 			title_lbl.add_theme_font_override("font", font_future)
 		title_lbl.add_theme_font_size_override("font_size", 11)
-		title_lbl.text = wp.title.to_upper()
+		title_lbl.text = str(entry["title"]).to_upper()
 
 		var type_lbl := Label.new()
 		if font_narrow:
 			type_lbl.add_theme_font_override("font", font_narrow)
 		type_lbl.add_theme_font_size_override("font_size", 9)
-
-		match wp.waypoint_type:
-			WaypointData.WaypointType.START:
-				type_lbl.text = "DEPARTURE POINT"
-			WaypointData.WaypointType.CHECKPOINT:
-				type_lbl.text = "TOLL CHECKPOINT (+120 COINS)"
-			WaypointData.WaypointType.DESTINATION:
-				type_lbl.text = "FINAL DESTINATION FINISH ARCH"
-			_:
-				type_lbl.text = "FAMOUS ROADSIDE LANDMARK"
+		type_lbl.text = str(entry["kind"])
 
 		if is_passed:
 			status_label.text = "✓"

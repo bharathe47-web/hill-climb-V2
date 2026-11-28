@@ -16,11 +16,13 @@
 [ext_resource type="Texture2D" path="res://assets/ui/buttons/button_map_pressed.png" id="14_map_btn_p"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_top"]
-bg_color = Color(0.08, 0.12, 0.18, 0.85)
+bg_color = Color(0.06, 0.11, 0.17, 0.90)
 border_width_bottom = 2
-border_color = Color(0.3, 0.7, 0.9, 0.6)
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+border_color = Color(0.28, 0.72, 0.88, 0.75)
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
 bg_color = Color(0.12, 0.16, 0.22, 1)
@@ -122,23 +124,32 @@ show_percentage = false
 
 [node name="MetricsHBox" type="HBoxContainer" parent="TopBar/Margin/HBox/RouteInfoVBox"]
 layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 20
 
 [node name="DistanceLabel" type="Label" parent="TopBar/Margin/HBox/RouteInfoVBox/MetricsHBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_font_narrow")
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 0.9)
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.92, 0.96, 1, 0.95)
 text = "DIST: 0m / 1800m"
 
 [node name="NextWaypointLabel" type="Label" parent="TopBar/Margin/HBox/RouteInfoVBox/MetricsHBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_font_narrow")
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.4, 0.9, 1, 0.9)
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.45, 0.92, 1, 0.98)
 text = "NEXT: THIRUVALLUVAR STATUE (350m)"
+
+[node name="SectionBadgeLabel" type="Label" parent="TopBar/Margin/HBox/RouteInfoVBox/MetricsHBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.45, 0.98, 0.65, 0.98)
+text = "NORTH GOA"
 
 [node name="CoinsHBox" type="HBoxContainer" parent="TopBar/Margin/HBox"]
 layout_mode = 2
@@ -227,14 +238,14 @@ expand_icon = true
 [node name="CenterContainer" type="CenterContainer" parent="."]
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 95.0
-offset_bottom = 175.0
+offset_top = 88.0
+offset_bottom = 148.0
 grow_horizontal = 2
 mouse_filter = 2
 
 [node name="ToastPanel" type="PanelContainer" parent="CenterContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(420, 60)
+custom_minimum_size = Vector2(360, 48)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_toast")
 
@@ -377,8 +388,10 @@ offset_top = 566.0
 offset_right = 280.0
 offset_bottom = 586.0
 theme_override_fonts/font = ExtResource("3_font_narrow")
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(1, 0.85, 0.2, 0.75)
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 0.9, 0.35, 0.95)
+theme_override_colors/font_outline_color = Color(0.06, 0.08, 0.12, 0.92)
+theme_override_constants/outline_size = 3
 text = "[SPACE] BOOST"
 horizontal_alignment = 1
 
@@ -398,8 +411,10 @@ offset_top = 550.0
 offset_right = 150.0
 offset_bottom = 570.0
 theme_override_fonts/font = ExtResource("3_font_narrow")
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 1, 1, 0.92)
+theme_override_colors/font_outline_color = Color(0.06, 0.08, 0.12, 0.92)
+theme_override_constants/outline_size = 3
 text = "[A / ←] BRAKE"
 horizontal_alignment = 1
 
@@ -419,7 +434,9 @@ offset_top = 550.0
 offset_right = 1249.0
 offset_bottom = 570.0
 theme_override_fonts/font = ExtResource("3_font_narrow")
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 1, 1, 0.92)
+theme_override_colors/font_outline_color = Color(0.06, 0.08, 0.12, 0.92)
+theme_override_constants/outline_size = 3
 text = "[D / →] GAS"
 horizontal_alignment = 1

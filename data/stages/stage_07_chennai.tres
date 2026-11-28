@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/StageData.gd" id="1_stage"]
+
+[resource]
+script = ExtResource("1_stage")
+id = "stage_07_chennai"
+stage_name_en = "Chennai Marina"
+stage_name_ta = "சென்னை மெரினா கடற்கரை"
+subtitle_en = "The Finish Line at Marina Promenade"
+length_meters = 3000.0
+biome = "marina"
+difficulty = 2.8
+terrain_seed = 7007
+hill_amplitude = 190.0
+hill_frequency = 0.0019
+bump_amplitude = 25.0
+coin_density = 120.0
+fuel_interval_meters = 320.0
+checkpoints = [
+	{"distance": 750.0, "name_en": "Tambaram Outer Ring", "name_ta": "தாம்பரம் வெளிச்சுற்று"},
+	{"distance": 1500.0, "name_en": "Guindy Kathipara Flyover", "name_ta": "கிண்டி கத்திப்பாரா மேம்பாலம்"},
+	{"distance": 2250.0, "name_en": "Santhome Cathedral", "name_ta": "சாந்தோம் பேராலயம்"},
+	{"distance": 3000.0, "name_en": "Marina Beach Victory Gate", "name_ta": "மெரினா கடற்கரை வெற்றி வாயில்"}
+]
+landmark_props = [
+	{"distance": 400.0, "prop_type": "tea_shop"},
+	{"distance": 900.0, "prop_type": "sign_kanyakumari"},
+	{"distance": 1600.0, "prop_type": "lamp_post"},
+	{"distance": 2300.0, "prop_type": "stone_wall"}
+]

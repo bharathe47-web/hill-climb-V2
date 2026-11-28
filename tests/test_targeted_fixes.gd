@@ -167,16 +167,16 @@ func test_wheel_joint_softness_across_vehicles() -> void:
 		assert(r_joint != null, "RearJoint missing in %s" % vpath)
 		assert(f_joint != null, "FrontJoint missing in %s" % vpath)
 		
-		assert(is_equal_approx(r_joint.softness, 0.15),
-			"RearJoint softness in %s should be exactly 0.15, got %f" % [vpath, r_joint.softness])
-		assert(is_equal_approx(f_joint.softness, 0.15),
-			"FrontJoint softness in %s should be exactly 0.15, got %f" % [vpath, f_joint.softness])
-		assert(is_equal_approx(v.base_suspension_softness, 0.15),
-			"base_suspension_softness in %s should be exactly 0.15, got %f" % [vpath, v.base_suspension_softness])
+		assert(is_equal_approx(r_joint.softness, 0.01),
+			"RearJoint softness in %s should be exactly 0.01, got %f" % [vpath, r_joint.softness])
+		assert(is_equal_approx(f_joint.softness, 0.01),
+			"FrontJoint softness in %s should be exactly 0.01, got %f" % [vpath, f_joint.softness])
+		assert(is_equal_approx(v.base_suspension_softness, 0.01),
+			"base_suspension_softness in %s should be exactly 0.01, got %f" % [vpath, v.base_suspension_softness])
 		
 		root.remove_child(v)
 		v.free()
-	print("  ✓ PinJoint2D softness exactly 0.15 verified across all 6 vehicle scenes")
+	print("  ✓ PinJoint2D softness exactly 0.01 verified across all 6 vehicle scenes")
 
 func test_wheel_anchoring_under_load() -> void:
 	print("-> Testing wheel anchoring under full speed and nitro boost...")

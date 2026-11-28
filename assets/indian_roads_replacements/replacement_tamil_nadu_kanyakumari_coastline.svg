@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 480" width="1920" height="480">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="60%" stop-color="#0ea5e9"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="30%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+  </defs>
+  <!-- Deep Blue Ocean Horizon -->
+  <rect x="0" y="120" width="1920" height="200" fill="url(#sea)"/>
+  <!-- Distant Wave Crests -->
+  <path d="M 0,220 Q 240,210 480,220 T 960,220 T 1440,220 T 1920,220 L 1920,320 L 0,320 Z" fill="#38bdf8" opacity="0.6"/>
+  <!-- Surf Foam -->
+  <path d="M 0,280 Q 240,270 480,280 T 960,280 T 1440,280 T 1920,280 L 1920,310 L 0,310 Z" fill="#ffffff" opacity="0.75"/>
+  <!-- Coastal Golden Sand Shore -->
+  <path d="M 0,300 Q 320,285 640,300 T 1280,300 T 1920,300 L 1920,480 L 0,480 Z" fill="url(#sand)"/>
+  <!-- Beach Wet Sand Edge -->
+  <path d="M 0,300 Q 320,285 640,300 T 1280,300 T 1920,300 L 1920,325 L 0,325 Z" fill="#eab308" opacity="0.5"/>
+</svg>

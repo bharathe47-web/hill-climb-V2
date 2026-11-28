@@ -12,6 +12,7 @@ signal start_game_requested
 signal start_survival_requested(difficulty: int)
 signal start_garage_requested
 signal start_indian_roads_requested
+signal open_garage_requested
 signal quit_requested
 signal settings_requested
 

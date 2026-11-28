@@ -47,7 +47,7 @@ func _test_main_menu_mode_cards() -> void:
 
 	# Verify honest statuses
 	assert(not endless_btn.disabled, "EndlessModeButton must be enabled")
-	assert(roads_btn.disabled, "IndianRoadsModeButton must be disabled (Joel module pending)")
+	assert(not roads_btn.disabled, "IndianRoadsModeButton must be enabled (Joel module integrated)")
 	assert(not surv_btn.disabled, "SurvivalModeButton must be enabled")
 	assert(not garage_btn.disabled, "GarageModeButton must be enabled")
 

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/StageData.gd" id="1_stage"]
+
+[resource]
+script = ExtResource("1_stage")
+id = "stage_03_tirunelveli"
+stage_name_en = "Tirunelveli Plains"
+stage_name_ta = "திருநெல்வேலி சமவெளி"
+subtitle_en = "Halwa Town & Thamirabarani Valley"
+length_meters = 1800.0
+biome = "plains"
+difficulty = 1.6
+terrain_seed = 3003
+hill_amplitude = 150.0
+hill_frequency = 0.0017
+bump_amplitude = 20.0
+coin_density = 120.0
+fuel_interval_meters = 320.0
+checkpoints = [
+	{"distance": 450.0, "name_en": "Thamirabarani Bridge", "name_ta": "தாமிரபரணி பாலம்"},
+	{"distance": 900.0, "name_en": "Gangaikondan Sanctuary", "name_ta": "கங்கைகொண்டான் காப்பகம்"},
+	{"distance": 1350.0, "name_en": "Kovilpatti Highway", "name_ta": "கோவில்பட்டி நெடுஞ்சாலை"},
+	{"distance": 1800.0, "name_en": "Sattur Toll Gate", "name_ta": "சாத்தூர் சுங்கச்சாவடி"}
+]
+landmark_props = [
+	{"distance": 220.0, "prop_type": "tea_shop"},
+	{"distance": 500.0, "prop_type": "stone_wall"},
+	{"distance": 920.0, "prop_type": "sign_kanyakumari"},
+	{"distance": 1400.0, "prop_type": "bollard"}
+]

@@ -68,6 +68,13 @@ func _ready() -> void:
 			glow_aura.color = Color(0.1, 0.75, 1.0, 0.40)
 		if is_instance_valid(vapor_particles):
 			vapor_particles.color = Color(0.2, 0.85, 1.0, 1.0)
+	# PERF: disable _process when fuel pickup is not on screen
+	set_process(false)
+	var vsn := VisibleOnScreenNotifier2D.new()
+	vsn.rect = Rect2(-24, -24, 48, 48)
+	add_child(vsn)
+	vsn.screen_entered.connect(func(): if not is_collected: set_process(true))
+	vsn.screen_exited.connect(func(): set_process(false))
 
 func _process(delta: float) -> void:
 	if not is_collected and is_instance_valid(visual):

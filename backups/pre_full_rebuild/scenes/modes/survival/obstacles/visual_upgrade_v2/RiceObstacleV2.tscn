@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://o2ricev200001"]
+
+[ext_resource type="Script" path="res://scripts/components/survival_obstacles/FoodObstacle.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/visual_upgrade_v2/obstacle_rice.png" id="2_texture"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_rice"]
+radius = 24.0
+
+[node name="RiceObstacleV2" type="Area2D"]
+collision_layer = 8
+collision_mask = 7
+script = ExtResource("1_script")
+obstacle_id = "rice"
+fall_speed = 310.0
+fall_acceleration = 180.0
+spin_speed = 1.0
+horizontal_drift = 35.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_rice")

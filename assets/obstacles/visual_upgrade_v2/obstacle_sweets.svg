@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="ladduGrad1" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffe066" />
+      <stop offset="40%" stop-color="#ffb703" />
+      <stop offset="85%" stop-color="#fb8500" />
+      <stop offset="100%" stop-color="#d46b08" />
+    </radialGradient>
+    <radialGradient id="ladduGrad2" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffd166" />
+      <stop offset="50%" stop-color="#f77f00" />
+      <stop offset="100%" stop-color="#b85d00" />
+    </radialGradient>
+    <linearGradient id="plateGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e9ecef" />
+      <stop offset="50%" stop-color="#ced4da" />
+      <stop offset="100%" stop-color="#6c757d" />
+    </linearGradient>
+    <filter id="ladduShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <g filter="url(#ladduShadow)">
+    <!-- Silver / Steel Thali Plate -->
+    <ellipse cx="128" cy="190" rx="100" ry="28" fill="url(#plateGrad)" stroke="#495057" stroke-width="3"/>
+    <ellipse cx="128" cy="188" rx="88" ry="22" fill="#dee2e6" stroke="#adb5bd" stroke-width="1.5"/>
+
+    <!-- Left Laddu -->
+    <circle cx="92" cy="158" r="38" fill="url(#ladduGrad1)" stroke="#b85d00" stroke-width="2.5"/>
+    <!-- Pistachio & Saffron bits -->
+    <circle cx="82" cy="145" r="3.5" fill="#38b000"/>
+    <circle cx="102" cy="150" r="3" fill="#2d6a4f"/>
+    <circle cx="90" cy="165" r="2.5" fill="#d00000"/>
+    <circle cx="75" cy="160" r="2" fill="#38b000"/>
+
+    <!-- Right Laddu -->
+    <circle cx="164" cy="158" r="38" fill="url(#ladduGrad1)" stroke="#b85d00" stroke-width="2.5"/>
+    <circle cx="155" cy="148" r="3" fill="#38b000"/>
+    <circle cx="175" cy="152" r="3.5" fill="#2d6a4f"/>
+    <circle cx="165" cy="168" r="2.5" fill="#d00000"/>
+
+    <!-- Center Top Laddu -->
+    <circle cx="128" cy="120" r="42" fill="url(#ladduGrad2)" stroke="#b85d00" stroke-width="3"/>
+    <!-- Garnish bits -->
+    <circle cx="120" cy="105" r="4" fill="#38b000"/>
+    <circle cx="138" cy="110" r="3.5" fill="#2d6a4f"/>
+    <circle cx="126" cy="125" r="3" fill="#d00000"/>
+    <circle cx="112" cy="122" r="3.5" fill="#38b000"/>
+    <circle cx="140" cy="128" r="2.5" fill="#38b000"/>
+    <!-- Vark (silver foil accent) -->
+    <path d="M 125 108 L 132 112 L 128 118 L 122 114 Z" fill="#ffffff" opacity="0.85"/>
+  </g>
+</svg>

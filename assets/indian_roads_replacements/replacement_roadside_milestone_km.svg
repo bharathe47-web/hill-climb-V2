@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 680" width="512" height="680">
+  <defs>
+    <filter id="mShadow" x="-10%" y="-5%" width="120%" height="110%">
+      <feDropShadow dx="4" dy="8" stdDeviation="6" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+    <linearGradient id="stoneBody" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="40%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="nhYellowDome" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ca8a04"/>
+      <stop offset="35%" stop-color="#facc15"/>
+      <stop offset="100%" stop-color="#a16207"/>
+    </linearGradient>
+  </defs>
+  <!-- Chiseled Plinth Base -->
+  <polygon points="60,650 452,650 432,600 80,600" fill="#64748b"/>
+  <!-- Milestone Body -->
+  <g filter="url(#mShadow)">
+    <!-- White Concrete Pillar -->
+    <path d="M 96,600 L 96,220 Q 96,60 256,60 Q 416,60 416,220 L 416,600 Z" fill="url(#stoneBody)" stroke="#94a3b8" stroke-width="4"/>
+    <!-- Yellow Semicircular Dome (Official IRC NH color standard) -->
+    <path d="M 96,220 Q 96,60 256,60 Q 416,60 416,220 Z" fill="url(#nhYellowDome)"/>
+    <!-- Black NH Designation on Dome -->
+    <text x="256" y="145" font-family="Arial, sans-serif" font-weight="900" font-size="34" fill="#0f172a" text-anchor="middle">NH</text>
+    <text x="256" y="195" font-family="Arial, sans-serif" font-weight="900" font-size="44" fill="#0f172a" text-anchor="middle">44</text>
+    <!-- Dividing Ring -->
+    <line x1="96" y1="220" x2="416" y2="220" stroke="#0f172a" stroke-width="6"/>
+    <!-- Milestone Lettering -->
+    <text x="256" y="280" font-family="Arial, sans-serif" font-weight="900" font-size="36" fill="#0f172a" text-anchor="middle">CHENNAI</text>
+    <text x="256" y="350" font-family="Arial, sans-serif" font-weight="900" font-size="54" fill="#0f172a" text-anchor="middle">18</text>
+    <line x1="140" y1="390" x2="372" y2="390" stroke="#94a3b8" stroke-width="3"/>
+    <text x="256" y="445" font-family="Arial, sans-serif" font-weight="900" font-size="32" fill="#334155" text-anchor="middle">MADURAI</text>
+    <text x="256" y="505" font-family="Arial, sans-serif" font-weight="900" font-size="46" fill="#334155" text-anchor="middle">7.5</text>
+    <text x="256" y="565" font-family="Arial, sans-serif" font-weight="bold" font-size="22" fill="#64748b" text-anchor="middle">KANYAKUMARI</text>
+  </g>
+</svg>

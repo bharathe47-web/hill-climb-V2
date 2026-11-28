@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 720" width="1920" height="720">
+  <defs>
+    <linearGradient id="tnSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="50%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <linearGradient id="ocean" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0369a1"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="palmGreen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#166534"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="720" fill="url(#tnSky)"/>
+  <!-- Ocean Seascape Line -->
+  <rect x="0" y="320" width="1920" height="150" fill="url(#ocean)"/>
+  <!-- Surf Horizon -->
+  <line x1="0" y1="465" x2="1920" y2="465" stroke="#ffffff" stroke-width="3" stroke-dasharray="30 15" opacity="0.7"/>
+  <!-- Coastal Coconut Palm Grove Silhouette -->
+  <path d="M 0,460 Q 240,430 480,450 T 960,435 T 1440,450 T 1920,440 L 1920,720 L 0,720 Z" fill="url(#palmGreen)" opacity="0.85"/>
+  <path d="M 0,520 Q 320,490 640,510 T 1280,500 T 1920,515 L 1920,720 L 0,720 Z" fill="#14532d"/>
+</svg>

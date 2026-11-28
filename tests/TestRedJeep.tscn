@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://testredjeep001"]
+
+[ext_resource type="Script" path="res://tests/test_red_jeep_physics.gd" id="1_test"]
+
+[node name="TestRedJeep" type="Node2D"]
+script = ExtResource("1_test")

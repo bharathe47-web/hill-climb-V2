@@ -1,0 +1,837 @@
+class_name VehicleController
+extends RigidBody2D
+
+## VehicleController: 2D physics-based vehicle controller.
+## Dual-wheel suspension joints, dynamic RPM audio, air tilt flips, stunts & airtime detection, and upgrade tiers.
+
+signal crashed
+signal fuel_changed(current: float, max_fuel: float)
+signal nitro_changed(current: float, max_nitro: float)
+signal nitro_state_changed(is_boosting: bool)
+signal pothole_assist_hint(should_hint: bool)
+signal upgraded(stat_name: String, level: int)
+signal trick_performed(trick_name: String, reward_coins: int)
+signal airtime_landed(duration: float, reward_coins: int)
+signal hard_landed(severity: float)
+signal clean_landed(bonus_coins: int)
+
+@export_group("Upgrade Levels (1-5)")
+## Engine Power level (1 to 5)
+@export_range(1, 5) var engine_level: int = 1:
+	set(val):
+		engine_level = clampi(val, 1, 5)
+		_recalculate_upgrades()
+
+## Tire Grip level (1 to 5)
+@export_range(1, 5) var grip_level: int = 1:
+	set(val):
+		grip_level = clampi(val, 1, 5)
+		_recalculate_upgrades()
+
+## Suspension Dampening level (1 to 5)
+@export_range(1, 5) var suspension_level: int = 1:
+	set(val):
+		suspension_level = clampi(val, 1, 5)
+		_recalculate_upgrades()
+
+## Fuel Tank Capacity level (1 to 5)
+@export_range(1, 5) var fuel_tank_level: int = 1:
+	set(val):
+		fuel_tank_level = clampi(val, 1, 5)
+		_recalculate_upgrades()
+
+@export_group("Base Stats (Level 1)")
+@export var base_motor_torque: float = 75000.0
+@export var base_brake_torque: float = 45000.0
+@export var base_max_wheel_speed: float = 80.0
+@export var base_wheel_friction: float = 1.6
+@export var base_suspension_softness: float = 0.05
+@export var base_max_fuel: float = 100.0
+
+@export_group("Current Active Physics")
+## Effective motor drive torque applied to wheels
+@export var motor_torque: float = 75000.0
+## Effective braking torque applied when reversing
+@export var brake_torque: float = 45000.0
+## Maximum rotational wheel velocity in radians/sec
+@export var max_wheel_speed: float = 80.0
+## Rotational torque applied for mid-air flips and tilt balancing
+@export var air_tilt_torque: float = 24000.0
+## Maximum rotational velocity in the air to prevent uncontrolled spinning
+@export var max_air_angular_velocity: float = 6.5
+## Angular damping applied when airborne without tilt input to assist clean landings
+@export var airborne_angular_damping: float = 2.0
+
+@export_group("Fuel")
+## Whether acceleration consumes fuel
+@export var consumes_fuel: bool = true
+## Maximum fuel capacity
+@export var max_fuel: float = 100.0
+## Fuel burn rate in units per second of acceleration
+@export var fuel_burn_rate: float = 4.0
+
+@export_group("Nitro Boost")
+## Maximum nitro capacity
+@export var max_nitro: float = 100.0
+## Current available nitro
+@export var current_nitro: float = 100.0
+## Nitro burn rate in units per second of boost
+@export var nitro_consumption_rate: float = 25.0
+## Nitro passive recharge rate in units per second when inactive
+@export var nitro_recharge_rate: float = 14.0
+## Forward thrust applied directly along vehicle forward heading (transform.x)
+@export var nitro_boost_force: float = 18000.0
+## Motor torque multiplier while nitro is engaged
+@export var nitro_torque_multiplier: float = 1.6
+## Max wheel rotational speed multiplier while nitro is engaged
+@export var nitro_max_speed_multiplier: float = 1.35
+## Traction friction increase while nitro is engaged to climb steep pothole dips
+@export var nitro_traction_boost: float = 0.5
+## Minimum nitro energy required to start activation
+@export var nitro_min_activation_energy: float = 8.0
+
+@onready var rear_wheel: RigidBody2D = get_node_or_null("RearWheel")
+@onready var front_wheel: RigidBody2D = get_node_or_null("FrontWheel")
+@onready var rear_wheel_mount: Marker2D = get_node_or_null("RearWheelMount")
+@onready var front_wheel_mount: Marker2D = get_node_or_null("FrontWheelMount")
+@onready var rear_strut_mount: Marker2D = get_node_or_null("RearStrutMount")
+@onready var front_strut_mount: Marker2D = get_node_or_null("FrontStrutMount")
+@onready var rear_joint: PinJoint2D = get_node_or_null("RearJoint")
+@onready var front_joint: PinJoint2D = get_node_or_null("FrontJoint")
+@onready var crash_detector: Area2D = get_node_or_null("CrashDetector")
+@onready var exhaust_particles: CPUParticles2D = get_node_or_null("ExhaustParticles")
+@onready var boost_particles: CPUParticles2D = get_node_or_null("BoostParticles")
+@onready var rear_dust: CPUParticles2D = get_node_or_null("RearDust")
+@onready var engine_audio: AudioStreamPlayer2D = get_node_or_null("EngineAudio")
+@onready var landing_audio: AudioStreamPlayer2D = get_node_or_null("LandingAudio")
+@onready var skid_audio: AudioStreamPlayer2D = get_node_or_null("SkidAudio")
+@onready var nitro_audio: AudioStreamPlayer2D = get_node_or_null("NitroAudio")
+@onready var rear_strut: Line2D = get_node_or_null("RearStrutVisual")
+@onready var front_strut: Line2D = get_node_or_null("FrontStrutVisual")
+
+var nitro_flame: Node2D = null
+var nitro_burst: Sprite2D = null
+var nitro_sparks: CPUParticles2D = null
+
+var current_fuel: float = 100.0
+var is_nitro_active: bool = false
+var is_nitro_requested: bool = false
+var is_grounded: bool = false
+var was_grounded: bool = false
+var is_active: bool = true
+var _previous_linear_velocity: Vector2 = Vector2.ZERO
+var _current_base_friction: float = 1.6
+var _pothole_stuck_timer: float = 0.0
+var _pothole_hint_active: bool = false
+
+var _initial_rear_wheel_offset: Vector2 = Vector2(-36, 18)
+var _initial_front_wheel_offset: Vector2 = Vector2(36, 18)
+
+# Stunt and airtime tracking
+var air_time: float = 0.0
+var air_rotation_accum: float = 0.0
+var _last_air_rotation: float = 0.0
+var wheelie_time: float = 0.0
+
+func _ready() -> void:
+	if rear_wheel_mount:
+		_initial_rear_wheel_offset = rear_wheel_mount.position
+		if rear_joint:
+			rear_joint.position = rear_wheel_mount.position
+	elif rear_wheel:
+		_initial_rear_wheel_offset = rear_wheel.position
+
+	if front_wheel_mount:
+		_initial_front_wheel_offset = front_wheel_mount.position
+		if front_joint:
+			front_joint.position = front_wheel_mount.position
+	elif front_wheel:
+		_initial_front_wheel_offset = front_wheel.position
+
+	current_fuel = max_fuel
+	current_nitro = max_nitro
+	_recalculate_upgrades()
+	nitro_changed.emit(current_nitro, max_nitro)
+	
+	if crash_detector and not crash_detector.body_entered.is_connected(_on_crash_detector_body_entered):
+		crash_detector.body_entered.connect(_on_crash_detector_body_entered)
+	
+	if is_inside_tree() and engine_audio and not engine_audio.playing:
+		engine_audio.play()
+	
+	add_to_group("vehicle")
+	if rear_wheel:
+		rear_wheel.contact_monitor = true
+		rear_wheel.max_contacts_reported = 4
+		if not rear_wheel.is_in_group("vehicle"):
+			rear_wheel.add_to_group("vehicle")
+	if front_wheel:
+		front_wheel.contact_monitor = true
+		front_wheel.max_contacts_reported = 4
+		if not front_wheel.is_in_group("vehicle"):
+			front_wheel.add_to_group("vehicle")
+	
+	_ensure_nitro_visuals()
+
+func _process(_delta: float) -> void:
+	_update_struts()
+
+func _physics_process(delta: float) -> void:
+	if not is_active:
+		_stop_effects()
+		return
+	
+	_check_ground_contact()
+	_track_stunts(delta)
+	_update_nitro(delta)
+	_check_pothole_assist(delta)
+	_handle_input(delta)
+	_update_audio(delta)
+	_update_particles()
+	
+	was_grounded = is_grounded
+	_previous_linear_velocity = linear_velocity
+
+func set_nitro_active(active: bool) -> void:
+	is_nitro_requested = active
+
+func _update_nitro(delta: float) -> void:
+	var action_pressed: bool = is_nitro_requested or Input.is_action_pressed("nitro")
+	if not action_pressed and (Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_SPACE)):
+		action_pressed = true
+	
+	var can_boost: bool = is_active and action_pressed and (is_nitro_active or current_nitro >= nitro_min_activation_energy) and current_nitro > 0.0
+	
+	if can_boost:
+		if not is_nitro_active:
+			_activate_nitro()
+		current_nitro = maxf(0.0, current_nitro - nitro_consumption_rate * delta)
+		nitro_changed.emit(current_nitro, max_nitro)
+		if current_nitro <= 0.0:
+			_deactivate_nitro()
+	else:
+		if is_nitro_active:
+			_deactivate_nitro()
+		if current_nitro < max_nitro:
+			current_nitro = minf(max_nitro, current_nitro + nitro_recharge_rate * delta)
+			nitro_changed.emit(current_nitro, max_nitro)
+
+func _ensure_nitro_visuals() -> void:
+	if is_instance_valid(nitro_flame):
+		return
+	
+	var exhaust_pos := Vector2(-54, 4)
+	if boost_particles:
+		exhaust_pos = boost_particles.position
+	elif rear_wheel_mount:
+		exhaust_pos = rear_wheel_mount.position + Vector2(-20, -10)
+	
+	# 1. Main Nitro Flame
+	var flame_root := Node2D.new()
+	flame_root.name = "NitroFlame"
+	flame_root.position = exhaust_pos
+	flame_root.z_index = -2 # Behind chassis and wheels so flame never occludes wheels
+	flame_root.visible = false
+	add_child(flame_root)
+	nitro_flame = flame_root
+	
+	var flame_spr := Sprite2D.new()
+	flame_spr.name = "FlameSprite"
+	flame_spr.texture = preload("res://assets/effects/nitro/nitro_flame.png")
+	flame_spr.scale = Vector2(0.35, 0.35)
+	flame_spr.offset = Vector2(-150, 0)
+	flame_root.add_child(flame_spr)
+	
+	# Animated core flame loop using nitro_flame_01, 02, 03
+	var anim_flame := AnimatedSprite2D.new()
+	anim_flame.name = "AnimatedCore"
+	var frames := SpriteFrames.new()
+	frames.add_animation("burn")
+	frames.set_animation_loop("burn", true)
+	frames.set_animation_speed("burn", 15.0)
+	var f1: Texture2D = preload("res://assets/effects/nitro/nitro_flame_01.png")
+	var f2: Texture2D = preload("res://assets/effects/nitro/nitro_flame_02.png")
+	var f3: Texture2D = preload("res://assets/effects/nitro/nitro_flame_03.png")
+	frames.add_frame("burn", f1)
+	frames.add_frame("burn", f2)
+	frames.add_frame("burn", f3)
+	anim_flame.sprite_frames = frames
+	anim_flame.play("burn")
+	anim_flame.rotation = PI
+	anim_flame.position = Vector2(-25, 0)
+	anim_flame.scale = Vector2(0.5, 0.5)
+	flame_root.add_child(anim_flame)
+	
+	# 2. Nitro Flame Burst (activation flare)
+	var burst_spr := Sprite2D.new()
+	burst_spr.name = "NitroBurst"
+	burst_spr.texture = preload("res://assets/effects/nitro/nitro_flame_burst.png")
+	burst_spr.position = exhaust_pos
+	burst_spr.z_index = -2 # Behind chassis and wheels
+	burst_spr.scale = Vector2(0.38, 0.38)
+	burst_spr.offset = Vector2(-140, 0)
+	burst_spr.visible = false
+	add_child(burst_spr)
+	nitro_burst = burst_spr
+	
+	# 3. Nitro Spark Particles
+	var sparks := CPUParticles2D.new()
+	sparks.name = "NitroSparks"
+	sparks.position = exhaust_pos
+	sparks.z_index = -1 # Behind vehicle body
+	sparks.emitting = false
+	sparks.amount = 16
+	sparks.lifetime = 0.4
+	sparks.texture = preload("res://assets/effects/nitro/nitro_particle_spark.png")
+	sparks.direction = Vector2(-1, 0)
+	sparks.spread = 25.0
+	sparks.gravity = Vector2(0, 40)
+	sparks.initial_velocity_min = 150.0
+	sparks.initial_velocity_max = 280.0
+	sparks.scale_amount_min = 0.15
+	sparks.scale_amount_max = 0.35
+	sparks.color = Color(0.2, 0.85, 1.0, 0.9)
+	add_child(sparks)
+	nitro_sparks = sparks
+
+func _activate_nitro() -> void:
+	is_nitro_active = true
+	nitro_state_changed.emit(true)
+	_apply_wheel_friction(_current_base_friction + nitro_traction_boost)
+	if boost_particles:
+		boost_particles.emitting = true
+	if not is_instance_valid(nitro_flame):
+		_ensure_nitro_visuals()
+	if nitro_flame:
+		nitro_flame.visible = true
+	if nitro_sparks:
+		nitro_sparks.emitting = true
+	if nitro_burst:
+		nitro_burst.visible = true
+		nitro_burst.modulate.a = 1.0
+		var tw := create_tween()
+		if tw:
+			tw.tween_property(nitro_burst, "modulate:a", 0.0, 0.18).from(1.0)
+			tw.tween_callback(func(): if is_instance_valid(nitro_burst): nitro_burst.visible = false)
+	if is_inside_tree() and nitro_audio and not nitro_audio.playing:
+		nitro_audio.play()
+
+func _deactivate_nitro() -> void:
+	if is_nitro_active:
+		is_nitro_active = false
+		nitro_state_changed.emit(false)
+		_apply_wheel_friction(_current_base_friction)
+		if boost_particles:
+			boost_particles.emitting = false
+		if nitro_flame:
+			nitro_flame.visible = false
+		if nitro_burst:
+			nitro_burst.visible = false
+		if nitro_sparks:
+			nitro_sparks.emitting = false
+		if nitro_audio and nitro_audio.playing:
+			nitro_audio.stop()
+
+func _check_pothole_assist(delta: float) -> void:
+	var accel_input: float = Input.get_axis("brake_reverse", "accelerate")
+	var is_trying_to_move: bool = accel_input > 0.1 or Input.get_action_strength("accelerate") > 0.1
+	var is_struggling_speed: bool = absf(linear_velocity.x) < 45.0
+	var is_tilted_up: bool = rotation < -0.12 or absf(rotation) > 0.18
+	
+	if is_grounded and is_trying_to_move and is_struggling_speed and is_tilted_up:
+		_pothole_stuck_timer += delta
+		if _pothole_stuck_timer >= 0.35 and not _pothole_hint_active:
+			_pothole_hint_active = true
+			pothole_assist_hint.emit(true)
+	else:
+		if _pothole_hint_active and (linear_velocity.x > 70.0 or not is_grounded or not is_trying_to_move):
+			_pothole_hint_active = false
+			pothole_assist_hint.emit(false)
+		_pothole_stuck_timer = maxf(0.0, _pothole_stuck_timer - delta * 2.0)
+
+func set_active(active: bool) -> void:
+	is_active = active
+	if not active:
+		_stop_effects()
+		air_time = 0.0
+		air_rotation_accum = 0.0
+		wheelie_time = 0.0
+		linear_velocity = Vector2.ZERO
+		angular_velocity = 0.0
+		if rear_wheel:
+			rear_wheel.angular_velocity = 0.0
+		if front_wheel:
+			front_wheel.angular_velocity = 0.0
+
+func _check_ground_contact() -> void:
+	var rear_contact: bool = (rear_wheel.contact_monitor and rear_wheel.get_colliding_bodies().size() > 0) if rear_wheel else false
+	var front_contact: bool = (front_wheel.contact_monitor and front_wheel.get_colliding_bodies().size() > 0) if front_wheel else false
+	is_grounded = rear_contact or front_contact
+	
+	# Detect hard landing thud
+	if not was_grounded and is_grounded:
+		var impact_y: float = _previous_linear_velocity.y
+		if impact_y > 140.0:
+			_play_landing_sound()
+			hard_landed.emit(clampf((impact_y - 140.0) / 300.0, 0.2, 1.0))
+
+func _track_stunts(delta: float) -> void:
+	var rear_contact: bool = (rear_wheel.contact_monitor and rear_wheel.get_colliding_bodies().size() > 0) if rear_wheel else false
+	var front_contact: bool = (front_wheel.contact_monitor and front_wheel.get_colliding_bodies().size() > 0) if front_wheel else false
+
+	if not is_grounded:
+		air_time += delta
+		var delta_rot: float = wrapf(rotation - _last_air_rotation, -PI, PI)
+		air_rotation_accum += delta_rot
+		_last_air_rotation = rotation
+		
+		# Check completed 360 degree flips (TAU radians)
+		if air_rotation_accum >= TAU * 0.95:
+			air_rotation_accum -= TAU
+			trick_performed.emit("Backflip", 20)
+		elif air_rotation_accum <= -TAU * 0.95:
+			air_rotation_accum += TAU
+			trick_performed.emit("Frontflip", 20)
+		wheelie_time = 0.0
+	else:
+		# Vehicle just landed from airborne
+		if not was_grounded and is_active:
+			if air_time >= 1.2:
+				var air_reward: int = int(air_time * 10)
+				airtime_landed.emit(air_time, air_reward)
+			elif air_time >= 0.75 and absf(rotation) < 0.25:
+				# Clean landing bonus when touching down flat after jump
+				clean_landed.emit(5)
+		
+		air_time = 0.0
+		air_rotation_accum = 0.0
+		_last_air_rotation = rotation
+		
+		# Wheelie detection: rear wheel grounded, front wheel in the air, driving forward
+		if rear_contact and not front_contact and linear_velocity.x > 50.0 and is_active:
+			wheelie_time += delta
+			if wheelie_time >= 1.0:
+				wheelie_time = 0.0
+				trick_performed.emit("Wheelie", 10)
+		else:
+			wheelie_time = 0.0
+
+func _handle_input(delta: float) -> void:
+	var accel_input: float = Input.get_axis("brake_reverse", "accelerate")
+	var tilt_input: float = Input.get_axis("tilt_left", "tilt_right")
+	
+	# Apply forward nitro thrust force along vehicle body local X
+	if is_nitro_active:
+		apply_central_force(transform.x * nitro_boost_force)
+		# Anti-wheelie pitch stabilization during high nitro thrust to keep both wheels aligned on the road
+		if is_grounded:
+			var rear_contact: bool = rear_wheel and rear_wheel.get_contact_count() > 0
+			var front_contact: bool = front_wheel and front_wheel.get_contact_count() > 0
+			if rear_contact and not front_contact:
+				# Front wheel has lifted into an excessive wheelie; apply stabilizing counter-pitch torque
+				apply_torque(-nitro_boost_force * 0.45)
+	
+	# Low fuel sputtering physical warning when tank < 15%
+	var sputter_mult: float = 1.0
+	if consumes_fuel and current_fuel < 15.0 and current_fuel > 0.0:
+		sputter_mult = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.015)
+	
+	var active_motor_torque: float = motor_torque * (nitro_torque_multiplier if is_nitro_active else 1.0)
+	var active_max_speed: float = max_wheel_speed * (nitro_max_speed_multiplier if is_nitro_active else 1.0)
+	
+	if accel_input > 0.05:
+		if consumes_fuel and current_fuel <= 0.0:
+			# Out of fuel, cut off drive power
+			pass
+		else:
+			# Drive forward (apply torque to wheels with smooth saturation at top speed)
+			var effective_accel: float = accel_input * sputter_mult
+			if rear_wheel and rear_wheel.angular_velocity < active_max_speed:
+				var rear_factor: float = clampf((active_max_speed - rear_wheel.angular_velocity) / (active_max_speed * 0.25), 0.0, 1.0)
+				rear_wheel.apply_torque(active_motor_torque * effective_accel * rear_factor)
+			if front_wheel and front_wheel.angular_velocity < active_max_speed:
+				var front_factor: float = clampf((active_max_speed - front_wheel.angular_velocity) / (active_max_speed * 0.25), 0.0, 1.0)
+				front_wheel.apply_torque(active_motor_torque * 0.75 * effective_accel * front_factor)
+				
+	elif accel_input < -0.05:
+		# Brake / Reverse
+		if rear_wheel and rear_wheel.angular_velocity > -active_max_speed * 0.5:
+			var rear_brake_factor: float = clampf((active_max_speed * 0.5 + rear_wheel.angular_velocity) / (active_max_speed * 0.2), 0.0, 1.0)
+			rear_wheel.apply_torque(brake_torque * accel_input * rear_brake_factor)
+		if front_wheel and front_wheel.angular_velocity > -active_max_speed * 0.5:
+			var front_brake_factor: float = clampf((active_max_speed * 0.5 + front_wheel.angular_velocity) / (active_max_speed * 0.2), 0.0, 1.0)
+			front_wheel.apply_torque(brake_torque * 0.75 * accel_input * front_brake_factor)
+	
+	# Air rotation and flip control
+	if not is_grounded:
+		if absf(tilt_input) > 0.1:
+			var can_spin: bool = (tilt_input > 0.0 and angular_velocity < max_air_angular_velocity) or (tilt_input < 0.0 and angular_velocity > -max_air_angular_velocity)
+			if can_spin:
+				apply_torque(air_tilt_torque * tilt_input)
+			else:
+				angular_velocity = lerpf(angular_velocity, signf(tilt_input) * max_air_angular_velocity, 5.0 * delta)
+		else:
+			# Auto-stabilize when airborne and tilt input is neutral
+			angular_velocity = lerpf(angular_velocity, 0.0, airborne_angular_damping * delta)
+	elif absf(tilt_input) > 0.1:
+		# Minor ground pitch assist
+		apply_torque(air_tilt_torque * 0.3 * tilt_input)
+
+func _update_struts() -> void:
+	var rear_mount := Vector2(-36, 4)
+	var front_mount := Vector2(41, 4)
+	if rear_strut_mount:
+		rear_mount = rear_strut_mount.position
+	elif name == "MonsterTruck":
+		rear_mount = Vector2(-42, 6)
+	elif name == "DuneBuggy":
+		rear_mount = Vector2(-38, 4)
+
+	if front_strut_mount:
+		front_mount = front_strut_mount.position
+	elif name == "MonsterTruck":
+		front_mount = Vector2(47, 6)
+	elif name == "DuneBuggy":
+		front_mount = Vector2(38, 4)
+		rear_mount = Vector2(-38, 4)
+		front_mount = Vector2(38, 4)
+
+	if rear_strut and rear_wheel:
+		var local_rear: Vector2 = to_local(rear_wheel.global_position)
+		rear_strut.points = PackedVector2Array([rear_mount, local_rear])
+		var rear_shock: Sprite2D = get_node_or_null("RearShock")
+		if is_instance_valid(rear_shock):
+			rear_shock.position = (rear_mount + local_rear) * 0.5
+			rear_shock.rotation = (local_rear - rear_mount).angle() - PI * 0.5
+			var dist: float = rear_mount.distance_to(local_rear)
+			rear_shock.scale = Vector2(0.12, clampf(dist / 140.0, 0.08, 0.22))
+
+	if front_strut and front_wheel:
+		var local_front: Vector2 = to_local(front_wheel.global_position)
+		front_strut.points = PackedVector2Array([front_mount, local_front])
+		var front_shock: Sprite2D = get_node_or_null("FrontShock")
+		if is_instance_valid(front_shock):
+			front_shock.position = (front_mount + local_front) * 0.5
+			front_shock.rotation = (local_front - front_mount).angle() - PI * 0.5
+			var dist: float = front_mount.distance_to(local_front)
+			front_shock.scale = Vector2(0.12, clampf(dist / 140.0, 0.08, 0.22))
+
+func _update_particles() -> void:
+	var accel_input: float = Input.get_axis("brake_reverse", "accelerate")
+	var is_accelerating: bool = accel_input > 0.05 and (not consumes_fuel or current_fuel > 0.0)
+	
+	if exhaust_particles:
+		exhaust_particles.emitting = is_accelerating
+	
+	if rear_dust:
+		var wheel_spinning: bool = rear_wheel and absf(rear_wheel.angular_velocity) > 10.0
+		rear_dust.emitting = is_grounded and (wheel_spinning or linear_velocity.length() > 30.0)
+
+## Modulate engine pitch (RPM) dynamically based on wheel angular velocity and throttle
+func _update_audio(delta: float) -> void:
+	if engine_audio:
+		if is_inside_tree() and not engine_audio.playing and is_active:
+			engine_audio.play()
+		
+		var rear_ratio: float = absf(rear_wheel.angular_velocity) / max_wheel_speed if rear_wheel else 0.0
+		var front_ratio: float = absf(front_wheel.angular_velocity) / max_wheel_speed if front_wheel else 0.0
+		var wheel_speed_ratio: float = clampf(maxf(rear_ratio, front_ratio), 0.0, 1.0)
+		var throttle_ratio: float = clampf(Input.get_action_strength("accelerate"), 0.0, 1.0)
+		
+		# Blend physical wheel speed with throttle response for authentic revving
+		var speed_ratio: float = clampf((wheel_speed_ratio * 0.65) + (throttle_ratio * 0.35), 0.0, 1.0)
+		var target_pitch: float = lerpf(0.8, 2.2, speed_ratio)
+		if is_nitro_active:
+			target_pitch = maxf(target_pitch, 2.4)
+		engine_audio.pitch_scale = lerpf(engine_audio.pitch_scale, target_pitch, 12.0 * delta)
+	
+	# Tire Skid / Screech audio
+	if skid_audio:
+		var accel_input: float = Input.get_axis("brake_reverse", "accelerate")
+		var is_braking_hard: bool = accel_input < -0.15 and is_grounded and linear_velocity.length() > 60.0
+		var is_wheel_spinning: bool = is_grounded and rear_wheel and absf(rear_wheel.angular_velocity) > 40.0 and linear_velocity.length() < 70.0
+		
+		if (is_braking_hard or is_wheel_spinning) and is_active:
+			if is_inside_tree() and not skid_audio.playing:
+				skid_audio.play()
+			skid_audio.volume_db = lerpf(skid_audio.volume_db, -6.0, 10.0 * delta)
+		else:
+			skid_audio.volume_db = lerpf(skid_audio.volume_db, -80.0, 10.0 * delta)
+			if skid_audio.volume_db < -50.0 and skid_audio.playing:
+				skid_audio.stop()
+
+func _play_landing_sound() -> void:
+	if is_inside_tree() and landing_audio and not landing_audio.playing:
+		landing_audio.play()
+
+func _stop_effects() -> void:
+	_deactivate_nitro()
+	if exhaust_particles:
+		exhaust_particles.emitting = false
+	if rear_dust:
+		rear_dust.emitting = false
+	if engine_audio and engine_audio.playing:
+		engine_audio.stop()
+	if skid_audio and skid_audio.playing:
+		skid_audio.stop()
+
+func _on_crash_detector_body_entered(body: Node) -> void:
+	if not is_active:
+		return
+	if body == self or body == rear_wheel or body == front_wheel:
+		return
+	
+	is_active = false
+	air_time = 0.0
+	air_rotation_accum = 0.0
+	wheelie_time = 0.0
+	_stop_effects()
+	crashed.emit()
+
+# --- UPGRADE SYSTEM HELPERS ---
+
+## Recalculates effective physics variables from base values and current upgrade tiers
+func _recalculate_upgrades() -> void:
+	# 1. Engine Power: +20% torque and +12% top speed per level
+	motor_torque = base_motor_torque * (1.0 + (engine_level - 1) * 0.20)
+	brake_torque = base_brake_torque * (1.0 + (engine_level - 1) * 0.15)
+	max_wheel_speed = base_max_wheel_speed * (1.0 + (engine_level - 1) * 0.12)
+	
+	# 2. Tire Grip: +22% friction per level
+	var eff_friction: float = base_wheel_friction * (1.0 + (grip_level - 1) * 0.22)
+	_current_base_friction = eff_friction
+	_apply_wheel_friction(_current_base_friction + (nitro_traction_boost if is_nitro_active else 0.0))
+	
+	# 3. Suspension: firmer damping, reduces softness by 0.008 per level (0.05 at lvl 1 down to 0.01 at lvl 5)
+	var eff_softness: float = maxf(0.01, base_suspension_softness - (suspension_level - 1) * 0.008)
+	if rear_joint:
+		rear_joint.softness = eff_softness
+	if front_joint:
+		front_joint.softness = eff_softness
+	
+	# 4. Fuel Tank Capacity: +25% capacity per level
+	var old_max: float = max_fuel if max_fuel > 0.0 else base_max_fuel
+	max_fuel = base_max_fuel * (1.0 + (fuel_tank_level - 1) * 0.25)
+	if old_max > 0.0:
+		current_fuel = minf(max_fuel, current_fuel * (max_fuel / old_max))
+	else:
+		current_fuel = max_fuel
+
+func _apply_wheel_friction(friction_val: float) -> void:
+	if rear_wheel:
+		if rear_wheel.physics_material_override:
+			rear_wheel.physics_material_override = rear_wheel.physics_material_override.duplicate()
+			rear_wheel.physics_material_override.friction = friction_val
+	if front_wheel:
+		if front_wheel.physics_material_override:
+			front_wheel.physics_material_override = front_wheel.physics_material_override.duplicate()
+			front_wheel.physics_material_override.friction = friction_val
+
+## Returns dictionary containing current upgrade levels and calculated effective stats
+func get_stats() -> Dictionary:
+	var curr_friction: float = base_wheel_friction
+	if rear_wheel and rear_wheel.physics_material_override:
+		curr_friction = rear_wheel.physics_material_override.friction
+	
+	var curr_softness: float = base_suspension_softness
+	if rear_joint:
+		curr_softness = rear_joint.softness
+	
+	return {
+		"engine_power": {
+			"level": engine_level,
+			"motor_torque": motor_torque,
+			"max_wheel_speed": max_wheel_speed,
+			"multiplier": 1.0 + (engine_level - 1) * 0.20
+		},
+		"tire_grip": {
+			"level": grip_level,
+			"friction": curr_friction,
+			"multiplier": 1.0 + (grip_level - 1) * 0.22
+		},
+		"suspension": {
+			"level": suspension_level,
+			"softness": curr_softness,
+			"multiplier": 1.0 + (suspension_level - 1) * 0.15
+		},
+		"fuel_tank": {
+			"level": fuel_tank_level,
+			"max_fuel": max_fuel,
+			"multiplier": 1.0 + (fuel_tank_level - 1) * 0.25
+		}
+	}
+
+## Applies a tier upgrade (1 to 5) to the specified stat
+func apply_upgrade(stat_name: String, level: int) -> void:
+	var target_level: int = clampi(level, 1, 5)
+	var key: String = stat_name.to_lower().strip_edges()
+	var canonical_name: String = ""
+	
+	match key:
+		"engine", "engine_power", "engine power":
+			engine_level = target_level
+			canonical_name = "engine_power"
+		"tire", "tire_grip", "grip", "tire grip":
+			grip_level = target_level
+			canonical_name = "tire_grip"
+		"suspension", "suspension_dampening", "suspension dampening":
+			suspension_level = target_level
+			canonical_name = "suspension"
+		"fuel", "fuel_tank", "fuel_capacity", "fuel tank", "fuel tank capacity":
+			fuel_tank_level = target_level
+			canonical_name = "fuel_tank"
+		_:
+			push_warning("VehicleController: Unknown upgrade stat name '%s'" % stat_name)
+			return
+	
+	_recalculate_upgrades()
+	upgraded.emit(canonical_name, target_level)
+
+## Serializes current upgrade levels into a Dictionary for SaveManager persistence
+func serialize_upgrades() -> Dictionary:
+	return {
+		"engine_level": engine_level,
+		"grip_level": grip_level,
+		"suspension_level": suspension_level,
+		"fuel_tank_level": fuel_tank_level
+	}
+
+## Restores upgrade levels from a Dictionary provided by SaveManager
+func deserialize_upgrades(data: Dictionary) -> void:
+	if data.has("engine_level"):
+		engine_level = clampi(int(data["engine_level"]), 1, 5)
+	if data.has("grip_level"):
+		grip_level = clampi(int(data["grip_level"]), 1, 5)
+	if data.has("suspension_level"):
+		suspension_level = clampi(int(data["suspension_level"]), 1, 5)
+	if data.has("fuel_tank_level"):
+		fuel_tank_level = clampi(int(data["fuel_tank_level"]), 1, 5)
+	_recalculate_upgrades()
+
+func consume_fuel(amount: float) -> void:
+	if not consumes_fuel:
+		return
+	if current_fuel <= 0.0:
+		return
+	current_fuel = maxf(0.0, current_fuel - amount)
+	fuel_changed.emit(current_fuel, max_fuel)
+
+func refuel(amount: float) -> void:
+	current_fuel = clampf(current_fuel + amount, 0.0, max_fuel)
+	fuel_changed.emit(current_fuel, max_fuel)
+
+func get_speed_kmh() -> float:
+	return (linear_velocity.length() / 100.0) * 3.6
+
+func reset_vehicle(at_position: Vector2) -> void:
+	is_active = true
+	current_fuel = max_fuel
+	current_nitro = max_nitro
+	is_nitro_requested = false
+	_deactivate_nitro()
+	_pothole_stuck_timer = 0.0
+	_pothole_hint_active = false
+	air_time = 0.0
+	air_rotation_accum = 0.0
+	_last_air_rotation = 0.0
+	wheelie_time = 0.0
+	fuel_changed.emit(current_fuel, max_fuel)
+	nitro_changed.emit(current_nitro, max_nitro)
+	pothole_assist_hint.emit(false)
+	
+	global_position = at_position
+	rotation = 0.0
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+	
+	var chassis_transform := Transform2D(0.0, at_position)
+	PhysicsServer2D.body_set_state(get_rid(), PhysicsServer2D.BODY_STATE_TRANSFORM, chassis_transform)
+	PhysicsServer2D.body_set_state(get_rid(), PhysicsServer2D.BODY_STATE_LINEAR_VELOCITY, Vector2.ZERO)
+	PhysicsServer2D.body_set_state(get_rid(), PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, 0.0)
+	
+	if rear_wheel:
+		rear_wheel.position = _initial_rear_wheel_offset
+		rear_wheel.rotation = 0.0
+		rear_wheel.linear_velocity = Vector2.ZERO
+		rear_wheel.angular_velocity = 0.0
+		var rear_transform := Transform2D(0.0, at_position + _initial_rear_wheel_offset)
+		PhysicsServer2D.body_set_state(rear_wheel.get_rid(), PhysicsServer2D.BODY_STATE_TRANSFORM, rear_transform)
+		PhysicsServer2D.body_set_state(rear_wheel.get_rid(), PhysicsServer2D.BODY_STATE_LINEAR_VELOCITY, Vector2.ZERO)
+		PhysicsServer2D.body_set_state(rear_wheel.get_rid(), PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, 0.0)
+		
+	if front_wheel:
+		front_wheel.position = _initial_front_wheel_offset
+		front_wheel.rotation = 0.0
+		front_wheel.linear_velocity = Vector2.ZERO
+		front_wheel.angular_velocity = 0.0
+		var front_transform := Transform2D(0.0, at_position + _initial_front_wheel_offset)
+		PhysicsServer2D.body_set_state(front_wheel.get_rid(), PhysicsServer2D.BODY_STATE_TRANSFORM, front_transform)
+		PhysicsServer2D.body_set_state(front_wheel.get_rid(), PhysicsServer2D.BODY_STATE_LINEAR_VELOCITY, Vector2.ZERO)
+		PhysicsServer2D.body_set_state(front_wheel.get_rid(), PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, 0.0)
+	
+	_update_struts()
+	
+	if is_inside_tree() and engine_audio and not engine_audio.playing:
+		engine_audio.play()
+	if skid_audio and skid_audio.playing:
+		skid_audio.stop()
+
+## Recovers the vehicle to an upright position safely while preserving current fuel and nitro progress
+func recover_vehicle(at_position: Vector2) -> void:
+	is_active = true
+	is_nitro_requested = false
+	_deactivate_nitro()
+	_pothole_stuck_timer = 0.0
+	_pothole_hint_active = false
+	air_time = 0.0
+	air_rotation_accum = 0.0
+	_last_air_rotation = 0.0
+	wheelie_time = 0.0
+	pothole_assist_hint.emit(false)
+
+	# 1. Synchronize chassis transform via Node and PhysicsServer2D
+	global_position = at_position
+	rotation = 0.0
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+
+	var chassis_transform := Transform2D(0.0, at_position)
+	PhysicsServer2D.body_set_state(get_rid(), PhysicsServer2D.BODY_STATE_TRANSFORM, chassis_transform)
+	PhysicsServer2D.body_set_state(get_rid(), PhysicsServer2D.BODY_STATE_LINEAR_VELOCITY, Vector2.ZERO)
+	PhysicsServer2D.body_set_state(get_rid(), PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, 0.0)
+
+	# 2. Synchronize Rear Wheel transform and momentum in PhysicsServer2D
+	if rear_wheel:
+		rear_wheel.position = _initial_rear_wheel_offset
+		rear_wheel.rotation = 0.0
+		rear_wheel.linear_velocity = Vector2.ZERO
+		rear_wheel.angular_velocity = 0.0
+		var rear_transform := Transform2D(0.0, at_position + _initial_rear_wheel_offset)
+		PhysicsServer2D.body_set_state(rear_wheel.get_rid(), PhysicsServer2D.BODY_STATE_TRANSFORM, rear_transform)
+		PhysicsServer2D.body_set_state(rear_wheel.get_rid(), PhysicsServer2D.BODY_STATE_LINEAR_VELOCITY, Vector2.ZERO)
+		PhysicsServer2D.body_set_state(rear_wheel.get_rid(), PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, 0.0)
+
+	# 3. Synchronize Front Wheel transform and momentum in PhysicsServer2D
+	if front_wheel:
+		front_wheel.position = _initial_front_wheel_offset
+		front_wheel.rotation = 0.0
+		front_wheel.linear_velocity = Vector2.ZERO
+		front_wheel.angular_velocity = 0.0
+		var front_transform := Transform2D(0.0, at_position + _initial_front_wheel_offset)
+		PhysicsServer2D.body_set_state(front_wheel.get_rid(), PhysicsServer2D.BODY_STATE_TRANSFORM, front_transform)
+		PhysicsServer2D.body_set_state(front_wheel.get_rid(), PhysicsServer2D.BODY_STATE_LINEAR_VELOCITY, Vector2.ZERO)
+		PhysicsServer2D.body_set_state(front_wheel.get_rid(), PhysicsServer2D.BODY_STATE_ANGULAR_VELOCITY, 0.0)
+
+	# 4. Re-align suspension pin joints
+	if rear_joint:
+		rear_joint.position = _initial_rear_wheel_offset
+	if front_joint:
+		front_joint.position = _initial_front_wheel_offset
+
+	_apply_wheel_friction(_current_base_friction)
+	_update_struts()
+
+	if is_inside_tree() and engine_audio and not engine_audio.playing:
+		engine_audio.play()
+	if skid_audio and skid_audio.playing:
+		skid_audio.stop()

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Crosshairs -->
+  <line x1="128" y1="20" x2="128" y2="70" stroke="#00e5ff" stroke-width="4" stroke-linecap="round"/>
+  <line x1="128" y1="186" x2="128" y2="236" stroke="#00e5ff" stroke-width="4" stroke-linecap="round"/>
+  <line x1="20" y1="128" x2="70" y2="128" stroke="#00e5ff" stroke-width="4" stroke-linecap="round"/>
+  <line x1="186" y1="128" x2="236" y2="128" stroke="#00e5ff" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Target Rings -->
+  <circle cx="128" cy="128" r="80" fill="none" stroke="#00e5ff" stroke-width="3" stroke-dasharray="8 6"/>
+  <circle cx="128" cy="128" r="45" fill="none" stroke="#ffeb3b" stroke-width="3"/>
+  <circle cx="128" cy="128" r="10" fill="#ff1744"/>
+
+  <!-- Corner Brackets -->
+  <path d="M 45 65 L 45 45 L 65 45" fill="none" stroke="#00e5ff" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 211 65 L 211 45 L 191 45" fill="none" stroke="#00e5ff" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 45 191 L 45 211 L 65 211" fill="none" stroke="#00e5ff" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 211 191 L 211 211 L 191 211" fill="none" stroke="#00e5ff" stroke-width="5" stroke-linecap="round"/>
+</svg>

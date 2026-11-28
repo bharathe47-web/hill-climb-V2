@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://w1warnindic001"]
+
+[ext_resource type="Script" path="res://scripts/components/survival_obstacles/WarningIndicator.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/warnings/warning_landing_shadow.png" id="2_shadow"]
+[ext_resource type="Texture2D" path="res://assets/warnings/warning_circle_danger.png" id="3_circle"]
+[ext_resource type="Texture2D" path="res://assets/warnings/warning_landing_zone_marker.png" id="4_marker"]
+
+[node name="WarningIndicator" type="Node2D"]
+z_index = -1
+script = ExtResource("1_script")
+
+[node name="ShadowSprite" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.6)
+texture = ExtResource("2_shadow")
+
+[node name="CircleSprite" type="Sprite2D" parent="."]
+modulate = Color(1, 0.2, 0.2, 0.85)
+texture = ExtResource("3_circle")
+
+[node name="MarkerSprite" type="Sprite2D" parent="."]
+position = Vector2(0, -10)
+texture = ExtResource("4_marker")

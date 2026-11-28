@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://o4vadapavv201"]
+
+[ext_resource type="Script" path="res://scripts/components/survival_obstacles/FoodObstacle.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/obstacles/visual_upgrade_v2/obstacle_vada_pav.png" id="2_texture"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_vadapav"]
+radius = 26.0
+
+[node name="VadaPavObstacleV2" type="Area2D"]
+collision_layer = 8
+collision_mask = 7
+script = ExtResource("1_script")
+obstacle_id = "vada_pav"
+fall_speed = 520.0
+fall_acceleration = 360.0
+spin_speed = 1.8
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_vadapav")

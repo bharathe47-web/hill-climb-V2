@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <filter id="coneShadow" x="-10%" y="-5%" width="120%" height="110%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <linearGradient id="orangeGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="35%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+    <linearGradient id="whiteReflect" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#cbd5e1"/>
+      <stop offset="35%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <linearGradient id="coneBase" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#coneShadow)">
+    <!-- Heavy Rubber Base Plinth -->
+    <polygon points="64,480 448,480 416,420 96,420" fill="url(#coneBase)"/>
+    <!-- Conical Body Base Outer -->
+    <polygon points="216,60 296,60 380,430 132,430" fill="url(#orangeGrad)"/>
+    <!-- Top Tip Cap -->
+    <ellipse cx="256" cy="60" rx="40" ry="12" fill="#ea580c"/>
+    <ellipse cx="256" cy="56" rx="20" ry="6" fill="#1e293b"/>
+    <!-- Reflective Band 1 (Top) -->
+    <polygon points="200,160 312,160 326,220 186,220" fill="url(#whiteReflect)"/>
+    <!-- Reflective Band 2 (Bottom) -->
+    <polygon points="172,270 340,270 358,340 154,340" fill="url(#whiteReflect)"/>
+  </g>
+</svg>

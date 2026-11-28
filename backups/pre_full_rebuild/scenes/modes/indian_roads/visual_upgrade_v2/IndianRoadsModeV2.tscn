@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://j9roadsv2001"]
+
+[ext_resource type="Script" path="res://scripts/modes/indian_roads/IndianRoadsControllerV2.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/core/FollowCamera.gd" id="2_camera"]
+[ext_resource type="Texture2D" path="res://assets/indian_roads/visual_upgrade_v2/indian_sky_tropical.png" id="3_sky"]
+[ext_resource type="Texture2D" path="res://assets/indian_roads/visual_upgrade_v2/indian_parallax_tamil_nadu_coast.png" id="4_coast"]
+
+[node name="IndianRoadsModeV2" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="SkyLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.02, 0)
+motion_mirroring = Vector2(1920, 0)
+
+[node name="SkySprite" type="Sprite2D" parent="ParallaxBackground/SkyLayer"]
+position = Vector2(960, 360)
+texture = ExtResource("3_sky")
+
+[node name="PlainsLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.12, 0)
+motion_mirroring = Vector2(1920, 0)
+
+[node name="PlainsSprite" type="Sprite2D" parent="ParallaxBackground/PlainsLayer"]
+position = Vector2(960, 360)
+texture = ExtResource("4_coast")
+
+[node name="WorldContainer" type="Node2D" parent="."]
+
+[node name="TerrainSlot" type="Node2D" parent="WorldContainer"]
+
+[node name="VehicleSlot" type="Node2D" parent="WorldContainer"]
+
+[node name="FollowCamera" type="Camera2D" parent="."]
+position = Vector2(640, 360)
+zoom = Vector2(0.9, 0.9)
+process_callback = 0
+position_smoothing_enabled = true
+position_smoothing_speed = 6.0
+script = ExtResource("2_camera")
+
+[node name="UILayer" type="CanvasLayer" parent="."]

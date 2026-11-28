@@ -1,0 +1,224 @@
+[gd_scene format=3 uid="uid://g6indiancompl01"]
+
+[ext_resource type="Script" path="res://scripts/modes/indian_roads/RouteCompleteScreen.gd" id="1_script"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future.ttf" id="2_font_future"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future_Narrow.ttf" id="3_font_narrow"]
+[ext_resource type="FontFile" path="res://assets/fonts/Boxy-Bold.ttf" id="4_font_boxy"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud/coin_hud/coin_icon.png" id="5_coin"]
+[ext_resource type="Texture2D" path="res://assets/indian_roads/indian_finish_arch.png" id="6_arch"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_overlay"]
+bg_color = Color(0.04, 0.06, 0.1, 0.88)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.1, 0.14, 0.22, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.85, 0.2, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_gold"]
+bg_color = Color(0.85, 0.65, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.9, 0.4, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_blue"]
+bg_color = Color(0.18, 0.32, 0.52, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.6, 0.9, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="RouteCompleteScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="DimOverlay" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_overlay")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(580, 440)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 24
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ArchIcon" type="TextureRect" parent="CenterContainer/PanelContainer/Margin/VBox"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+texture = ExtResource("6_arch")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/PanelContainer/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+text = "DESTINATION REACHED!"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="CenterContainer/PanelContainer/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 0.9)
+text = "You successfully completed the Tamil Nadu Highway!"
+horizontal_alignment = 1
+
+[node name="StatsGrid" type="GridContainer" parent="CenterContainer/PanelContainer/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="DistTag" type="Label" parent="CenterContainer/PanelContainer/Margin/VBox/StatsGrid"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 0.8)
+text = "Total Distance:"
+
+[node name="DistanceValue" type="Label" parent="CenterContainer/PanelContainer/Margin/VBox/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font_boxy")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "1800m"
+
+[node name="CpTag" type="Label" parent="CenterContainer/PanelContainer/Margin/VBox/StatsGrid"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 0.8)
+text = "Checkpoints Cleared:"
+
+[node name="CheckpointsValue" type="Label" parent="CenterContainer/PanelContainer/Margin/VBox/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font_boxy")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.3, 0.9, 0.5, 1)
+text = "2 / 2"
+
+[node name="TimeTag" type="Label" parent="CenterContainer/PanelContainer/Margin/VBox/StatsGrid"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 0.8)
+text = "Driving Time:"
+
+[node name="TimeValue" type="Label" parent="CenterContainer/PanelContainer/Margin/VBox/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font_boxy")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "42.5s"
+
+[node name="CoinsTag" type="Label" parent="CenterContainer/PanelContainer/Margin/VBox/StatsGrid"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 0.8)
+text = "Coins Reward:"
+
+[node name="CoinsHBox" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/VBox/StatsGrid"]
+layout_mode = 2
+
+[node name="CoinIcon" type="TextureRect" parent="CenterContainer/PanelContainer/Margin/VBox/StatsGrid/CoinsHBox"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+texture = ExtResource("5_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinsValue" type="Label" parent="CenterContainer/PanelContainer/Margin/VBox/StatsGrid/CoinsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font_boxy")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+text = "+500"
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ReplayButton" type="Button" parent="CenterContainer/PanelContainer/Margin/VBox/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_gold")
+text = "REPLAY"
+
+[node name="StateSelButton" type="Button" parent="CenterContainer/PanelContainer/Margin/VBox/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_blue")
+text = "STATES"
+
+[node name="MenuButton" type="Button" parent="CenterContainer/PanelContainer/Margin/VBox/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_blue")
+text = "MAIN MENU"

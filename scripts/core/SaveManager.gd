@@ -15,11 +15,22 @@ const DEFAULT_SAVE_DATA: Dictionary = {
 	"music_volume": 1.0,
 	"selected_vehicle_id": "blue_flame_truck",
 	"survival_difficulty": 0,
+	"unlocked_vehicles": ["blue_flame_truck"],
+	"unlocked_routes": ["tamil_nadu", "goa", "kerala", "rajasthan", "gujarat", "telangana"],
+	"completed_routes": [],
+	"discovered_landmarks": [],
 	"upgrades": {
 		"engine": 1,
 		"tires": 1,
 		"suspension": 1,
-		"fuel_tank": 1
+		"fuel_tank": 1,
+		"nitro": 1
+	},
+	"vehicle_upgrades": {
+		"blue_flame_truck": {"engine": 1, "tires": 1, "suspension": 1, "fuel_tank": 1, "nitro": 1},
+		"orc_racer": {"engine": 1, "tires": 1, "suspension": 1, "fuel_tank": 1, "nitro": 1},
+		"trophy_truck": {"engine": 1, "tires": 1, "suspension": 1, "fuel_tank": 1, "nitro": 1},
+		"dune_buggy": {"engine": 1, "tires": 1, "suspension": 1, "fuel_tank": 1, "nitro": 1}
 	}
 }
 
@@ -53,6 +64,18 @@ static func load_save() -> Dictionary:
 	var merged := DEFAULT_SAVE_DATA.duplicate(true)
 	for key in json_data.keys():
 		merged[key] = json_data[key]
+
+	# Safe Migration: Ensure all 6 Version 1.0 routes are present in unlocked_routes without altering player progression
+	var unlocked_list: Array = merged.get("unlocked_routes", [])
+	var default_routes: Array = DEFAULT_SAVE_DATA["unlocked_routes"]
+	var migrated: bool = false
+	for r_id in default_routes:
+		if not (r_id in unlocked_list):
+			unlocked_list.append(r_id)
+			migrated = true
+	merged["unlocked_routes"] = unlocked_list
+	if migrated:
+		save_game(merged)
 		
 	return merged
 
@@ -149,3 +172,127 @@ static func reset_save() -> bool:
 		if dir:
 			dir.remove(path.get_file())
 	return save_game(DEFAULT_SAVE_DATA.duplicate(true))
+
+# --- PROGRESSION & UNLOCK EXTENSIONS ---
+
+static func is_vehicle_unlocked(vehicle_id: String) -> bool:
+	if vehicle_id == "blue_flame_truck":
+		return true
+	var data := load_save()
+	var list: Array = data.get("unlocked_vehicles", [])
+	return vehicle_id in list
+
+static func unlock_vehicle(vehicle_id: String) -> bool:
+	var data := load_save()
+	var list: Array = data.get("unlocked_vehicles", [])
+	if not (vehicle_id in list):
+		list.append(vehicle_id)
+		data["unlocked_vehicles"] = list
+		return save_game(data)
+	return true
+
+static func add_coins(amount: int) -> bool:
+	if amount <= 0:
+		return true
+	var data := load_save()
+	data["total_coins"] = int(data.get("total_coins", 0)) + amount
+	return save_game(data)
+
+static func spend_coins(amount: int) -> bool:
+	if amount <= 0:
+		return true
+	var data := load_save()
+	var current: int = int(data.get("total_coins", 0))
+	if current >= amount:
+		data["total_coins"] = current - amount
+		return save_game(data)
+	return false
+
+static func get_upgrade_level(vehicle_id: String, stat_key: String) -> int:
+	var data := load_save()
+	var v_upgrades: Dictionary = data.get("vehicle_upgrades", {})
+	if v_upgrades.has(vehicle_id):
+		var stats: Dictionary = v_upgrades[vehicle_id]
+		return int(stats.get(stat_key, 1))
+	var common: Dictionary = data.get("upgrades", {})
+	return int(common.get(stat_key, 1))
+
+static func upgrade_vehicle_stat(vehicle_id: String, stat_key: String) -> bool:
+	var current_lvl := get_upgrade_level(vehicle_id, stat_key)
+	if current_lvl >= 5:
+		return false
+	var cost := VehicleRegistry.get_upgrade_cost(current_lvl)
+	if not spend_coins(cost):
+		return false
+	var data := load_save()
+	if not data.has("vehicle_upgrades"):
+		data["vehicle_upgrades"] = {}
+	if not data["vehicle_upgrades"].has(vehicle_id):
+		data["vehicle_upgrades"][vehicle_id] = {"engine": 1, "tires": 1, "suspension": 1, "fuel_tank": 1, "nitro": 1}
+	data["vehicle_upgrades"][vehicle_id][stat_key] = current_lvl + 1
+	# Also update common fallback
+	if not data.has("upgrades"):
+		data["upgrades"] = {}
+	data["upgrades"][stat_key] = current_lvl + 1
+	return save_game(data)
+
+static func is_route_unlocked(state_id: String) -> bool:
+	var data := load_save()
+	var list: Array = data.get("unlocked_routes", DEFAULT_SAVE_DATA["unlocked_routes"])
+	return state_id in list
+
+static func unlock_route(state_id: String) -> bool:
+	var data := load_save()
+	var list: Array = data.get("unlocked_routes", DEFAULT_SAVE_DATA["unlocked_routes"])
+	if not (state_id in list):
+		list.append(state_id)
+		data["unlocked_routes"] = list
+		return save_game(data)
+	return true
+
+static func mark_route_completed(state_id: String) -> bool:
+	var data := load_save()
+	var routes: Array = data.get("completed_routes", [])
+	if not (state_id in routes):
+		routes.append(state_id)
+		data["completed_routes"] = routes
+		return save_game(data)
+	return true
+
+static func is_route_completed(state_id: String) -> bool:
+	var data := load_save()
+	var routes: Array = data.get("completed_routes", [])
+	return state_id in routes
+
+static func mark_landmark_discovered(landmark_id: String) -> bool:
+	var data := load_save()
+	var landmarks: Array = data.get("discovered_landmarks", [])
+	if not (landmark_id in landmarks):
+		landmarks.append(landmark_id)
+		data["discovered_landmarks"] = landmarks
+		return save_game(data)
+	return true
+
+static func is_landmark_discovered(landmark_id: String) -> bool:
+	var data := load_save()
+	var landmarks: Array = data.get("discovered_landmarks", [])
+	return landmark_id in landmarks
+
+static func get_sound_volume() -> float:
+	var data := load_save()
+	return float(data.get("sound_volume", 1.0))
+
+static func set_sound_volume(vol: float) -> bool:
+	var data := load_save()
+	data["sound_volume"] = clampf(vol, 0.0, 1.0)
+	return save_game(data)
+
+static func get_music_volume() -> float:
+	var data := load_save()
+	return float(data.get("music_volume", 1.0))
+
+static func set_music_volume(vol: float) -> bool:
+	var data := load_save()
+	data["music_volume"] = clampf(vol, 0.0, 1.0)
+	return save_game(data)
+

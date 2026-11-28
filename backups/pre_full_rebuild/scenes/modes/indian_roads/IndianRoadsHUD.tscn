@@ -1,0 +1,424 @@
+[gd_scene format=3 uid="uid://f5indianhud01"]
+
+[ext_resource type="Script" path="res://scripts/modes/indian_roads/IndianRoadsHUD.gd" id="1_script"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future.ttf" id="2_font_future"]
+[ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future_Narrow.ttf" id="3_font_narrow"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud/coin_hud/coin_icon.png" id="4_coin"]
+[ext_resource type="Texture2D" path="res://assets/ui/buttons/button_pause.png" id="5_pause"]
+[ext_resource type="Texture2D" path="res://assets/ui/buttons/button_pause_pressed.png" id="6_pause_p"]
+[ext_resource type="Texture2D" path="res://assets/ui/controls/accelerator_pedal_normal.png" id="7_gas"]
+[ext_resource type="Texture2D" path="res://assets/ui/controls/accelerator_pedal_pressed.png" id="8_gas_p"]
+[ext_resource type="Texture2D" path="res://assets/ui/controls/brake_pedal_normal.png" id="9_brake"]
+[ext_resource type="Texture2D" path="res://assets/ui/controls/brake_pedal_pressed.png" id="10_brake_p"]
+[ext_resource type="Texture2D" path="res://assets/ui/controls/nitro_btn_normal.png" id="11_nitro"]
+[ext_resource type="Texture2D" path="res://assets/ui/controls/nitro_btn_pressed.png" id="12_nitro_p"]
+[ext_resource type="Texture2D" path="res://assets/ui/buttons/button_map.png" id="13_map_btn"]
+[ext_resource type="Texture2D" path="res://assets/ui/buttons/button_map_pressed.png" id="14_map_btn_p"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_top"]
+bg_color = Color(0.08, 0.12, 0.18, 0.85)
+border_width_bottom = 2
+border_color = Color(0.3, 0.7, 0.9, 0.6)
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
+bg_color = Color(0.12, 0.16, 0.22, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
+bg_color = Color(0.2, 0.85, 0.45, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fuel_fill"]
+bg_color = Color(0.95, 0.65, 0.15, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nitro_fill"]
+bg_color = Color(0.15, 0.85, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toast"]
+bg_color = Color(0.10, 0.14, 0.22, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.2, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bottom_info"]
+bg_color = Color(0.07, 0.11, 0.17, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.82, 0.22, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+
+[node name="IndianRoadsHUD" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="TopBar" type="PanelContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 85.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_top")
+
+[node name="Margin" type="MarginContainer" parent="TopBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 8
+
+[node name="HBox" type="HBoxContainer" parent="TopBar/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="RouteInfoVBox" type="VBoxContainer" parent="TopBar/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RouteTitleLabel" type="Label" parent="TopBar/Margin/HBox/RouteInfoVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+text = "TAMIL NADU: KANYAKUMARI → CHENNAI"
+
+[node name="RouteProgressBar" type="ProgressBar" parent="TopBar/Margin/HBox/RouteInfoVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
+max_value = 1800.0
+show_percentage = false
+
+[node name="MetricsHBox" type="HBoxContainer" parent="TopBar/Margin/HBox/RouteInfoVBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="DistanceLabel" type="Label" parent="TopBar/Margin/HBox/RouteInfoVBox/MetricsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 0.9)
+text = "DIST: 0m / 1800m"
+
+[node name="NextWaypointLabel" type="Label" parent="TopBar/Margin/HBox/RouteInfoVBox/MetricsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 0.9)
+text = "NEXT: THIRUVALLUVAR STATUE (350m)"
+
+[node name="CoinsHBox" type="HBoxContainer" parent="TopBar/Margin/HBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="CoinIcon" type="TextureRect" parent="TopBar/Margin/HBox/CoinsHBox"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+texture = ExtResource("4_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinsLabel" type="Label" parent="TopBar/Margin/HBox/CoinsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+text = "0"
+
+[node name="GaugesVBox" type="VBoxContainer" parent="TopBar/Margin/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="FuelHBox" type="HBoxContainer" parent="TopBar/Margin/HBox/GaugesVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FuelLabel" type="Label" parent="TopBar/Margin/HBox/GaugesVBox/FuelHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+text = "FUEL: 100%"
+
+[node name="FuelBar" type="ProgressBar" parent="TopBar/Margin/HBox/GaugesVBox/FuelHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(75, 8)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_fuel_fill")
+value = 100.0
+show_percentage = false
+
+[node name="NitroHBox" type="HBoxContainer" parent="TopBar/Margin/HBox/GaugesVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="NitroLabel" type="Label" parent="TopBar/Margin/HBox/GaugesVBox/NitroHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.2, 0.9, 1, 1)
+text = "NITRO: 100%"
+
+[node name="NitroBar" type="ProgressBar" parent="TopBar/Margin/HBox/GaugesVBox/NitroHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(75, 8)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_nitro_fill")
+value = 100.0
+show_percentage = false
+
+[node name="MapButton" type="Button" parent="TopBar/Margin/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+icon = ExtResource("13_map_btn")
+flat = true
+expand_icon = true
+
+[node name="PauseButton" type="Button" parent="TopBar/Margin/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+icon = ExtResource("5_pause")
+flat = true
+expand_icon = true
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 95.0
+offset_bottom = 175.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="ToastPanel" type="PanelContainer" parent="CenterContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 60)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_toast")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/ToastPanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="ToastLabel" type="Label" parent="CenterContainer/ToastPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+text = "★ LANDMARK REACHED: MEENAKSHI TEMPLE"
+horizontal_alignment = 1
+
+[node name="ToastSubLabel" type="Label" parent="CenterContainer/ToastPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 0.9)
+text = "+100 Coins Reward"
+horizontal_alignment = 1
+
+[node name="BottomContainer" type="CenterContainer" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -205.0
+offset_bottom = -25.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="LandmarkInfoPanel" type="PanelContainer" parent="BottomContainer"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(580, 160)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bottom_info")
+
+[node name="Margin" type="MarginContainer" parent="BottomContainer/LandmarkInfoPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="BottomContainer/LandmarkInfoPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="HeaderHBox" type="HBoxContainer" parent="BottomContainer/LandmarkInfoPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="InfoCategoryLabel" type="Label" parent="BottomContainer/LandmarkInfoPanel/Margin/VBox/HeaderHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 11
+text = "★ FAMOUS PLACE — TAMIL NADU"
+
+[node name="Spacer" type="Control" parent="BottomContainer/LandmarkInfoPanel/Margin/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InfoCloseButton" type="Button" parent="BottomContainer/LandmarkInfoPanel/Margin/VBox/HeaderHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(24, 22)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.75)
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 13
+flat = true
+text = "✕"
+
+[node name="InfoTitleLabel" type="Label" parent="BottomContainer/LandmarkInfoPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font_future")
+theme_override_font_sizes/font_size = 14
+text = "THIRUVALLUVAR STATUE"
+
+[node name="InfoLocationLabel" type="Label" parent="BottomContainer/LandmarkInfoPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.85, 1, 0.95)
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 11
+text = "Location: Kanyakumari, Tamil Nadu"
+
+[node name="HSeparator" type="HSeparator" parent="BottomContainer/LandmarkInfoPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="InfoDescriptionLabel" type="Label" parent="BottomContainer/LandmarkInfoPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.94, 0.98, 0.95)
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 11
+text = "A monumental 133-ft carved granite colossus honouring ancient philosopher Valluvar."
+autowrap_mode = 2
+
+[node name="InfoWhyFamousLabel" type="Label" parent="BottomContainer/LandmarkInfoPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.5, 0.92)
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 10
+text = "Why famous: Represents the 133 chapters of the Tirukkural, embodying virtue, wealth, and love."
+autowrap_mode = 2
+
+[node name="TouchControls" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="NitroButton" type="TouchScreenButton" parent="TouchControls"]
+unique_name_in_owner = true
+position = Vector2(50, 460)
+texture_normal = ExtResource("11_nitro")
+texture_pressed = ExtResource("12_nitro_p")
+action = "nitro"
+visibility_mode = 0
+
+[node name="NitroHint" type="Label" parent="TouchControls"]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 436.0
+offset_right = 150.0
+offset_bottom = 456.0
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 0.75)
+text = "[SPACE] BOOST"
+horizontal_alignment = 1
+
+[node name="BrakeButton" type="TouchScreenButton" parent="TouchControls"]
+unique_name_in_owner = true
+position = Vector2(40, 560)
+scale = Vector2(0.9, 0.9)
+texture_normal = ExtResource("9_brake")
+texture_pressed = ExtResource("10_brake_p")
+action = "brake_reverse"
+visibility_mode = 0
+
+[node name="BrakeHint" type="Label" parent="TouchControls"]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 675.0
+offset_right = 150.0
+offset_bottom = 695.0
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+text = "[A / ←] BRAKE"
+horizontal_alignment = 1
+
+[node name="GasButton" type="TouchScreenButton" parent="TouchControls"]
+unique_name_in_owner = true
+position = Vector2(1110, 560)
+scale = Vector2(0.9, 0.9)
+texture_normal = ExtResource("7_gas")
+texture_pressed = ExtResource("8_gas_p")
+action = "accelerate"
+visibility_mode = 0
+
+[node name="GasHint" type="Label" parent="TouchControls"]
+layout_mode = 0
+offset_left = 1100.0
+offset_top = 675.0
+offset_right = 1220.0
+offset_bottom = 695.0
+theme_override_fonts/font = ExtResource("3_font_narrow")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+text = "[D / →] GAS"
+horizontal_alignment = 1

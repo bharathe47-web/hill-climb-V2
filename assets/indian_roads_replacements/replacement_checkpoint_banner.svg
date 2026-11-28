@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 200" width="1200" height="200">
+  <defs>
+    <filter id="banShadow" x="-3%" y="-5%" width="106%" height="110%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <linearGradient id="banBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <pattern id="banChevron" width="30" height="30" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="15" height="30" fill="#facc15"/>
+      <rect x="15" width="15" height="30" fill="#0f172a"/>
+    </pattern>
+  </defs>
+  <g filter="url(#banShadow)">
+    <!-- Top & Bottom Warning Hazard Strip -->
+    <rect x="10" y="10" width="1180" height="18" fill="url(#banChevron)" rx="4"/>
+    <rect x="10" y="172" width="1180" height="18" fill="url(#banChevron)" rx="4"/>
+    <!-- Main Sign Body -->
+    <rect x="10" y="28" width="1180" height="144" fill="url(#banBg)" stroke="#facc15" stroke-width="4"/>
+    <!-- Emblems & Titles -->
+    <rect x="30" y="46" width="108" height="108" rx="10" fill="#0284c7" stroke="#ffffff" stroke-width="3"/>
+    <text x="84" y="94" font-family="Arial, sans-serif" font-weight="900" font-size="22" fill="#ffffff" text-anchor="middle">NHAI</text>
+    <text x="84" y="124" font-family="Arial, sans-serif" font-weight="800" font-size="16" fill="#facc15" text-anchor="middle">TOLL</text>
+    <rect x="1062" y="46" width="108" height="108" rx="10" fill="#dc2626" stroke="#ffffff" stroke-width="3"/>
+    <text x="1116" y="94" font-family="Arial, sans-serif" font-weight="900" font-size="22" fill="#ffffff" text-anchor="middle">POLICE</text>
+    <text x="1116" y="124" font-family="Arial, sans-serif" font-weight="800" font-size="16" fill="#fef08a" text-anchor="middle">CHECK</text>
+    <!-- Text Headers -->
+    <text x="600" y="82" font-family="Arial, sans-serif" font-weight="900" font-size="38" fill="#facc15" text-anchor="middle" letter-spacing="2">NATIONAL HIGHWAY TOLL PLAZA</text>
+    <text x="600" y="132" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="#ffffff" text-anchor="middle" letter-spacing="1">SLOW DOWN — STOP &amp; VERIFY</text>
+  </g>
+</svg>

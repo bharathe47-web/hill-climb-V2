@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://e4indianterrain01"]
+
+[ext_resource type="Script" path="res://scripts/modes/indian_roads/IndianRoadTerrain.gd" id="1_script"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_road"]
+friction = 1.0
+rough = true
+
+[node name="IndianRoadTerrain" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+collision_mask = 0
+physics_material_override = SubResource("PhysicsMaterial_road")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
+
+[node name="RoadCanvas" type="Node2D" parent="."]
+
+[node name="PropsContainer" type="Node2D" parent="."]
+
+[node name="WaypointsContainer" type="Node2D" parent="."]

@@ -13,7 +13,7 @@ signal return_to_main_menu_requested
 const STATE_PIN_CONFIGS := {
 	"rajasthan": {"pos": Vector2(76, 72), "code": "RJ", "name": "Rajasthan"},
 	"gujarat": {"pos": Vector2(56, 114), "code": "GJ", "name": "Gujarat"},
-	"telangana": {"pos": Vector2(142, 148), "code": "TG", "name": "Telangana"},
+	"telangana": {"pos": Vector2(126, 150), "code": "TG", "name": "Telangana"},
 	"goa": {"pos": Vector2(90, 175), "code": "GA", "name": "Goa"},
 	"kerala": {"pos": Vector2(110, 212), "code": "KL", "name": "Kerala"},
 	"tamil_nadu": {"pos": Vector2(142, 212), "code": "TN", "name": "Tamil Nadu"}
@@ -25,7 +25,7 @@ const REPRESENTATIVE_LANDMARKS := {
 	"kerala": "res://assets/indian_locations/kerala/landmarks/chinese_fishing_nets_vector.png",
 	"rajasthan": "res://assets/indian_locations/rajasthan/landmarks/hawa_mahal_vector.png",
 	"gujarat": "res://assets/indian_locations/gujarat/landmarks/statue_of_unity_vector.png",
-	"telangana": "res://assets/indian_locations/telangana/landmarks/charminar_monument_vector.png"
+	"telangana": "res://assets/indian_locations/telangana/v3/landmarks/charminar.png"
 }
 
 @onready var map_texture_rect: TextureRect = %MapTextureRect
@@ -211,7 +211,10 @@ func _populate_state_cards() -> void:
 		# Subtitle / Route or Lock condition
 		var sub_lbl := Label.new()
 		if r.is_unlocked:
-			sub_lbl.text = "%s → %s" % [r.start_city, r.destination_city]
+			if r.state_id == "telangana":
+				sub_lbl.text = "HYDERABAD CITY EXPLORER"
+			else:
+				sub_lbl.text = "%s → %s" % [r.start_city, r.destination_city]
 			sub_lbl.add_theme_color_override("font_color", Color(0.85, 0.95, 0.9, 0.9))
 		else:
 			var req := RouteRegistry.get_required_state_for(r.state_id)
@@ -274,7 +277,10 @@ func _update_details_panel() -> void:
 
 	if is_instance_valid(state_title_label):
 		if selected_route.is_unlocked:
-			state_title_label.text = "%s: %s → %s" % [selected_route.state_name.to_upper(), selected_route.start_city.to_upper(), selected_route.destination_city.to_upper()]
+			if selected_route.state_id == "telangana":
+				state_title_label.text = "TELANGANA: HYDERABAD CITY EXPLORER"
+			else:
+				state_title_label.text = "%s: %s → %s" % [selected_route.state_name.to_upper(), selected_route.start_city.to_upper(), selected_route.destination_city.to_upper()]
 		else:
 			var req := RouteRegistry.get_required_state_for(selected_route.state_id)
 			state_title_label.text = "🔒 %s (LOCKED: COMPLETE %s FIRST)" % [selected_route.state_name.to_upper(), req.to_upper()]
@@ -285,16 +291,19 @@ func _update_details_panel() -> void:
 			var req := RouteRegistry.get_required_state_for(selected_route.state_id)
 			lock_msg = "\n\n🔒 [LOCKED] Complete %s highway first to unlock this route." % req
 
-		var itinerary_parts: Array[String] = []
-		for wp in selected_route.waypoints:
-			if wp.waypoint_type == WaypointData.WaypointType.START:
-				itinerary_parts.append("🚩 %s (0m)" % wp.title)
-			elif wp.waypoint_type == WaypointData.WaypointType.CHECKPOINT:
-				itinerary_parts.append("📍 %s (%dm)" % [wp.title, int(wp.distance_m)])
-			elif wp.waypoint_type == WaypointData.WaypointType.DESTINATION:
-				itinerary_parts.append("🏁 %s (%dm)" % [wp.title, int(wp.distance_m)])
-
-		var itinerary_str: String = " ➔ ".join(itinerary_parts)
+		var itinerary_str := ""
+		if selected_route.state_id == "telangana":
+			itinerary_str = "CHARMINAR → OLD CITY HERITAGE → HUSSAIN SAGAR → GOLCONDA FORT"
+		else:
+			var itinerary_parts: Array[String] = []
+			for wp in selected_route.waypoints:
+				if wp.waypoint_type == WaypointData.WaypointType.START:
+					itinerary_parts.append("🚩 %s (0m)" % wp.title)
+				elif wp.waypoint_type == WaypointData.WaypointType.CHECKPOINT:
+					itinerary_parts.append("📍 %s (%dm)" % [wp.title, int(wp.distance_m)])
+				elif wp.waypoint_type == WaypointData.WaypointType.DESTINATION:
+					itinerary_parts.append("🏁 %s (%dm)" % [wp.title, int(wp.distance_m)])
+			itinerary_str = " ➔ ".join(itinerary_parts)
 
 		var difficulty_str := "MODERATE"
 		match selected_route.state_id:
@@ -302,17 +311,27 @@ func _update_details_panel() -> void:
 			"kerala": difficulty_str = "CHALLENGING (HILL CURVES)"
 			"rajasthan": difficulty_str = "ENDURANCE (DESERT SPEEDWAY)"
 			"gujarat": difficulty_str = "MODERATE (EXPRESSWAY)"
-			"telangana": difficulty_str = "CHALLENGING (PLATEAU ROLLS)"
+			"telangana": difficulty_str = "CITY EXPLORER / URBAN ADVENTURE"
 			_: difficulty_str = "STANDARD HIGHWAY (NH44)"
 
-		route_desc_label.text = "%s\n\n🛣 ROUTE JOURNEY:\n%s\n\n⚡ DIFFICULTY: %s | 📏 DISTANCE: %dm | 🚩 CHECKPOINTS: %d%s" % [
-			selected_route.description,
-			itinerary_str,
-			difficulty_str,
-			int(selected_route.total_distance_m),
-			selected_route.get_checkpoint_count(),
-			lock_msg
-		]
+		if selected_route.state_id == "telangana":
+			route_desc_label.text = "%s\n\n🛣 ROUTE JOURNEY:\n%s\n🏁 DESTINATION: GOLCONDA FORT, HYDERABAD\n\n⚡ DIFFICULTY: %s | 📏 DISTANCE: %dm | 🚩 CHECKPOINTS: %d%s" % [
+				selected_route.description.to_upper(),
+				itinerary_str,
+				difficulty_str,
+				int(selected_route.total_distance_m),
+				selected_route.get_checkpoint_count(),
+				lock_msg
+			]
+		else:
+			route_desc_label.text = "%s\n\n🛣 ROUTE JOURNEY:\n%s\n\n⚡ DIFFICULTY: %s | 📏 DISTANCE: %dm | 🚩 CHECKPOINTS: %d%s" % [
+				selected_route.description,
+				itinerary_str,
+				difficulty_str,
+				int(selected_route.total_distance_m),
+				selected_route.get_checkpoint_count(),
+				lock_msg
+			]
 
 	if is_instance_valid(map_texture_rect):
 		# Always preserve the India National Tourism Map as the base for the state pins
