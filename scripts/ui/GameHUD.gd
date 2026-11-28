@@ -1,5 +1,4 @@
 extends CanvasLayer
-class_name GameHUD
 
 signal pause_pressed
 signal nitro_pressed

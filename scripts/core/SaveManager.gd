@@ -278,21 +278,3 @@ static func is_landmark_discovered(landmark_id: String) -> bool:
 	var landmarks: Array = data.get("discovered_landmarks", [])
 	return landmark_id in landmarks
 
-static func get_sound_volume() -> float:
-	var data := load_save()
-	return float(data.get("sound_volume", 1.0))
-
-static func set_sound_volume(vol: float) -> bool:
-	var data := load_save()
-	data["sound_volume"] = clampf(vol, 0.0, 1.0)
-	return save_game(data)
-
-static func get_music_volume() -> float:
-	var data := load_save()
-	return float(data.get("music_volume", 1.0))
-
-static func set_music_volume(vol: float) -> bool:
-	var data := load_save()
-	data["music_volume"] = clampf(vol, 0.0, 1.0)
-	return save_game(data)
-

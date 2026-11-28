@@ -1,4 +1,3 @@
-class_name FoodObstacle
 extends Area2D
 
 ## FoodObstacle: Reusable falling food obstacle component for Survival Mode.
