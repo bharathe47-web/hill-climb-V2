@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://main_menu_scene_001"]
+[gd_scene load_steps=32 format=3 uid="uid://main_menu_scene_001"]
 
 [ext_resource type="Script" path="res://scripts/core/MainMenuController.gd" id="1_controller"]
 [ext_resource type="FontFile" path="res://assets/fonts/Kenney_Future.ttf" id="4_font_future"]
@@ -23,6 +23,15 @@
 [ext_resource type="Texture2D" path="res://assets/ui/home_screen/navigation/button_quit_sky_cyan.png" id="33_quit"]
 [ext_resource type="Texture2D" path="res://assets/ui/home_screen/navigation/timber_frame_left.png" id="35_frame_l"]
 [ext_resource type="Texture2D" path="res://assets/ui/home_screen/navigation/timber_frame_right.png" id="36_frame_r"]
+[ext_resource type="Script" path="res://scripts/ui/home/HomeSignChains.gd" id="39_sign_chains"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_crossbar_l"]
+atlas = ExtResource("35_frame_l")
+region = Rect2(10, 14, 830, 66)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_crossbar_r"]
+atlas = ExtResource("36_frame_r")
+region = Rect2(80, 14, 829, 66)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog"]
 bg_color = Color(0.33, 0.18, 0.08, 0.98)
@@ -165,6 +174,33 @@ texture = ExtResource("26_foreground")
 unique_name_in_owner = true
 script = ExtResource("38_wind_controller")
 signboard_paths = Array[NodePath]([NodePath("../IndianRoadsSign"), NodePath("../SurvivalSign"), NodePath("../GarageSign"), NodePath("../EndlessSign")])
+
+[node name="SignChains" type="Control" parent="Stage"]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+script = ExtResource("39_sign_chains")
+
+[node name="CrossbarLeft" type="TextureRect" parent="Stage"]
+layout_mode = 0
+offset_left = 115.0
+offset_top = 632.0
+offset_right = 530.0
+offset_bottom = 665.0
+mouse_filter = 2
+texture = SubResource("AtlasTexture_crossbar_l")
+expand_mode = 1
+
+[node name="CrossbarRight" type="TextureRect" parent="Stage"]
+layout_mode = 0
+offset_left = 1390.0
+offset_top = 632.0
+offset_right = 1804.5
+offset_bottom = 665.0
+mouse_filter = 2
+texture = SubResource("AtlasTexture_crossbar_r")
+expand_mode = 1
 
 [node name="TimberFrameLeft" type="TextureRect" parent="Stage"]
 layout_mode = 0

@@ -69,8 +69,8 @@ const AUDIO_GUSTS: Array[AudioStream] = [
 
 @export_group("Audio")
 @export var enable_audio: bool = true
-@export var ambience_volume_db: float = -4.0
-@export var gust_volume_db: float = -2.0
+@export var ambience_volume_db: float = 2.0
+@export var gust_volume_db: float = 4.0
 
 var current_state: WindState = WindState.IDLE
 var wind_intensity: float = 0.0

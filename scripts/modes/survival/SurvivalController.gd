@@ -283,6 +283,7 @@ func _setup_vehicle() -> void:
 
 	if is_instance_valid(veh):
 		veh.name = "Vehicle"
+		veh.nitro_enabled = false # Survival mode has no nitro (no HUD button, keys ignored)
 		var spawn_surface_y := get_terrain_surface_y(0.0)
 		veh.global_position = Vector2(0.0, spawn_surface_y - 38.0)
 		vehicle_slot.add_child(veh)

@@ -2,13 +2,8 @@ class_name HomeSignboard
 extends TextureButton
 
 ## HomeSignboard: A wooden countryside signboard that doubles as a navigation button.
-## The plank art (label + icon baked in) is the button texture; two iron chains are
-## hanging chains are generated behind it up to the timber frame (or plank) above. The whole board is clickable.
-
-const CHAIN_TEXTURE: Texture2D = preload("res://assets/ui/home_screen/navigation/chain_link.png")
-## Chain anchor columns inside the 352px-wide plank (matches the iron rings in the plank art).
-const CHAIN_X := [45.0, 307.0]
-const CHAIN_WIDTH := 16.0
+## The plank art (label + icon baked in) is the button texture; the two steel
+## hanging chains are drawn by HomeSignChains behind the boards. The whole board is clickable.
 
 ## Y (in the parent's coordinate space) where the hanging chains start (behind a beam or plank above).
 @export var chain_top_y: float = 430.0
@@ -33,7 +28,7 @@ var _wind_angular_vel: float = 0.0
 # Gentle idle sway so the board reads as genuinely hanging from its chains rather than
 # a static, pinned sprite. Small and slow enough to never interfere with the hover/press reads.
 var _idle_time: float = 0.0
-@export var idle_sway_degrees: float = 1.4
+@export var idle_sway_degrees: float = 0.0
 @export var idle_sway_speed: float = 0.8
 
 func _ready() -> void:
@@ -46,7 +41,6 @@ func _ready() -> void:
 	var hinge_y := minf(chain_top_y - position.y + 8.0, 6.0)
 	pivot_offset = Vector2(size.x * 0.5, hinge_y)
 	_idle_time = randf() * TAU
-	_build_chains()
 	if coming_soon:
 		modulate = Color(0.72, 0.72, 0.72, 1.0)
 		_build_coming_soon_tag()
@@ -115,20 +109,6 @@ func shake() -> void:
 	_tween = create_tween()
 	for dx in [-6.0, 6.0, -4.0, 4.0, 0.0]:
 		_tween.tween_property(self, "position:x", _base_pos_x + dx, 0.04)
-
-func _build_chains() -> void:
-	var top := chain_top_y - position.y
-	var length := maxf(8.0, -top + 12.0)
-	for cx in CHAIN_X:
-		var chain := TextureRect.new()
-		chain.name = "Chain"
-		chain.texture = CHAIN_TEXTURE
-		chain.stretch_mode = TextureRect.STRETCH_TILE
-		chain.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		chain.show_behind_parent = true
-		chain.position = Vector2(cx - CHAIN_WIDTH * 0.5, top)
-		chain.size = Vector2(CHAIN_WIDTH, length)
-		add_child(chain)
 
 func _build_coming_soon_tag() -> void:
 	var tag := Label.new()
